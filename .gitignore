@@ -1,0 +1,184 @@
+# =========================
+# .NET / C# Build outputs
+# =========================
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# =========================
+# Visual Studio / Rider
+# =========================
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# User-specific files
+*.userprefs
+
+# Mono auto generated files
+mono_crash.*
+
+# =========================
+# NuGet
+# =========================
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.fragment.lock.json
+
+# =========================
+# .NET Core / SDK
+# =========================
+global.json
+*.dotCover
+*.DotSettings.user
+
+# =========================
+# Rider specific
+# =========================
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/contentModel.xml
+.idea/**/modules.xml
+.idea/**/cmake.xml
+.idea/**/.idea.*.dir
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/httpRequests
+.idea/**/caches/
+.idea/**/indexLayout.xml
+*.sln.iml
+
+# =========================
+# Test Results
+# =========================
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+TestResult.xml
+nunit-*.xml
+*.trx
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coveragexml
+
+# =========================
+# Code Coverage
+# =========================
+*.coverage
+*.coveragexml
+coverage/
+coveragereport/
+
+# =========================
+# Build Tools
+# =========================
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# =========================
+# Publish output
+# =========================
+publish/
+PublishOutput/
+out/
+
+# =========================
+# ASP.NET
+# =========================
+ScaffoldingReadMe.txt
+
+# =========================
+# Docker
+# =========================
+**/docker-compose*.override.yml
+
+# =========================
+# Application Settings
+# =========================
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+*.local.json
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+nlog-*.log
+
+# =========================
+# OS Generated Files
+# =========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# =========================
+# Certificates
+# =========================
+*.pfx
+*.cer
+*.pem
+*.key
+
+# =========================
+# Environment files
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Kafka / MassTransit
+# =========================
+kafka-logs/
+zookeeper-data/
+
+# =========================
+# Database files
+# =========================
+*.mdf
+*.ldf
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# Backup files
+# =========================
+*~
+*.bak
+*.swp
+*.tmp
+
