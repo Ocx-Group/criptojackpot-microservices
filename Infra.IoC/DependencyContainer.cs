@@ -7,32 +7,63 @@ namespace CryptoJackpot.Infra.IoC;
 
 public static class DependencyContainer
 {
-    public static void RegisterServices(IServiceCollection services, IConfiguration configuration,
-        Action<IBusRegistrationConfigurator>? massTransitConfig = null)
+    /// <summary>
+    /// Registers shared infrastructure services (EventBus, MassTransit).
+    /// For microservices that DON'T need Kafka (simple setup).
+    /// </summary>
+    public static void RegisterServices(
+        IServiceCollection services, 
+        IConfiguration configuration)
     {
         // Domain Bus
         services.AddTransient<IEventBus, Bus.MassTransitBus>();
 
-        // MassTransit Base Config
+        // MassTransit with In-Memory bus only
         services.AddMassTransit(x =>
         {
-            // Permitir configuración extra desde cada microservicio (ej. Consumers)
-            massTransitConfig?.Invoke(x);
+            x.UsingInMemory((context, cfg) =>
+            {
+                cfg.ConfigureEndpoints(context);
+            });
+        });
+    }
 
-            // Bus de control en memoria
+    /// <summary>
+    /// Registers shared infrastructure services (EventBus, MassTransit, Kafka).
+    /// For microservices that need Kafka consumers/producers.
+    /// </summary>
+    /// <param name="services">Service collection</param>
+    /// <param name="configuration">App configuration</param>
+    /// <param name="configureKafka">Configure Kafka Rider (consumers, topics, producers)</param>
+    public static void RegisterServicesWithKafka(
+        IServiceCollection services, 
+        IConfiguration configuration,
+        Action<IRiderRegistrationConfigurator> configureKafka)
+    {
+        // Domain Bus
+        services.AddTransient<IEventBus, Bus.MassTransitBus>();
+
+        var kafkaHost = configuration["Kafka:Host"] ?? "localhost:9092";
+
+        // MassTransit with Kafka
+        services.AddMassTransit(x =>
+        {
+            // In-memory bus for internal messaging
             x.UsingInMemory((context, cfg) =>
             {
                 cfg.ConfigureEndpoints(context);
             });
 
-            // Configuración de Kafka
+            // Kafka Rider
             x.AddRider(rider =>
             {
-                // Aquí registramos los Productores/Consumidores de Kafka
-                // pero la configuración del Host es común.
+                // Let each microservice configure its consumers/producers/topics
+                configureKafka(rider);
+
+                // Configure Kafka host
                 rider.UsingKafka((context, k) =>
                 {
-                    k.Host(configuration["Kafka:Host"] ?? "localhost:9092");
+                    k.Host(kafkaHost);
                 });
             });
         });

@@ -1,5 +1,4 @@
 using CryptoJackpot.Notification.Application.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace CryptoJackpot.Notification.Api.Providers;
 

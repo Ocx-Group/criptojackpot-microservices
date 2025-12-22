@@ -1,5 +1,5 @@
+using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Notification.Application.Commands;
-using CryptoJackpot.Notification.Application.Events;
 using MassTransit;
 using MediatR;
 

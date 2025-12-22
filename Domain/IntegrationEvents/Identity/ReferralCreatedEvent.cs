@@ -1,7 +1,11 @@
 using CryptoJackpot.Domain.Core.Events;
 
-namespace CryptoJackpot.Notification.Application.Events;
+namespace CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 
+/// <summary>
+/// Integration event published when a referral is created.
+/// Consumed by: Notification microservice
+/// </summary>
 public class ReferralCreatedEvent : Event
 {
     public string ReferrerEmail { get; set; } = null!;
