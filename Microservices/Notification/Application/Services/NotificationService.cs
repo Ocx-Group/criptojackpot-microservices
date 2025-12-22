@@ -1,5 +1,5 @@
+using CryptoJackpot.Domain.Core.Responses;
 using CryptoJackpot.Notification.Application.Commands;
-using CryptoJackpot.Notification.Application.DTOs;
 using CryptoJackpot.Notification.Application.Interfaces;
 using MediatR;
 

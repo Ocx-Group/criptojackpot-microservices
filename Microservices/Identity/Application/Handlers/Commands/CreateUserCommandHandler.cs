@@ -1,3 +1,4 @@
+using CryptoJackpot.Domain.Core.Responses;
 using CryptoJackpot.Domain.Core.Bus;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Identity.Application.Commands;
@@ -124,4 +125,3 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
         }
     }
 }
-

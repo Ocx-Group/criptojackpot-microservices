@@ -1,6 +1,6 @@
+using CryptoJackpot.Domain.Core.Responses;
 using CryptoJackpot.Notification.Application.Commands;
 using CryptoJackpot.Notification.Application.Constants;
-using CryptoJackpot.Notification.Application.DTOs;
 using CryptoJackpot.Notification.Application.Interfaces;
 using CryptoJackpot.Notification.Domain.Interfaces;
 using CryptoJackpot.Notification.Domain.Models;
@@ -34,7 +34,7 @@ public class SendPasswordResetHandler : IRequestHandler<SendPasswordResetCommand
         if (template == null)
         {
             _logger.LogError("Template not found: {TemplateName}", TemplateNames.PasswordReset);
-            return ResultResponse<bool>.Failure($"Template not found: {TemplateNames.PasswordReset}");
+            return ResultResponse<bool>.Failure(ErrorType.NotFound, $"Template not found: {TemplateNames.PasswordReset}");
         }
 
         var fullName = $"{request.Name} {request.LastName}";
@@ -60,7 +60,7 @@ public class SendPasswordResetHandler : IRequestHandler<SendPasswordResetCommand
         if (!success)
         {
             _logger.LogWarning("Failed to send password reset email to {Email}", request.Email);
-            return ResultResponse<bool>.Failure("Failed to send email");
+            return ResultResponse<bool>.Failure(ErrorType.InternalServerError, "Failed to send email");
         }
 
         _logger.LogInformation("Password reset email sent successfully to {Email}", request.Email);

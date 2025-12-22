@@ -1,4 +1,4 @@
-using CryptoJackpot.Notification.Application.DTOs;
+using CryptoJackpot.Domain.Core.Responses;
 
 namespace CryptoJackpot.Notification.Application.Interfaces;
 

@@ -1,7 +1,7 @@
+using CryptoJackpot.Domain.Core.Responses;
 using CryptoJackpot.Domain.Core.Bus;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Identity.Application.Commands;
-using CryptoJackpot.Identity.Application.DTOs;
 using CryptoJackpot.Identity.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;

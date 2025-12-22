@@ -1,4 +1,4 @@
-namespace CryptoJackpot.Identity.Application.DTOs;
+namespace CryptoJackpot.Domain.Core.Responses;
 
 public enum ErrorType
 {

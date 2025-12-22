@@ -1,4 +1,4 @@
-using CryptoJackpot.Identity.Application.DTOs;
+using CryptoJackpot.Domain.Core.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CryptoJackpot.Identity.Api.Extensions;

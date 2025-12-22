@@ -1,4 +1,5 @@
 using CryptoJackpot.Identity.Application.DTOs;
+using CryptoJackpot.Domain.Core.Responses;
 
 namespace CryptoJackpot.Identity.Application.Interfaces;
 

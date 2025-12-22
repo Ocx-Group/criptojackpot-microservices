@@ -1,7 +1,7 @@
+using CryptoJackpot.Domain.Core.Responses;
 using CryptoJackpot.Notification.Application.Commands;
 using CryptoJackpot.Notification.Application.Configuration;
 using CryptoJackpot.Notification.Application.Constants;
-using CryptoJackpot.Notification.Application.DTOs;
 using CryptoJackpot.Notification.Application.Interfaces;
 using CryptoJackpot.Notification.Domain.Interfaces;
 using CryptoJackpot.Notification.Domain.Models;
@@ -39,7 +39,7 @@ public class SendReferralNotificationHandler : IRequestHandler<SendReferralNotif
         if (template == null)
         {
             _logger.LogError("Template not found: {TemplateName}", TemplateNames.ReferralNotification);
-            return ResultResponse<bool>.Failure($"Template not found: {TemplateNames.ReferralNotification}");
+            return ResultResponse<bool>.Failure(ErrorType.NotFound, $"Template not found: {TemplateNames.ReferralNotification}");
         }
 
         var referrerFullName = $"{request.ReferrerName} {request.ReferrerLastName}";
@@ -70,7 +70,7 @@ public class SendReferralNotificationHandler : IRequestHandler<SendReferralNotif
         if (!success)
         {
             _logger.LogWarning("Failed to send referral notification to {Email}", request.ReferrerEmail);
-            return ResultResponse<bool>.Failure("Failed to send referral notification");
+            return ResultResponse<bool>.Failure(ErrorType.InternalServerError, "Failed to send referral notification");
         }
 
         _logger.LogInformation("Referral notification sent successfully to {Email}", request.ReferrerEmail);
