@@ -5,11 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CryptoJackpot.Identity.Application;
 
-public static class IdentityApplicationExtensions
+public static class DependencyInjection
 {
     public static IServiceCollection AddIdentityApplication(this IServiceCollection services)
     {
-        // MediatR - register all handlers from Application assembly
+        // MediatR
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AuthenticateCommandHandler).Assembly));
 
         // Application Services
@@ -20,4 +20,3 @@ public static class IdentityApplicationExtensions
         return services;
     }
 }
-

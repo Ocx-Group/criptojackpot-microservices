@@ -1,5 +1,4 @@
 ﻿using CryptoJackpot.Domain.Core.Bus;
-using CryptoJackpot.Infra.Bus;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,10 +7,11 @@ namespace CryptoJackpot.Infra.IoC;
 
 public static class DependencyContainer
 {
-    public static void RegisterServices(IServiceCollection services, IConfiguration configuration, Action<IBusRegistrationConfigurator>? massTransitConfig = null)
+    public static void RegisterServices(IServiceCollection services, IConfiguration configuration,
+        Action<IBusRegistrationConfigurator>? massTransitConfig = null)
     {
         // Domain Bus
-        services.AddTransient<IEventBus, CryptoJackpot.Infra.Bus.MassTransitBus>();
+        services.AddTransient<IEventBus, Bus.MassTransitBus>();
 
         // MassTransit Base Config
         services.AddMassTransit(x =>
@@ -19,7 +19,7 @@ public static class DependencyContainer
             // Permitir configuración extra desde cada microservicio (ej. Consumers)
             massTransitConfig?.Invoke(x);
 
-            // Bus de control en memoria (necesario para orquestar los Riders)
+            // Bus de control en memoria
             x.UsingInMemory((context, cfg) =>
             {
                 cfg.ConfigureEndpoints(context);
@@ -28,8 +28,7 @@ public static class DependencyContainer
             // Configuración de Kafka
             x.AddRider(rider =>
             {
-                // Aquí registraremos los Productores/Consumidores de Kafka
-                // Cada microservicio puede agregar los suyos mediante extensiones si fuera necesario,
+                // Aquí registramos los Productores/Consumidores de Kafka
                 // pero la configuración del Host es común.
                 rider.UsingKafka((context, k) =>
                 {
