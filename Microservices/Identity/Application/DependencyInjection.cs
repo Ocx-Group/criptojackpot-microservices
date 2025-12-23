@@ -6,8 +6,10 @@ using CryptoJackpot.Identity.Application.Handlers.Commands;
 using CryptoJackpot.Identity.Application.Interfaces;
 using CryptoJackpot.Identity.Application.Services;
 using CryptoJackpot.Identity.Data;
+using CryptoJackpot.Identity.Data.Configuration;
 using CryptoJackpot.Identity.Data.Context;
 using CryptoJackpot.Identity.Data.Repositories;
+using CryptoJackpot.Identity.Data.Services;
 using CryptoJackpot.Identity.Domain.Interfaces;
 using CryptoJackpot.Infra.IoC;
 using MassTransit;
@@ -41,6 +43,7 @@ public static class DependencyInjection
     private static void AddConfiguration(IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<JwtConfig>(configuration.GetSection("JwtSettings"));
+        services.Configure<DigitalOceanSettings>(configuration.GetSection("DigitalOcean"));
     }
 
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
@@ -154,6 +157,9 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<IIdentityEventPublisher, IdentityEventPublisher>();
         services.AddScoped<IReferralService, ReferralService>();
+        
+        // Infrastructure Services
+        services.AddScoped<IStorageService, DigitalOceanStorageService>();
     }
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)

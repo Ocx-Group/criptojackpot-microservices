@@ -1,6 +1,8 @@
 using CryptoJackpot.Identity.Api.Extensions;
+using CryptoJackpot.Identity.Application.Commands;
 using CryptoJackpot.Identity.Application.Interfaces;
 using CryptoJackpot.Identity.Application.Requests;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +13,12 @@ namespace CryptoJackpot.Identity.Api.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IMediator _mediator;
 
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, IMediator mediator)
     {
         _userService = userService;
+        _mediator = mediator;
     }
 
     [AllowAnonymous]
@@ -73,6 +77,40 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GenerateSecurityCode(long userId)
     {
         var result = await _userService.GenerateNewSecurityCodeAsync(userId);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Generates a presigned URL for uploading a profile image
+    /// </summary>
+    [HttpPost("{userId:long}/image/upload-url")]
+    public async Task<IActionResult> GenerateUploadUrl(long userId, [FromBody] GenerateUploadUrlRequest request)
+    {
+        var command = new GenerateUploadUrlCommand
+        {
+            UserId = userId,
+            FileName = request.FileName,
+            ContentType = request.ContentType,
+            ExpirationMinutes = request.ExpirationMinutes
+        };
+        
+        var result = await _mediator.Send(command);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Updates the user's profile image after upload is complete
+    /// </summary>
+    [HttpPut("{userId:long}/image")]
+    public async Task<IActionResult> UpdateImage(long userId, [FromBody] UpdateUserImageRequest request)
+    {
+        var command = new UpdateUserImageCommand
+        {
+            UserId = userId,
+            StorageKey = request.StorageKey
+        };
+        
+        var result = await _mediator.Send(command);
         return result.ToActionResult();
     }
 }

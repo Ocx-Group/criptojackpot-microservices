@@ -10,10 +10,14 @@ namespace CryptoJackpot.Identity.Application.Handlers.Queries;
 public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, ResultResponse<UserDto?>>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IStorageService _storageService;
 
-    public GetUserByIdQueryHandler(IUserRepository userRepository)
+    public GetUserByIdQueryHandler(
+        IUserRepository userRepository,
+        IStorageService storageService)
     {
         _userRepository = userRepository;
+        _storageService = storageService;
     }
 
     public async Task<ResultResponse<UserDto?>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
@@ -23,6 +27,12 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, ResultR
         if (user is null)
             return ResultResponse<UserDto?>.Failure(ErrorType.NotFound, "User not found");
 
-        return ResultResponse<UserDto?>.Ok(user.ToDto());
+        var userDto = user.ToDto();
+        
+        // Generate presigned URL for image if exists
+        if (!string.IsNullOrEmpty(userDto.ImagePath))
+            userDto.ImagePath = _storageService.GetPresignedUrl(userDto.ImagePath);
+
+        return ResultResponse<UserDto?>.Ok(userDto);
     }
 }
