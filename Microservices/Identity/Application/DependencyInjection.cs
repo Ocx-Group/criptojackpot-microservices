@@ -1,4 +1,5 @@
 using System.Text;
+using CryptoJackpot.Domain.Core.Constants;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Identity.Application.Configuration;
 using CryptoJackpot.Identity.Application.Handlers.Commands;
@@ -164,10 +165,10 @@ public static class DependencyInjection
             configureRider: rider =>
             {
                 // Register producers for events that Identity publishes
-                rider.AddProducer<UserRegisteredEvent>("user-registered");
-                rider.AddProducer<PasswordResetRequestedEvent>("password-reset-requested");
-                rider.AddProducer<ReferralCreatedEvent>("referral-created");
-                rider.AddProducer<UserLoggedInEvent>("user-logged-in");
+                rider.AddProducer<UserRegisteredEvent>(KafkaTopics.UserRegistered);
+                rider.AddProducer<PasswordResetRequestedEvent>(KafkaTopics.PasswordResetRequested);
+                rider.AddProducer<ReferralCreatedEvent>(KafkaTopics.ReferralCreated);
+                rider.AddProducer<UserLoggedInEvent>(KafkaTopics.UserLoggedIn);
             });
     }
 }

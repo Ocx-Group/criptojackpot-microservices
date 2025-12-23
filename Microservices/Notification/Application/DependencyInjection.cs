@@ -1,3 +1,4 @@
+using CryptoJackpot.Domain.Core.Constants;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Notification.Application.Configuration;
@@ -112,21 +113,21 @@ public static class DependencyInjection
             },
             configureKafkaEndpoints: (context, kafka) =>
             {
-                // Configure topic endpoints
-                kafka.TopicEndpoint<UserRegisteredEvent>("user-registered", "notification-group", e =>
-                {
-                    e.ConfigureConsumer<UserRegisteredConsumer>(context);
-                });
+                // Configure topic endpoints using shared constants
+                kafka.TopicEndpoint<UserRegisteredEvent>(
+                    KafkaTopics.UserRegistered, 
+                    KafkaTopics.NotificationGroup, 
+                    e => e.ConfigureConsumer<UserRegisteredConsumer>(context));
 
-                kafka.TopicEndpoint<PasswordResetRequestedEvent>("password-reset-requested", "notification-group", e =>
-                {
-                    e.ConfigureConsumer<PasswordResetRequestedConsumer>(context);
-                });
+                kafka.TopicEndpoint<PasswordResetRequestedEvent>(
+                    KafkaTopics.PasswordResetRequested, 
+                    KafkaTopics.NotificationGroup, 
+                    e => e.ConfigureConsumer<PasswordResetRequestedConsumer>(context));
 
-                kafka.TopicEndpoint<ReferralCreatedEvent>("referral-created", "notification-group", e =>
-                {
-                    e.ConfigureConsumer<ReferralCreatedConsumer>(context);
-                });
+                kafka.TopicEndpoint<ReferralCreatedEvent>(
+                    KafkaTopics.ReferralCreated, 
+                    KafkaTopics.NotificationGroup, 
+                    e => e.ConfigureConsumer<ReferralCreatedConsumer>(context));
             });
     }
 }

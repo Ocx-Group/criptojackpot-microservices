@@ -1,6 +1,8 @@
+using CryptoJackpot.Domain.Core.Models;
+
 namespace CryptoJackpot.Notification.Domain.Models;
 
-public class NotificationLog
+public class NotificationLog : BaseEntity
 {
     public long Id { get; set; }
     public string Type { get; set; } = null!;

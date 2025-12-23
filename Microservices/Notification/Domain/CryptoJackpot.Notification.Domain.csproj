@@ -4,4 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Domain\CryptoJackpot.Domain.Core.csproj" />
+  </ItemGroup>
 </Project>

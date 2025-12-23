@@ -1,4 +1,4 @@
-namespace CryptoJackpot.Identity.Application.DTOs;
+namespace CryptoJackpot.Identity.Application.Requests;
 
 public class AuthenticateRequest
 {

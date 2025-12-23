@@ -3,6 +3,7 @@ using CryptoJackpot.Identity.Application.Commands;
 using CryptoJackpot.Identity.Application.DTOs;
 using CryptoJackpot.Identity.Application.Interfaces;
 using CryptoJackpot.Identity.Application.Queries;
+using CryptoJackpot.Identity.Application.Requests;
 using MediatR;
 
 namespace CryptoJackpot.Identity.Application.Services;

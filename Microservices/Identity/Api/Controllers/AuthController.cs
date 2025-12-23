@@ -1,6 +1,6 @@
 using CryptoJackpot.Identity.Api.Extensions;
-using CryptoJackpot.Identity.Application.DTOs;
 using CryptoJackpot.Identity.Application.Interfaces;
+using CryptoJackpot.Identity.Application.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

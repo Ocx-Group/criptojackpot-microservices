@@ -1,8 +1,10 @@
 ﻿namespace CryptoJackpot.Identity.Domain.Models;
 
-public class BaseEntity
+/// <summary>
+/// Identity-specific base entity.
+/// Inherits from shared BaseEntity in Domain.Core.
+/// </summary>
+public class BaseEntity : CryptoJackpot.Domain.Core.Models.BaseEntity
 {
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-    public DateTime? DeletedAt { get; set; }
+    // Identity-specific properties can be added here
 }
