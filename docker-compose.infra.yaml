@@ -37,15 +37,16 @@ services:
       - --node-id
       - '0'
       - --kafka-addr
-      - PLAINTEXT://0.0.0.0:9092
+      - INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:29092
       - --advertise-kafka-addr
-      - PLAINTEXT://localhost:9092
+      - INTERNAL://redpanda:9092,EXTERNAL://localhost:29092
       - --pandaproxy-addr
       - PLAINTEXT://0.0.0.0:8082
       - --advertise-pandaproxy-addr
       - PLAINTEXT://localhost:8082
     ports:
-      - "9092:9092"
+      - "9092:9092"     # Internal (Docker containers)
+      - "29092:29092"   # External (IDE/localhost)
       - "8082:8082"
       - "9644:9644"
     volumes:

@@ -1,4 +1,4 @@
-﻿using CryptoJackpot.Domain.Core.Bus;
+﻿﻿using CryptoJackpot.Domain.Core.Bus;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -28,7 +28,7 @@ public static class DependencyContainer
         // Domain Bus
         services.AddTransient<IEventBus, Bus.MassTransitBus>();
 
-        var kafkaHost = configuration["Kafka:Host"] ?? "localhost:9092";
+        var kafkaHost = configuration["Kafka:BootstrapServers"] ?? "localhost:9092";
 
         // MassTransit with Kafka and Outbox
         services.AddMassTransit(x =>
@@ -85,7 +85,7 @@ public static class DependencyContainer
         // Domain Bus
         services.AddTransient<IEventBus, Bus.MassTransitBus>();
 
-        var kafkaHost = configuration["Kafka:Host"] ?? "localhost:9092";
+        var kafkaHost = configuration["Kafka:BootstrapServers"] ?? "localhost:9092";
 
         // MassTransit with Kafka
         services.AddMassTransit(x =>
