@@ -25,4 +25,7 @@ app.UseAuthorization();
 app.MapHealthChecks("/health");
 app.MapControllers();
 
+// Apply migrations in development
+await app.ApplyMigrationsAsync();
+
 await app.RunAsync();

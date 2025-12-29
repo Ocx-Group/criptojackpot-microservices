@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -38,6 +40,38 @@ public static class DependencyInjection
         AddInfrastructure(services, configuration);
 
         return services;
+    }
+
+    /// <summary>
+    /// Applies pending database migrations only in development environment.
+    /// </summary>
+    public static async Task ApplyMigrationsAsync(this IHost host)
+    {
+        using var scope = host.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<IdentityDbContext>>();
+
+        try
+        {
+            var context = services.GetRequiredService<IdentityDbContext>();
+            var env = services.GetRequiredService<IHostEnvironment>();
+
+            if (env.IsDevelopment())
+            {
+                var pendingMigrations = (await context.Database.GetPendingMigrationsAsync()).ToList();
+                if (pendingMigrations.Count > 0)
+                {
+                    logger.LogInformation("Applying {Count} pending migrations for IdentityDbContext...", pendingMigrations.Count);
+                    await context.Database.MigrateAsync();
+                    logger.LogInformation("Migrations applied successfully.");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while applying database migrations.");
+            throw new InvalidOperationException("Failed to apply migrations for IdentityDbContext in development.", ex);
+        }
     }
 
     private static void AddConfiguration(IServiceCollection services, IConfiguration configuration)
