@@ -2,6 +2,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 
+# Crear usuario non-root
+RUN addgroup --gid 1000 appgroup && \
+    adduser --uid 1000 --gid 1000 --disabled-password --gecos "" appuser
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
@@ -30,5 +34,10 @@ RUN dotnet publish "CryptoJackpot.Identity.Api.csproj" -c Release -o /app/publis
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+# Cambiar ownership y usuario
+RUN chown -R appuser:appgroup /app
+USER appuser
+
 ENTRYPOINT ["dotnet", "CryptoJackpot.Identity.Api.dll"]
 

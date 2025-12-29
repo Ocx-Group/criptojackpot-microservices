@@ -17,9 +17,20 @@ spec:
         app: lottery-api
         tier: api
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: lottery-api
           image: registry.digitalocean.com/cryptojackpot/lottery-api:v1.0.0
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 80
           envFrom:

@@ -53,8 +53,10 @@ kubectl apply -f k8s/microservices/wallet/
 kubectl apply -f k8s/microservices/winner/
 kubectl apply -f k8s/microservices/notification/
 
-# Ingress
-kubectl apply -f k8s/ingress/
+# Ingress namespace y configuración
+kubectl apply -f k8s/ingress/namespace.yaml
+kubectl label namespace ingress-nginx name=ingress-nginx --overwrite 2>/dev/null || true
+kubectl apply -f k8s/ingress/ingress.yaml
 
 echo "✅ Despliegue completado!"
 echo ""
