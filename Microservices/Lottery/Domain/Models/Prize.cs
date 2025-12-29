@@ -19,10 +19,10 @@ public class Prize : BaseEntity
     public bool IsDeliverable { get; set; }
     public bool IsDigital { get; set; }
 
-    // Ganador cuando se determine
+    // Referencia al ticket ganador (microservicio Order)
     public Guid? WinnerTicketId { get; set; }
     public DateTime? ClaimedAt { get; set; }
 
+    // Navegación interna del microservicio Lottery
     public virtual LotteryDraw Lottery { get; set; } = null!;
-    public virtual Guid? WinnerTicket { get; set; }
 }

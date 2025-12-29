@@ -1,6 +1,7 @@
-﻿namespace CryptoJackpot.Lottery.Domain.Models;
+﻿using CryptoJackpot.Domain.Core.Models;
+namespace CryptoJackpot.Lottery.Domain.Models;
 
-public class PrizeImage
+public class PrizeImage : BaseEntity
 {
     public Guid Id { get; set; }
     public Guid PrizeId { get; set; }
