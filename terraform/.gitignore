@@ -1,0 +1,29 @@
+﻿# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Variables con secretos
+terraform.tfvars
+*.auto.tfvars
+
+# Archivos generados
+deploy-config.json
+k8s/base/secrets.generated.yaml
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI config
+.terraformrc
+terraform.rc
+
