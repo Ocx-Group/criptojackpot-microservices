@@ -35,7 +35,44 @@ Write-Host "☸️ Aplicando configuraciones de Kubernetes..." -ForegroundColor 
 # Aplicar en orden
 kubectl apply -f k8s/base/namespace.yaml
 kubectl apply -f k8s/base/configmap.yaml
-kubectl apply -f k8s/base/secrets.yaml
+
+# -----------------------------------------------------------------------------
+# Secrets - Lógica inteligente para detectar gestión de Terraform
+# -----------------------------------------------------------------------------
+$configPath = "deploy-config.json"
+if (Test-Path $configPath) {
+    # Terraform gestiona la infraestructura - los secrets ya están en el cluster
+    Write-Host "🔐 Detectada configuración de Terraform..." -ForegroundColor Green
+    Write-Host "   Los secrets ya fueron aplicados por Terraform al cluster" -ForegroundColor Gray
+    
+    # Aplicar archivo generado como actualización si existe
+    if (Test-Path "k8s/base/secrets.generated.yaml") {
+        Write-Host "   Aplicando secrets.generated.yaml como actualización..." -ForegroundColor Gray
+        kubectl apply -f k8s/base/secrets.generated.yaml
+    }
+}
+elseif (Test-Path "k8s/base/secrets.generated.yaml") {
+    # Usar archivo generado por Terraform
+    Write-Host "🔐 Usando secrets.generated.yaml (generado por Terraform)..." -ForegroundColor Green
+    kubectl apply -f k8s/base/secrets.generated.yaml
+}
+elseif (Test-Path "k8s/base/secrets.yaml") {
+    # Fallback a archivo manual - advertir al usuario
+    Write-Host "⚠️ ADVERTENCIA: Usando secrets.yaml (puede contener placeholders)" -ForegroundColor Red
+    Write-Host "   Asegúrate de haber editado k8s/base/secrets.yaml con valores reales!" -ForegroundColor Red
+    Write-Host "   Para gestión automatizada, ejecuta: cd terraform && terraform apply" -ForegroundColor Yellow
+    $confirm = Read-Host "   ¿Continuar? (s/N)"
+    if ($confirm -ne "s" -and $confirm -ne "S") {
+        Write-Host "   Cancelado. Edita secrets.yaml o ejecuta Terraform primero." -ForegroundColor Yellow
+        exit 1
+    }
+    kubectl apply -f k8s/base/secrets.yaml
+}
+else {
+    Write-Host "❌ ERROR: No se encontró ningún archivo de secrets" -ForegroundColor Red
+    Write-Host "   Ejecuta 'terraform apply' o crea k8s/base/secrets.yaml manualmente" -ForegroundColor Red
+    exit 1
+}
 
 # NetworkPolicies (seguridad de red)
 kubectl apply -f k8s/network/

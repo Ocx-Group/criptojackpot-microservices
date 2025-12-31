@@ -33,7 +33,41 @@ echo "☸️ Aplicando configuraciones de Kubernetes..."
 # Aplicar en orden
 kubectl apply -f k8s/base/namespace.yaml
 kubectl apply -f k8s/base/configmap.yaml
-kubectl apply -f k8s/base/secrets.yaml
+
+# -----------------------------------------------------------------------------
+# Secrets - Lógica inteligente para detectar gestión de Terraform
+# -----------------------------------------------------------------------------
+CONFIG_PATH="deploy-config.json"
+if [ -f "$CONFIG_PATH" ]; then
+    # Terraform gestiona la infraestructura - los secrets ya están en el cluster
+    echo "🔐 Detectada configuración de Terraform..."
+    echo "   Los secrets ya fueron aplicados por Terraform al cluster"
+    
+    # Aplicar archivo generado como actualización si existe
+    if [ -f "k8s/base/secrets.generated.yaml" ]; then
+        echo "   Aplicando secrets.generated.yaml como actualización..."
+        kubectl apply -f k8s/base/secrets.generated.yaml
+    fi
+elif [ -f "k8s/base/secrets.generated.yaml" ]; then
+    # Usar archivo generado por Terraform
+    echo "🔐 Usando secrets.generated.yaml (generado por Terraform)..."
+    kubectl apply -f k8s/base/secrets.generated.yaml
+elif [ -f "k8s/base/secrets.yaml" ]; then
+    # Fallback a archivo manual - advertir al usuario
+    echo "⚠️ ADVERTENCIA: Usando secrets.yaml (puede contener placeholders)"
+    echo "   Asegúrate de haber editado k8s/base/secrets.yaml con valores reales!"
+    echo "   Para gestión automatizada, ejecuta: cd terraform && terraform apply"
+    read -p "   ¿Continuar? (s/N) " confirm
+    if [ "$confirm" != "s" ] && [ "$confirm" != "S" ]; then
+        echo "   Cancelado. Edita secrets.yaml o ejecuta Terraform primero."
+        exit 1
+    fi
+    kubectl apply -f k8s/base/secrets.yaml
+else
+    echo "❌ ERROR: No se encontró ningún archivo de secrets"
+    echo "   Ejecuta 'terraform apply' o crea k8s/base/secrets.yaml manualmente"
+    exit 1
+fi
 
 # NetworkPolicies (seguridad de red)
 kubectl apply -f k8s/network/
