@@ -1,4 +1,5 @@
 using System.Text;
+using Asp.Versioning;
 using CryptoJackpot.Lottery.Application.Configuration;
 using CryptoJackpot.Lottery.Data.Context;
 using CryptoJackpot.Infra.IoC;
@@ -146,6 +147,18 @@ public static class DependencyInjection
     private static void AddControllers(IServiceCollection services)
     {
         services.AddControllers();
+
+        services.AddApiVersioning(options =>
+        {
+            options.DefaultApiVersion = new ApiVersion(1, 0);
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.ReportApiVersions = true;
+            options.ApiVersionReader = new UrlSegmentApiVersionReader();
+        }).AddApiExplorer(options =>
+        {
+            options.GroupNameFormat = "'v'VVV";
+            options.SubstituteApiVersionInUrl = true;
+        });
 
         services.AddCors(options =>
         {
