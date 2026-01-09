@@ -1,3 +1,4 @@
+using CryptoJackpot.Lottery.Domain.Models;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -5,8 +6,12 @@ namespace CryptoJackpot.Lottery.Data.Context;
 
 public class LotteryDbContext : DbContext
 {
-    public LotteryDbContext(DbContextOptions<LotteryDbContext> options) : base(options)
-    {
+    public DbSet<LotteryDraw> LotteryDraws { get; set; }
+    public DbSet<LotteryNumber> LotteryNumbers { get; set; }
+    public DbSet<Prize> Prizes { get; set; }
+    public DbSet<PrizeImage> PrizeImages { get; set; }
+
+    public LotteryDbContext(DbContextOptions<LotteryDbContext> options) : base(options) {
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

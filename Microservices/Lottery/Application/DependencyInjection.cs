@@ -1,6 +1,8 @@
 using System.Text;
 using CryptoJackpot.Lottery.Data.Context;
 using CryptoJackpot.Infra.IoC;
+using CryptoJackpot.Lottery.Data.Repositories;
+using CryptoJackpot.Lottery.Domain.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -32,7 +34,7 @@ public static class DependencyInjection
     /// <summary>
     /// Applies pending database migrations only in development environment.
     /// </summary>
-    public static async Task ApplyMigrationsAsync(this IHost host)
+    public async static Task ApplyMigrationsAsync(this IHost host)
     {
         using var scope = host.Services.CreateScope();
         var services = scope.ServiceProvider;
@@ -157,7 +159,7 @@ public static class DependencyInjection
 
     private static void AddRepositories(IServiceCollection services)
     {
-        // Add repositories here
+        services.AddScoped<ILotteryDrawRepository, LotteryDrawRepository>();
     }
 
     private static void AddApplicationServices(IServiceCollection services)
@@ -172,7 +174,7 @@ public static class DependencyInjection
         DependencyContainer.RegisterServicesWithKafka<LotteryDbContext>(
             services,
             configuration,
-            configureRider: rider =>
+            configureRider: _ =>
             {
                 // Register producers/consumers for events here
             });
