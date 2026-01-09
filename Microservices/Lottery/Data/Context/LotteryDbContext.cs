@@ -18,6 +18,9 @@ public class LotteryDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Apply entity configurations from assembly
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(LotteryDbContext).Assembly);
+
         // MassTransit Outbox configuration with snake_case naming
         modelBuilder.AddInboxStateEntity(x => x.ToTable("inbox_state"));
         modelBuilder.AddOutboxMessageEntity(x => x.ToTable("outbox_message"));
