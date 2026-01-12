@@ -1,4 +1,5 @@
 using CryptoJackpot.Domain.Core.Responses;
+using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Domain.Core.Responses.Successes;
 using FluentResults;
 using Microsoft.AspNetCore.Http;
@@ -23,6 +24,20 @@ public static class ResultResponseExtensions
                 ApplicationError appError => appError.StatusCode,
                 _ => StatusCodes.Status500InternalServerError
             };
+
+            // Handle validation errors with detailed field errors
+            if (error is ValidationError validationError)
+            {
+                return new ObjectResult(new
+                {
+                    success = false,
+                    message = error.Message,
+                    errors = validationError.Errors
+                })
+                {
+                    StatusCode = statusCode
+                };
+            }
 
             return new ObjectResult(new { success = false, message = error?.Message ?? "An error occurred" })
             {
