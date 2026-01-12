@@ -48,7 +48,7 @@ public class PrizeController : ControllerBase
         return result.ToActionResult();
     }
 
-    [Authorize]
+    // [Authorize]
     [HttpGet("{prizeId:guid}")]
     public async Task<IActionResult> GetPrizeById([FromRoute] Guid prizeId)
     {

@@ -3,8 +3,11 @@ using Asp.Versioning;
 using CryptoJackpot.Lottery.Application.Configuration;
 using CryptoJackpot.Lottery.Data.Context;
 using CryptoJackpot.Infra.IoC;
+using CryptoJackpot.Lottery.Application.Behaviors;
 using CryptoJackpot.Lottery.Data.Repositories;
 using CryptoJackpot.Lottery.Domain.Interfaces;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -184,9 +187,17 @@ public static class DependencyInjection
 
     private static void AddApplicationServices(IServiceCollection services)
     {
+        var assembly = typeof(DependencyInjection).Assembly;
+
         // MediatR
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
-        
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+
+        // Validators
+        services.AddValidatorsFromAssembly(assembly);
+
+        //Behavior
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
         // AutoMapper
         services.AddAutoMapper(typeof(LotteryMappingProfile).Assembly);
     }
