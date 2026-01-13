@@ -24,9 +24,8 @@ namespace CryptoJackpot.Lottery.Infra.IoC;
 public static class IoCExtension
 {
     
-   public static IServiceCollection AddLotteryServices(
-        this IServiceCollection services,
-        IConfiguration configuration)
+   public static void AddLotteryServices(this IServiceCollection services,
+       IConfiguration configuration)
     {
         AddAuthentication(services, configuration);
         AddDatabase(services, configuration);
@@ -35,8 +34,6 @@ public static class IoCExtension
         AddRepositories(services);
         AddApplicationServices(services);
         AddInfrastructure(services, configuration);
-
-        return services;
     }
 
     /// <summary>
