@@ -1,4 +1,4 @@
-using CryptoJackpot.Lottery.Application;
+using CryptoJackpot.Lottery.Infra.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
 

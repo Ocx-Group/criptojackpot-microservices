@@ -1,8 +1,8 @@
-using System.Text;
+﻿using System.Text;
 using Asp.Versioning;
+using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Lottery.Application.Configuration;
 using CryptoJackpot.Lottery.Data.Context;
-using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Lottery.Application.Behaviors;
 using CryptoJackpot.Lottery.Data.Repositories;
 using CryptoJackpot.Lottery.Domain.Interfaces;
@@ -17,12 +17,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
+using CryptoJackpot.Lottery.Application;
 
-namespace CryptoJackpot.Lottery.Application;
+namespace CryptoJackpot.Lottery.Infra.IoC;
 
-public static class DependencyInjection
+public static class IoCExtension
 {
-    public static IServiceCollection AddLotteryServices(
+    
+   public static IServiceCollection AddLotteryServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
@@ -187,7 +189,7 @@ public static class DependencyInjection
 
     private static void AddApplicationServices(IServiceCollection services)
     {
-        var assembly = typeof(DependencyInjection).Assembly;
+        var assembly = typeof(IAssemblyReference).Assembly;
 
         // MediatR
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
