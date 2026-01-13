@@ -1,3 +1,4 @@
+using CryptoJackpot.Domain.Core.Middleware;
 using CryptoJackpot.Identity.Infra.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,9 @@ builder.Services.AddIdentityServices(builder.Configuration);
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
+
+// Global exception handling - must be first in pipeline
+app.UseGlobalExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
