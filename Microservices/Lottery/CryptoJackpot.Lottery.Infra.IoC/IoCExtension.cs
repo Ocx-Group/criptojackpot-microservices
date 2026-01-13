@@ -182,6 +182,7 @@ public static class IoCExtension
     {
         services.AddScoped<ILotteryDrawRepository, LotteryDrawRepository>();
         services.AddScoped<IPrizeRepository, PrizeRepository>();
+        services.AddScoped<ILotteryNumberRepository, LotteryNumberRepository>();
     }
 
     private static void AddApplicationServices(IServiceCollection services)

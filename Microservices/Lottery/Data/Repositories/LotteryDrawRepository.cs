@@ -2,7 +2,6 @@
 using CryptoJackpot.Lottery.Data.Context;
 using CryptoJackpot.Lottery.Domain.Interfaces;
 using CryptoJackpot.Lottery.Domain.Models;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 namespace CryptoJackpot.Lottery.Data.Repositories;
 
