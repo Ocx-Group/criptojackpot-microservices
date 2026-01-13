@@ -32,6 +32,9 @@ public class LotteryMappingProfile : Profile
                     DisplayOrder = index
                 }).ToList()));
 
+        // LotteryNumber mappings
+        CreateMap<LotteryNumber, LotteryNumberDto>();
+
         // Pagination mappings
         CreateMap<PaginationRequest, Pagination>();
         
