@@ -225,3 +225,32 @@ variable "tags" {
   default     = ["cryptojackpot", "microservices", "terraform-managed"]
 }
 
+# -----------------------------------------------------------------------------
+# Cloudflare Configuration
+# -----------------------------------------------------------------------------
+variable "cloudflare_api_token" {
+  description = "Token de API de Cloudflare con permisos de editar DNS"
+  type        = string
+  sensitive   = true
+  default     = "" # Dejar vacío si no se usa Cloudflare
+}
+
+variable "cloudflare_zone_id" {
+  description = "Zone ID del dominio en Cloudflare (ej. cryptojackpot.com)"
+  type        = string
+  sensitive   = true
+  default     = "" # Dejar vacío si no se usa Cloudflare
+}
+
+variable "cloudflare_proxied" {
+  description = "Si es true, activa el proxy de Cloudflare (nube naranja - CDN/WAF)"
+  type        = bool
+  default     = true
+}
+
+variable "enable_cloudflare_dns" {
+  description = "Habilitar la creación automática de registros DNS en Cloudflare"
+  type        = bool
+  default     = false
+}
+

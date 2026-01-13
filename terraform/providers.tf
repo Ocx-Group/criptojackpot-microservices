@@ -24,3 +24,8 @@ provider "helm" {
   }
 }
 
+# Provider Cloudflare para automatización DNS
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
+}
+

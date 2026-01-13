@@ -44,3 +44,16 @@ domain = "api.cryptojackpot.com"
 # Tags
 tags = ["cryptojackpot", "prod", "terraform-managed", "critical"]
 
+# -----------------------------------------------------------------------------
+# Cloudflare Configuration
+# -----------------------------------------------------------------------------
+# Habilitar para automatizar la creación de registros DNS
+enable_cloudflare_dns = false  # Cambiar a true cuando tengas las credenciales
+
+# Las credenciales sensibles se pasan por variable de entorno o directamente:
+# cloudflare_api_token = "tu_token_aqui"  # TF_VAR_cloudflare_api_token
+# cloudflare_zone_id   = "tu_zone_id"     # TF_VAR_cloudflare_zone_id
+
+# Activar proxy en producción para CDN/WAF (Nube Naranja)
+cloudflare_proxied = true
+

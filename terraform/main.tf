@@ -191,3 +191,31 @@ resource "local_file" "deploy_config" {
   filename = "${path.root}/../deploy-config.json"
 }
 
+# -----------------------------------------------------------------------------
+# Cloudflare DNS Automation
+# -----------------------------------------------------------------------------
+
+# Extraemos el subdominio de tu variable "domain" (api.cryptojackpot.com -> api)
+# Asumiendo que tu zona es cryptojackpot.com
+locals {
+  # Si var.domain es "api.cryptojackpot.com", esto extrae "api"
+  # Si var.domain es "dev-api.cryptojackpot.com", esto extrae "dev-api"
+  domain_parts       = split(".", var.domain)
+  domain_name_part   = local.domain_parts[0]
+  is_cloudflare_ready = var.enable_cloudflare_dns && var.cloudflare_api_token != "" && var.cloudflare_zone_id != ""
+}
+
+# Registro DNS tipo A apuntando al Load Balancer de NGINX Ingress
+resource "cloudflare_record" "api_endpoint" {
+  count = local.is_cloudflare_ready && module.ingress.load_balancer_ip != "pending" ? 1 : 0
+
+  zone_id = var.cloudflare_zone_id
+  name    = local.domain_name_part # Ej: "api" o "dev-api"
+  content = module.ingress.load_balancer_ip
+  type    = "A"
+  proxied = var.cloudflare_proxied # True activa el WAF y CDN (Nube Naranja)
+  ttl     = var.cloudflare_proxied ? 1 : 300 # TTL automático si está proxied
+  
+  comment = "Managed by Terraform - ${var.project_name} ${var.environment}"
+}
+

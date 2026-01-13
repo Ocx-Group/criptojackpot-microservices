@@ -1,4 +1,4 @@
-﻿# =============================================================================
+﻿﻿# =============================================================================
 # Development Environment Variables
 # =============================================================================
 
@@ -43,4 +43,17 @@ domain = "dev-api.cryptojackpot.com"
 
 # Tags
 tags = ["cryptojackpot", "dev", "terraform-managed"]
+
+# -----------------------------------------------------------------------------
+# Cloudflare Configuration
+# -----------------------------------------------------------------------------
+# Habilitar para automatizar la creación de registros DNS
+enable_cloudflare_dns = false  # Cambiar a true cuando tengas las credenciales
+
+# Las credenciales sensibles se pasan por variable de entorno o directamente:
+# cloudflare_api_token = "tu_token_aqui"  # TF_VAR_cloudflare_api_token
+# cloudflare_zone_id   = "tu_zone_id"     # TF_VAR_cloudflare_zone_id
+
+# Desactivar proxy para desarrollo (facilita debugging)
+cloudflare_proxied = false
 

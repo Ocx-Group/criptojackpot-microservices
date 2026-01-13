@@ -121,3 +121,21 @@ output "deploy_images_command" {
   value       = "docker build -t ${module.docr.registry_url}/identity-api:v1.0.0 -f Microservices/Identity/Api/Dockerfile . && docker push ${module.docr.registry_url}/identity-api:v1.0.0"
 }
 
+# -----------------------------------------------------------------------------
+# Cloudflare Outputs
+# -----------------------------------------------------------------------------
+output "cloudflare_dns_record" {
+  description = "Registro DNS creado en Cloudflare"
+  value       = local.is_cloudflare_ready && module.ingress.load_balancer_ip != "pending" ? {
+    name    = cloudflare_record.api_endpoint[0].name
+    type    = cloudflare_record.api_endpoint[0].type
+    content = cloudflare_record.api_endpoint[0].content
+    proxied = cloudflare_record.api_endpoint[0].proxied
+  } : null
+}
+
+output "cloudflare_dns_hostname" {
+  description = "Hostname completo del registro DNS"
+  value       = local.is_cloudflare_ready && module.ingress.load_balancer_ip != "pending" ? cloudflare_record.api_endpoint[0].hostname : "Not configured or pending"
+}
+
