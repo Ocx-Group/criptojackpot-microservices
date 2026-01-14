@@ -1,9 +1,10 @@
 using AutoMapper;
+using CryptoJackpot.Domain.Core.Bus;
 using CryptoJackpot.Domain.Core.Extensions;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
 using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Lottery.Application.Commands;
 using CryptoJackpot.Lottery.Application.DTOs;
-using CryptoJackpot.Lottery.Application.Events;
 using CryptoJackpot.Lottery.Application.Utilities;
 using CryptoJackpot.Lottery.Domain.Interfaces;
 using CryptoJackpot.Lottery.Domain.Models;
@@ -18,20 +19,20 @@ public class CreateLotteryDrawCommandHandler : IRequestHandler<CreateLotteryDraw
     private readonly ILotteryDrawRepository _lotteryDrawRepository;
     private readonly IPrizeRepository _prizeRepository;
     private readonly IMapper _mapper;
-    private readonly IMediator _mediator;
+    private readonly IEventBus _eventBus;
     private readonly ILogger<CreateLotteryDrawCommandHandler> _logger;
 
     public CreateLotteryDrawCommandHandler(
         ILotteryDrawRepository lotteryDrawRepository,
         IPrizeRepository prizeRepository,
         IMapper mapper,
-        IMediator mediator,
+        IEventBus eventBus,
         ILogger<CreateLotteryDrawCommandHandler> logger)
     {
         _lotteryDrawRepository = lotteryDrawRepository;
         _prizeRepository = prizeRepository;
         _mapper = mapper;
-        _mediator = mediator;
+        _eventBus = eventBus;
         _logger = logger;
     }
 
@@ -51,17 +52,16 @@ public class CreateLotteryDrawCommandHandler : IRequestHandler<CreateLotteryDraw
                 await _prizeRepository.LinkPrizeToLotteryAsync(request.PrizeId.Value, createdLottery.LotteryGuid);
             }
 
-            // Publish event to generate lottery numbers
-            await _mediator.Publish(new LotteryCreatedEvent
+            // Publish event to message bus for async number generation
+            await _eventBus.Publish(new LotteryCreatedEvent
             {
                 LotteryId = createdLottery.LotteryGuid,
                 MinNumber = createdLottery.MinNumber,
                 MaxNumber = createdLottery.MaxNumber,
-                TotalSeries = createdLottery.TotalSeries,
-                CreatedAt = createdLottery.CreatedAt
-            }, cancellationToken);
+                TotalSeries = createdLottery.TotalSeries
+            });
 
-            _logger.LogInformation("Lottery {LotteryId} created successfully", createdLottery.LotteryGuid);
+            _logger.LogInformation("Lottery {LotteryId} created successfully. Number generation queued.", createdLottery.LotteryGuid);
 
             return ResultExtensions.Created(_mapper.Map<LotteryDrawDto>(createdLottery));
         }

@@ -1,12 +1,17 @@
 ﻿using System.Text;
 using Asp.Versioning;
 using CryptoJackpot.Domain.Core.Behaviors;
+using CryptoJackpot.Domain.Core.Constants;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
 using CryptoJackpot.Infra.IoC;
+using CryptoJackpot.Lottery.Application;
 using CryptoJackpot.Lottery.Application.Configuration;
+using CryptoJackpot.Lottery.Application.Consumers;
 using CryptoJackpot.Lottery.Data.Context;
 using CryptoJackpot.Lottery.Data.Repositories;
 using CryptoJackpot.Lottery.Domain.Interfaces;
 using FluentValidation;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +22,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
-using CryptoJackpot.Lottery.Application;
 
 namespace CryptoJackpot.Lottery.Infra.IoC;
 
@@ -220,9 +224,25 @@ public static class IoCExtension
         DependencyContainer.RegisterServicesWithKafka<LotteryDbContext>(
             services,
             configuration,
-            configureRider: _ =>
+            configureRider: rider =>
             {
-                // Register producers/consumers for events here
+                // Register producer for publishing events
+                rider.AddProducer<LotteryCreatedEvent>(KafkaTopics.LotteryCreated);
+                
+                // Register consumer for processing events
+                rider.AddConsumer<LotteryCreatedConsumer>();
+            },
+            configureKafkaEndpoints: (context, kafka) =>
+            {
+                // Configure consumer endpoint
+                kafka.TopicEndpoint<LotteryCreatedEvent>(
+                    KafkaTopics.LotteryCreated,
+                    KafkaTopics.LotteryGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<LotteryCreatedConsumer>(context);
+                        e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+                    });
             });
     }
 }

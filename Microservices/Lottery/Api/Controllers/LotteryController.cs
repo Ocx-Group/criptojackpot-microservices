@@ -25,7 +25,7 @@ public class LotteryController : ControllerBase
         _mapper = mapper;
     }
 
-    [Authorize]
+    // [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateLottery([FromBody] CreateLotteryDrawRequest request)
     {
