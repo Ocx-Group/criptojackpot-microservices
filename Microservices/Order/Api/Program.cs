@@ -1,4 +1,4 @@
-using CryptoJackpot.Order.Application;
+using CryptoJackpot.Order.Infra.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
 
