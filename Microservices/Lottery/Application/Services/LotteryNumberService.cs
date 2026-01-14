@@ -111,5 +111,73 @@ public class LotteryNumberService : ILotteryNumberService
             Status = n.Status
         }).ToList();
     }
+
+    public async Task<Result<List<NumberReservationDto>>> ReserveNumberByQuantityAsync(
+        Guid lotteryId, 
+        int number, 
+        int quantity, 
+        long userId)
+    {
+        if (quantity <= 0)
+            return Result.Fail<List<NumberReservationDto>>("Quantity must be greater than 0");
+
+        // Get the next N available series for this number, ordered by series ASC
+        var availableNumbers = await _lotteryNumberRepository.GetNextAvailableSeriesAsync(
+            lotteryId, number, quantity);
+
+        if (availableNumbers.Count == 0)
+        {
+            _logger.LogWarning(
+                "Failed to reserve number {Number} in lottery {LotteryId}: no series available",
+                number, lotteryId);
+            
+            return Result.Fail<List<NumberReservationDto>>($"Number {number} is not available in any series");
+        }
+
+        if (availableNumbers.Count < quantity)
+        {
+            _logger.LogWarning(
+                "Insufficient stock for number {Number} in lottery {LotteryId}. Requested: {Requested}, Available: {Available}",
+                number, lotteryId, quantity, availableNumbers.Count);
+            
+            return Result.Fail<List<NumberReservationDto>>(
+                $"Insufficient stock. Requested {quantity} series of number {number}, but only {availableNumbers.Count} available");
+        }
+
+        // Reserve all the numbers
+        var now = DateTime.UtcNow;
+        var expiresAt = now.AddMinutes(ReservationMinutes);
+        var reservations = new List<NumberReservationDto>();
+
+        foreach (var availableNumber in availableNumbers)
+        {
+            availableNumber.Status = NumberStatus.Reserved;
+            availableNumber.ReservationExpiresAt = expiresAt;
+            availableNumber.UpdatedAt = now;
+
+            reservations.Add(new NumberReservationDto
+            {
+                NumberId = availableNumber.Id,
+                LotteryId = availableNumber.LotteryId,
+                Number = availableNumber.Number,
+                Series = availableNumber.Series,
+                ReservationExpiresAt = expiresAt,
+                SecondsRemaining = ReservationMinutes * 60
+            });
+        }
+
+        await _lotteryNumberRepository.UpdateRangeAsync(availableNumbers);
+
+        _logger.LogInformation(
+            "Reserved {Count} series of number {Number} for user {UserId} in lottery {LotteryId}. Series: [{Series}]. Expires at {ExpiresAt}",
+            availableNumbers.Count, 
+            number, 
+            userId, 
+            lotteryId, 
+            string.Join(", ", availableNumbers.Select(n => n.Series)),
+            expiresAt);
+
+        return Result.Ok(reservations);
+    }
 }
 

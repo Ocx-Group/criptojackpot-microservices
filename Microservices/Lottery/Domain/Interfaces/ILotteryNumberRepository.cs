@@ -24,4 +24,15 @@ public interface ILotteryNumberRepository
     Task<List<LotteryNumber>> FindAvailableNumbersAsync(Guid lotteryId, int series, IEnumerable<int> numbers);
     Task<LotteryNumber> UpdateAsync(LotteryNumber lotteryNumber);
     Task UpdateRangeAsync(IEnumerable<LotteryNumber> lotteryNumbers);
+    
+    /// <summary>
+    /// Gets the next N available series for a specific number, ordered by series ASC.
+    /// Used for automatic series assignment when user selects a number.
+    /// </summary>
+    Task<List<LotteryNumber>> GetNextAvailableSeriesAsync(Guid lotteryId, int number, int quantity);
+    
+    /// <summary>
+    /// Gets available series count for a specific number.
+    /// </summary>
+    Task<int> GetAvailableSeriesCountAsync(Guid lotteryId, int number);
 }

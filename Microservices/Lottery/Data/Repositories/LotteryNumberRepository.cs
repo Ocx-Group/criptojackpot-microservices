@@ -409,4 +409,30 @@ public class LotteryNumberRepository : ILotteryNumberRepository
         _context.LotteryNumbers.UpdateRange(enumerable);
         await _context.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// Gets the next N available series for a specific number, ordered by series ASC.
+    /// Used for automatic series assignment when user selects a number.
+    /// </summary>
+    public async Task<List<LotteryNumber>> GetNextAvailableSeriesAsync(Guid lotteryId, int number, int quantity)
+    {
+        return await _context.LotteryNumbers
+            .Where(n => n.LotteryId == lotteryId && 
+                        n.Number == number && 
+                        n.Status == NumberStatus.Available)
+            .OrderBy(n => n.Series)
+            .Take(quantity)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Gets available series count for a specific number.
+    /// </summary>
+    public async Task<int> GetAvailableSeriesCountAsync(Guid lotteryId, int number)
+    {
+        return await _context.LotteryNumbers
+            .CountAsync(n => n.LotteryId == lotteryId && 
+                            n.Number == number && 
+                            n.Status == NumberStatus.Available);
+    }
 }

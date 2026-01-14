@@ -39,9 +39,15 @@ public interface ILotteryHubClient
     Task ReceiveAvailableNumbers(Guid lotteryId, List<AvailableNumberDto> numbers);
 
     /// <summary>
-    /// Confirms a reservation to the requesting client.
+    /// Confirms a single reservation to the requesting client.
     /// </summary>
     Task ReservationConfirmed(NumberReservationDto reservation);
+
+    /// <summary>
+    /// Confirms multiple reservations to the requesting client.
+    /// Used when user reserves multiple series of the same number.
+    /// </summary>
+    Task ReservationsConfirmed(List<NumberReservationDto> reservations);
 
     /// <summary>
     /// Sends an error message to a client.

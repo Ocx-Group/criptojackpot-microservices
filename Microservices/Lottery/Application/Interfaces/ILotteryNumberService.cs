@@ -21,6 +21,17 @@ public interface ILotteryNumberService
     Task<Result<NumberReservationDto>> ReserveNumberAsync(Guid lotteryId, int number, int? series, long userId);
 
     /// <summary>
+    /// Reserves N series of a specific number for a user.
+    /// The system automatically assigns the next available series in order.
+    /// </summary>
+    /// <param name="lotteryId">The lottery ID</param>
+    /// <param name="number">The number to reserve (e.g., 10)</param>
+    /// <param name="quantity">How many series to reserve (e.g., 2 means Serie 1 and Serie 2 if available)</param>
+    /// <param name="userId">The user making the reservation</param>
+    /// <returns>List of reservations with assigned series</returns>
+    Task<Result<List<NumberReservationDto>>> ReserveNumberByQuantityAsync(Guid lotteryId, int number, int quantity, long userId);
+
+    /// <summary>
     /// Gets detailed number status for a lottery.
     /// </summary>
     Task<List<NumberStatusDto>> GetNumberStatusesAsync(Guid lotteryId);

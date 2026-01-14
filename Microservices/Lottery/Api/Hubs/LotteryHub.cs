@@ -1,7 +1,6 @@
 using CryptoJackpot.Lottery.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
 
 namespace CryptoJackpot.Lottery.Api.Hubs;
 
@@ -26,7 +25,7 @@ public class LotteryHub : Hub<ILotteryHubClient>
     /// <summary>
     /// Called when a client connects to the hub.
     /// </summary>
-    public override async Task OnConnectedAsync()
+    public async override Task OnConnectedAsync()
     {
         _logger.LogInformation("Client {ConnectionId} connected to LotteryHub", Context.ConnectionId);
         await base.OnConnectedAsync();
@@ -35,7 +34,7 @@ public class LotteryHub : Hub<ILotteryHubClient>
     /// <summary>
     /// Called when a client disconnects from the hub.
     /// </summary>
-    public override async Task OnDisconnectedAsync(Exception? exception)
+    public async override Task OnDisconnectedAsync(Exception? exception)
     {
         _logger.LogInformation("Client {ConnectionId} disconnected from LotteryHub", Context.ConnectionId);
         await base.OnDisconnectedAsync(exception);
@@ -68,13 +67,14 @@ public class LotteryHub : Hub<ILotteryHubClient>
     }
 
     /// <summary>
-    /// Reserve a number for the current user.
-    /// This will broadcast the reservation to all connected clients.
+    /// Reserve N series of a number for the current user.
+    /// The system automatically assigns the next available series in order.
+    /// Example: User requests number 10 with quantity 2 → System assigns Series 1 and Series 2 (if available)
     /// </summary>
     /// <param name="lotteryId">The lottery ID</param>
-    /// <param name="number">The number to reserve</param>
-    /// <param name="series">The series (optional, if not specified, first available series is used)</param>
-    public async Task ReserveNumber(Guid lotteryId, int number, int? series = null)
+    /// <param name="number">The number to reserve (e.g., 10)</param>
+    /// <param name="quantity">How many series to reserve (default: 1)</param>
+    public async Task ReserveNumber(Guid lotteryId, int number, int quantity = 1)
     {
         var userId = GetUserId();
         if (userId == null)
@@ -83,26 +83,33 @@ public class LotteryHub : Hub<ILotteryHubClient>
             return;
         }
 
-        var result = await _lotteryNumberService.ReserveNumberAsync(lotteryId, number, series, userId.Value);
+        var result = await _lotteryNumberService.ReserveNumberByQuantityAsync(lotteryId, number, quantity, userId.Value);
         
         if (result.IsSuccess)
         {
-            var reservation = result.Value;
-            
-            // Notify all clients in the lottery group
+            var reservations = result.Value;
             var groupName = GetLotteryGroupName(lotteryId);
-            await Clients.Group(groupName).NumberReserved(
-                lotteryId, 
-                reservation.NumberId, 
-                reservation.Number, 
-                reservation.Series);
             
-            // Confirm to the caller
-            await Clients.Caller.ReservationConfirmed(reservation);
+            // Notify all clients in the lottery group about each reserved series
+            foreach (var reservation in reservations)
+            {
+                await Clients.Group(groupName).NumberReserved(
+                    lotteryId, 
+                    reservation.NumberId, 
+                    reservation.Number, 
+                    reservation.Series);
+            }
+            
+            // Confirm all reservations to the caller
+            await Clients.Caller.ReservationsConfirmed(reservations);
             
             _logger.LogInformation(
-                "Number {Number} series {Series} reserved by user {UserId} in lottery {LotteryId}",
-                number, reservation.Series, userId, lotteryId);
+                "User {UserId} reserved {Count} series of number {Number} in lottery {LotteryId}. Series: [{Series}]",
+                userId, 
+                reservations.Count, 
+                number, 
+                lotteryId,
+                string.Join(", ", reservations.Select(r => r.Series)));
         }
         else
         {
