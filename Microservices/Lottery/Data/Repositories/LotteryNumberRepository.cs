@@ -1,4 +1,5 @@
 ﻿using CryptoJackpot.Lottery.Data.Context;
+using CryptoJackpot.Lottery.Domain.Exceptions;
 using CryptoJackpot.Lottery.Domain.Interfaces;
 using CryptoJackpot.Lottery.Domain.Models;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ namespace CryptoJackpot.Lottery.Data.Repositories;
 public class LotteryNumberRepository : ILotteryNumberRepository
 {
     private readonly LotteryDbContext _context;
+    private static readonly Random _random = new();
 
     public LotteryNumberRepository(LotteryDbContext context)
     {
@@ -27,41 +29,219 @@ public class LotteryNumberRepository : ILotteryNumberRepository
             .ToHashSet();
 
     /// <summary>
-    /// Verifica si un número específico está disponible (O(1) en DB)
+    /// Verifica si un número específico está disponible (O(log N) con índice compuesto)
     /// </summary>
     public async Task<bool> IsNumberAvailableAsync(Guid lotteryId, int number, int series)
         => !await _context.LotteryNumbers
             .AnyAsync(x => x.LotteryId == lotteryId && x.Number == number && x.Series == series);
 
     /// <summary>
-    /// Obtiene N números aleatorios disponibles directamente desde la DB
+    /// Verifica disponibilidad de múltiples números en una sola consulta (elimina problema N+1)
+    /// Usa el índice IX_LotteryNumbers_LotteryId_Number_Series para búsqueda O(log N) por número
     /// </summary>
-    public async Task<List<int>> GetRandomAvailableNumbersAsync(Guid lotteryId, int count, int maxNumber, int minNumber = 1)
+    public async Task<List<int>> GetAlreadyReservedNumbersAsync(Guid lotteryId, int series, IEnumerable<int> numbers)
     {
-        var soldNumbers = await _context.LotteryNumbers
-            .Where(x => x.LotteryId == lotteryId)
+        var numbersList = numbers.ToList();
+        
+        return await _context.LotteryNumbers
+            .Where(x => x.LotteryId == lotteryId && 
+                        x.Series == series && 
+                        numbersList.Contains(x.Number))
             .Select(x => x.Number)
             .ToListAsync();
-
-        var soldSet = soldNumbers.ToHashSet();
-
-        // Generar números disponibles en memoria (más rápido que consultar todos)
-        var availableNumbers = Enumerable.Range(minNumber, maxNumber)
-            .Where(n => !soldSet.Contains(n))
-            .OrderBy(_ => Guid.NewGuid()) // Aleatorio
-            .Take(count)
-            .ToList();
-
-        return availableNumbers;
     }
 
     /// <summary>
-    /// Agrega múltiples números de lotería
+    /// Obtiene N números aleatorios disponibles (sin considerar series específicas).
+    /// Útil para sugerir números al usuario antes de seleccionar serie.
+    /// </summary>
+    public async Task<List<int>> GetRandomAvailableNumbersAsync(Guid lotteryId, int count, int maxNumber, int minNumber = 1)
+    {
+        // Optimización: Solo traer los números vendidos, no todos los registros
+        var soldNumbers = await _context.LotteryNumbers
+            .Where(x => x.LotteryId == lotteryId)
+            .Select(x => x.Number)
+            .Distinct()
+            .ToListAsync();
+
+        var soldSet = soldNumbers.ToHashSet();
+        var totalRange = maxNumber - minNumber + 1;
+
+        // Si hay pocos números vendidos, generar disponibles es más eficiente
+        if (soldSet.Count < totalRange * 0.7) // Menos del 70% vendido
+        {
+            return Enumerable.Range(minNumber, totalRange)
+                .Where(n => !soldSet.Contains(n))
+                .OrderBy(_ => _random.Next())
+                .Take(count)
+                .ToList();
+        }
+
+        // Si hay muchos vendidos, usar sampling aleatorio con verificación
+        var available = new List<int>(count);
+        var attempts = 0;
+        var maxAttempts = count * 10;
+
+        while (available.Count < count && attempts < maxAttempts)
+        {
+            var candidate = _random.Next(minNumber, maxNumber + 1);
+            if (!soldSet.Contains(candidate) && !available.Contains(candidate))
+            {
+                available.Add(candidate);
+            }
+            attempts++;
+        }
+
+        return available;
+    }
+
+    /// <summary>
+    /// Obtiene N combinaciones (número, serie) aleatorias disponibles.
+    /// Optimizado para loterías con millones de combinaciones.
+    /// </summary>
+    public async Task<List<(int Number, int Series)>> GetRandomAvailableNumbersWithSeriesAsync(
+        Guid lotteryId, int count, int maxNumber, int totalSeries, int minNumber = 1)
+    {
+        // Estrategia: Para loterías grandes, usar sampling aleatorio con verificación en lote
+        // En lugar de cargar todos los vendidos, verificamos candidatos aleatorios
+        
+        var totalRange = maxNumber - minNumber + 1;
+        var totalCombinations = (long)totalRange * totalSeries;
+        
+        // Obtener cantidad de números vendidos para decidir estrategia
+        var soldCount = await _context.LotteryNumbers
+            .Where(x => x.LotteryId == lotteryId)
+            .CountAsync();
+
+        var percentageSold = (double)soldCount / totalCombinations;
+
+        // Si menos del 50% está vendido, usar sampling aleatorio
+        if (percentageSold < 0.5)
+        {
+            return await GetRandomBySamplingAsync(lotteryId, count, maxNumber, totalSeries, minNumber);
+        }
+
+        // Si más del 50% vendido, cargar vendidos y generar disponibles
+        return await GetRandomFromAvailablePoolAsync(lotteryId, count, maxNumber, totalSeries, minNumber);
+    }
+
+    private async Task<List<(int Number, int Series)>> GetRandomBySamplingAsync(
+        Guid lotteryId, int count, int maxNumber, int totalSeries, int minNumber)
+    {
+        var result = new List<(int Number, int Series)>(count);
+        var maxAttempts = count * 20; // Margen amplio para colisiones
+        var attempts = 0;
+        var batchSize = Math.Min(count * 3, 100); // Verificar en lotes
+
+        var candidates = new HashSet<(int, int)>();
+
+        while (result.Count < count && attempts < maxAttempts)
+        {
+            // Generar lote de candidatos
+            while (candidates.Count < batchSize && attempts < maxAttempts)
+            {
+                var number = _random.Next(minNumber, maxNumber + 1);
+                var series = _random.Next(1, totalSeries + 1);
+                candidates.Add((number, series));
+                attempts++;
+            }
+
+            if (!candidates.Any()) break;
+
+            // Verificar disponibilidad en lote (una sola consulta)
+            var candidatesList = candidates.ToList();
+            var reservedInBatch = await _context.LotteryNumbers
+                .Where(x => x.LotteryId == lotteryId)
+                .Where(x => candidatesList.Any(c => c.Item1 == x.Number && c.Item2 == x.Series))
+                .Select(x => new { x.Number, x.Series })
+                .ToListAsync();
+
+            var reservedSet = reservedInBatch.Select(r => (r.Number, r.Series)).ToHashSet();
+
+            foreach (var candidate in candidatesList)
+            {
+                if (!reservedSet.Contains(candidate) && result.Count < count)
+                {
+                    result.Add(candidate);
+                }
+            }
+
+            candidates.Clear();
+        }
+
+        return result;
+    }
+
+    private async Task<List<(int Number, int Series)>> GetRandomFromAvailablePoolAsync(
+        Guid lotteryId, int count, int maxNumber, int totalSeries, int minNumber)
+    {
+        // Cuando hay muchos vendidos, es mejor obtener los vendidos y excluirlos
+        var soldCombinations = await _context.LotteryNumbers
+            .Where(x => x.LotteryId == lotteryId)
+            .Select(x => new { x.Number, x.Series })
+            .ToListAsync();
+
+        var soldSet = soldCombinations.Select(s => (s.Number, s.Series)).ToHashSet();
+
+        // Generar combinaciones disponibles (esto puede ser costoso para loterías muy grandes)
+        var available = new List<(int Number, int Series)>();
+
+        // Usar un generador lazy para no crear toda la lista en memoria
+        for (var series = 1; series <= totalSeries && available.Count < count * 10; series++)
+        {
+            for (var number = minNumber; number <= maxNumber && available.Count < count * 10; number++)
+            {
+                if (!soldSet.Contains((number, series)))
+                {
+                    available.Add((number, series));
+                }
+            }
+        }
+
+        // Mezclar y tomar los necesarios
+        return available
+            .OrderBy(_ => _random.Next())
+            .Take(count)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Agrega múltiples números de lotería.
+    /// Lanza DuplicateNumberReservationException si hay conflicto de concurrencia.
     /// </summary>
     public async Task AddRangeAsync(IEnumerable<LotteryNumber> lotteryNumbers)
     {
-        await _context.LotteryNumbers.AddRangeAsync(lotteryNumbers);
-        await _context.SaveChangesAsync();
+        var numbers = lotteryNumbers.ToList();
+        await _context.LotteryNumbers.AddRangeAsync(numbers);
+        
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            // Extraer información del contexto para la excepción de dominio
+            var firstNumber = numbers.FirstOrDefault();
+            var lotteryId = firstNumber?.LotteryId ?? Guid.Empty;
+            var ticketId = firstNumber?.TicketId ?? Guid.Empty;
+            
+            throw new DuplicateNumberReservationException(lotteryId, ticketId, ex);
+        }
+    }
+
+    /// <summary>
+    /// Detecta si la excepción es por violación de índice único (concurrencia)
+    /// Soporta PostgreSQL, SQL Server y SQLite
+    /// </summary>
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex)
+    {
+        var message = ex.Message + (ex.InnerException?.Message ?? string.Empty);
+        return message.Contains("23505") || // PostgreSQL unique_violation
+               message.Contains("2601") ||  // SQL Server duplicate key in unique index
+               message.Contains("2627") ||  // SQL Server duplicate key in primary key/unique constraint
+               message.Contains("UNIQUE constraint", StringComparison.OrdinalIgnoreCase) || // SQLite
+               message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase) ||
+               message.Contains("IX_LotteryNumbers_LotteryId_Number_Series", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

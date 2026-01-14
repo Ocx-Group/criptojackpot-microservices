@@ -17,7 +17,7 @@ public class LotteryNumberConfiguration : IEntityTypeConfiguration<LotteryNumber
         builder.Property(e => e.UpdatedAt).IsRequired();
         
         builder.HasIndex(e => new { e.LotteryId, e.Number, e.Series })
-            .HasDatabaseName("IX_LotteryNumbers_LotteryId_Number_Series");
+            .HasDatabaseName("IX_LotteryNumbers_LotteryId_Number_Series").IsUnique();
         
         builder.HasQueryFilter(e => !e.DeletedAt.HasValue);
     }
