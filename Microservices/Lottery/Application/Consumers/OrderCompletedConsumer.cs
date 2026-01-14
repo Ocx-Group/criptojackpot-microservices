@@ -11,6 +11,7 @@ namespace CryptoJackpot.Lottery.Application.Consumers;
 /// <summary>
 /// Consumes OrderCompletedEvent to mark lottery numbers as sold permanently.
 /// Broadcasts the sale via SignalR to all connected clients.
+/// Includes idempotency checks to handle edge cases (e.g., payment arriving after timeout).
 /// </summary>
 public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
 {
@@ -36,17 +37,74 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
             "Received OrderCompletedEvent for Order {OrderId}. Confirming {Count} numbers as sold.",
             message.OrderId, message.LotteryNumberIds.Count);
 
+        // IDEMPOTENCY CHECK: Verify numbers are still in Reserved status before confirming sale
+        // Edge case: Payment arrives at second 301 (after 5 min timeout released the numbers)
+        var numbers = await _lotteryNumberRepository.GetByIdsAsync(message.LotteryNumberIds);
+        
+        if (numbers.Count == 0)
+        {
+            _logger.LogWarning(
+                "Order {OrderId}: No numbers found with the provided IDs. Order may have been processed already or numbers don't exist.",
+                message.OrderId);
+            return;
+        }
+
+        // Check if numbers are already sold (idempotency - duplicate message)
+        var alreadySold = numbers.Where(n => n.Status == NumberStatus.Sold && n.TicketId == message.TicketId).ToList();
+        if (alreadySold.Count == numbers.Count)
+        {
+            _logger.LogInformation(
+                "Order {OrderId}: All numbers already sold to ticket {TicketId}. Duplicate message ignored (idempotent).",
+                message.OrderId, message.TicketId);
+            return;
+        }
+
+        // Check if numbers were released (timeout occurred before payment)
+        var releasedNumbers = numbers.Where(n => n.Status == NumberStatus.Available).ToList();
+        if (releasedNumbers.Any())
+        {
+            _logger.LogError(
+                "Order {OrderId}: {Count} numbers were released before payment confirmation (timeout). " +
+                "Numbers: [{Numbers}]. Payment arrived too late - refund may be required.",
+                message.OrderId, 
+                releasedNumbers.Count,
+                string.Join(", ", releasedNumbers.Select(n => $"{n.Number}-S{n.Series}")));
+            
+            // TODO: Publish a PaymentRefundRequiredEvent for the Order Service to handle
+            return;
+        }
+
+        // Check if numbers are sold to a different ticket (race condition - should not happen with proper locking)
+        var soldToOther = numbers.Where(n => n.Status == NumberStatus.Sold && n.TicketId != message.TicketId).ToList();
+        if (soldToOther.Any())
+        {
+            _logger.LogError(
+                "Order {OrderId}: {Count} numbers were sold to a different ticket. Critical data integrity issue! " +
+                "Numbers: [{Numbers}]",
+                message.OrderId, 
+                soldToOther.Count,
+                string.Join(", ", soldToOther.Select(n => $"{n.Number}-S{n.Series} (Ticket: {n.TicketId})")));
+            return;
+        }
+
+        // Only proceed with numbers that are still Reserved
+        var reservedNumbers = numbers.Where(n => n.Status == NumberStatus.Reserved).ToList();
+        if (reservedNumbers.Count == 0)
+        {
+            _logger.LogWarning(
+                "Order {OrderId}: No numbers in Reserved status to confirm as sold.",
+                message.OrderId);
+            return;
+        }
+
         var success = await _lotteryNumberRepository.ConfirmNumbersSoldAsync(
-            message.LotteryNumberIds, 
+            reservedNumbers.Select(n => n.Id).ToList(), 
             message.TicketId);
 
         if (success)
         {
-            // Get the sold numbers for broadcast
-            var numbers = await _lotteryNumberRepository.GetByIdsAsync(message.LotteryNumberIds);
-            
             // Broadcast via SignalR
-            var soldNumbers = numbers.Select(n => new NumberStatusDto
+            var soldNumbers = reservedNumbers.Select(n => new NumberStatusDto
             {
                 NumberId = n.Id,
                 Number = n.Number,
@@ -63,7 +121,7 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
         else
         {
             _logger.LogError(
-                "Failed to confirm numbers as sold for Order {OrderId}. Numbers may not be in Reserved status.",
+                "Failed to confirm numbers as sold for Order {OrderId}. Database update failed.",
                 message.OrderId);
         }
     }

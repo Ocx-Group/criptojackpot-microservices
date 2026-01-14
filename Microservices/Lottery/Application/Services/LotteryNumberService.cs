@@ -112,16 +112,35 @@ public class LotteryNumberService : ILotteryNumberService
         }).ToList();
     }
 
+    /// <summary>
+    /// Maximum number of series a user can reserve in a single request.
+    /// Prevents abuse where a malicious user could block all numbers.
+    /// </summary>
+    private const int MaxQuantityPerRequest = 10;
+
     public async Task<Result<List<NumberReservationDto>>> ReserveNumberByQuantityAsync(
         Guid lotteryId, 
         int number, 
         int quantity, 
         long userId)
     {
+        // Validation: quantity must be positive
         if (quantity <= 0)
             return Result.Fail<List<NumberReservationDto>>("Quantity must be greater than 0");
 
+        // Validation: prevent abuse by limiting max quantity per request
+        if (quantity > MaxQuantityPerRequest)
+        {
+            _logger.LogWarning(
+                "User {UserId} attempted to reserve {Quantity} series (max allowed: {Max}) for number {Number} in lottery {LotteryId}",
+                userId, quantity, MaxQuantityPerRequest, number, lotteryId);
+            
+            return Result.Fail<List<NumberReservationDto>>(
+                $"Maximum {MaxQuantityPerRequest} series can be reserved per request");
+        }
+
         // Get the next N available series for this number, ordered by series ASC
+        // Uses pessimistic locking (FOR UPDATE SKIP LOCKED) to prevent race conditions
         var availableNumbers = await _lotteryNumberRepository.GetNextAvailableSeriesAsync(
             lotteryId, number, quantity);
 

@@ -412,11 +412,37 @@ public class LotteryNumberRepository : ILotteryNumberRepository
 
     /// <summary>
     /// Gets the next N available series for a specific number, ordered by series ASC.
-    /// Used for automatic series assignment when user selects a number.
+    /// Uses pessimistic locking (FOR UPDATE SKIP LOCKED) to prevent race conditions
+    /// when multiple users try to reserve the same number simultaneously.
     /// </summary>
     public async Task<List<LotteryNumber>> GetNextAvailableSeriesAsync(Guid lotteryId, int number, int quantity)
     {
+        // Use raw SQL with FOR UPDATE SKIP LOCKED to prevent race conditions
+        // SKIP LOCKED ensures that if another transaction has locked a row, we skip it
+        // instead of waiting, which improves performance under high load
+        var sql = @"
+            SELECT * FROM lottery_numbers 
+            WHERE lottery_id = {0} 
+              AND number = {1} 
+              AND status = 'Available'
+              AND deleted_at IS NULL
+            ORDER BY series ASC
+            LIMIT {2}
+            FOR UPDATE SKIP LOCKED";
+
         return await _context.LotteryNumbers
+            .FromSqlRaw(sql, lotteryId, number, quantity)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Gets the next N available series for a specific number without locking.
+    /// Use this for read-only queries (e.g., displaying availability to user).
+    /// </summary>
+    public async Task<List<LotteryNumber>> GetNextAvailableSeriesReadOnlyAsync(Guid lotteryId, int number, int quantity)
+    {
+        return await _context.LotteryNumbers
+            .AsNoTracking()
             .Where(n => n.LotteryId == lotteryId && 
                         n.Number == number && 
                         n.Status == NumberStatus.Available)
