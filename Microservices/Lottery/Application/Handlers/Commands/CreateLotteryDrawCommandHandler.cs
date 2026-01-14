@@ -3,6 +3,7 @@ using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Lottery.Application.Commands;
 using CryptoJackpot.Lottery.Application.DTOs;
+using CryptoJackpot.Lottery.Application.Utilities;
 using CryptoJackpot.Lottery.Domain.Interfaces;
 using CryptoJackpot.Lottery.Domain.Models;
 using FluentResults;
@@ -36,7 +37,7 @@ public class CreateLotteryDrawCommandHandler : IRequestHandler<CreateLotteryDraw
         {
             var lotteryDraw = _mapper.Map<LotteryDraw>(request);
             lotteryDraw.LotteryGuid = Guid.NewGuid();
-            lotteryDraw.LotteryNo = GenerateLotteryNumber();
+            lotteryDraw.LotteryNo = LotteryNumberGenerator.Generate();
             lotteryDraw.SoldTickets = 0;
 
             var createdLottery = await _lotteryDrawRepository.CreateLotteryAsync(lotteryDraw);
@@ -55,13 +56,6 @@ public class CreateLotteryDrawCommandHandler : IRequestHandler<CreateLotteryDraw
             _logger.LogError(ex, "Failed to create lottery with title {Title}", request.Title);
             return Result.Fail<LotteryDrawDto>(new InternalServerError("Failed to create lottery"));
         }
-    }
-
-    private static string GenerateLotteryNumber()
-    {
-        var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-        var random = new Random().Next(1000, 9999);
-        return $"LOT-{timestamp}-{random}";
     }
 }
 
