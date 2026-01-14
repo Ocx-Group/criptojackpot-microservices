@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CryptoJackpot.Winner.Api.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/winners")]
 [Authorize]
 public class WinnerController : ControllerBase
 {

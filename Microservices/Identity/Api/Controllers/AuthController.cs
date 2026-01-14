@@ -10,7 +10,7 @@ namespace CryptoJackpot.Identity.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1")]
-[Route("api/v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/auth")]
 public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;

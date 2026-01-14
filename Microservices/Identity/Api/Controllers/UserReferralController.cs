@@ -9,7 +9,7 @@ namespace CryptoJackpot.Identity.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1")]
-[Route("api/v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/user-referrals")]
 public class UserReferralController : ControllerBase
 {
     private readonly IMediator _mediator;

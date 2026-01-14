@@ -13,7 +13,7 @@ namespace CryptoJackpot.Lottery.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1")]
-[Route("api/v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/prizes")]
 public class PrizeController : ControllerBase
 {
     private readonly IMediator _mediator;

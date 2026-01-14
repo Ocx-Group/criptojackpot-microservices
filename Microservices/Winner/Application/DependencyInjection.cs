@@ -21,7 +21,7 @@ public static class DependencyInjection
         AddAuthentication(services, configuration);
         AddDatabase(services, configuration);
         AddSwagger(services);
-        AddControllers(services);
+        AddControllers(services, configuration);
         AddRepositories(services);
         AddApplicationServices(services);
         AddInfrastructure(services, configuration);
@@ -140,17 +140,29 @@ public static class DependencyInjection
         });
     }
 
-    private static void AddControllers(IServiceCollection services)
+    private static void AddControllers(IServiceCollection services, IConfiguration configuration)
     {
         services.AddControllers();
+
+        var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
 
         services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
             {
-                builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
+                if (allowedOrigins.Length > 0)
+                {
+                    builder.WithOrigins(allowedOrigins)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
+                }
+                else
+                {
+                    builder.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                }
             });
         });
     }

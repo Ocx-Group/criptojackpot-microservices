@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CryptoJackpot.Wallet.Api.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/wallets")]
 [Authorize]
 public class WalletController : ControllerBase
 {

@@ -39,6 +39,20 @@ spec:
                 name: identity-api
                 port:
                   number: 80
+          - path: /api/v1/countries
+            pathType: Prefix
+            backend:
+              service:
+                name: identity-api
+                port:
+                  number: 80
+          - path: /api/v1/user-referrals
+            pathType: Prefix
+            backend:
+              service:
+                name: identity-api
+                port:
+                  number: 80
           
           # Lottery API
           - path: /api/v1/lotteries
@@ -55,15 +69,23 @@ spec:
                 name: lottery-api
                 port:
                   number: 80
-          
-          # Order API
-          - path: /api/v1/tickets
+          - path: /api/v1/lottery-numbers
             pathType: Prefix
             backend:
               service:
-                name: order-api
+                name: lottery-api
                 port:
                   number: 80
+          
+          # Order API
+          # TODO: Descomentar cuando se implemente TicketController
+          # - path: /api/v1/tickets
+          #   pathType: Prefix
+          #   backend:
+          #     service:
+          #       name: order-api
+          #       port:
+          #         number: 80
           - path: /api/v1/orders
             pathType: Prefix
             backend:
@@ -80,13 +102,14 @@ spec:
                 name: wallet-api
                 port:
                   number: 80
-          - path: /api/v1/transactions
-            pathType: Prefix
-            backend:
-              service:
-                name: wallet-api
-                port:
-                  number: 80
+          # TODO: Descomentar cuando se implemente TransactionController
+          # - path: /api/v1/transactions
+          #   pathType: Prefix
+          #   backend:
+          #     service:
+          #       name: wallet-api
+          #       port:
+          #         number: 80
           
           # Winner API
           - path: /api/v1/winners
@@ -97,12 +120,12 @@ spec:
                 port:
                   number: 80
           
-          # Notification API (interno, no expuesto públicamente por defecto)
-          # - path: /api/v1/notifications
-          #   pathType: Prefix
-          #   backend:
-          #     service:
-          #       name: notification-api
-          #       port:
-          #         number: 80
+          # Notification API (interno, exponer solo si es necesario para el frontend)
+          - path: /api/v1/notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-api
+                port:
+                  number: 80
 

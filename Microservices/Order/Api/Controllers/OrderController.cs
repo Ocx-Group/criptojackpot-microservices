@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CryptoJackpot.Order.Api.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/orders")]
 [Authorize]
 public class OrderController : ControllerBase
 {
