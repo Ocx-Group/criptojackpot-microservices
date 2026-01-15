@@ -105,7 +105,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:80
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=cryptojackpot_identity_db;Username=postgres;Password=postgres"
-      JwtSettings__SecretKey: "super_secret_key_crypto_jackpot_distributed_2025_local!"
+      JwtSettings__SecretKey: "4ffe50319fbe565a10c6cb8b2300cf91ad85c31a73f1a96826f0907535fb868f"
       JwtSettings__Issuer: "CryptoJackpotIdentity"
       JwtSettings__Audience: "CryptoJackpotApp"
       JwtSettings__ExpirationInMinutes: "60"
@@ -131,6 +131,10 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:80
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=cryptojackpot_lottery_db;Username=postgres;Password=postgres"
+      JwtSettings__SecretKey: "4ffe50319fbe565a10c6cb8b2300cf91ad85c31a73f1a96826f0907535fb868f"
+      JwtSettings__Issuer: "CryptoJackpotIdentity"
+      JwtSettings__Audience: "CryptoJackpotApp"
+      JwtSettings__ExpirationInMinutes: "60"
       Kafka__BootstrapServers: "redpanda:9092"
     ports:
       - "5002:80"
@@ -149,6 +153,10 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:80
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=cryptojackpot_order_db;Username=postgres;Password=postgres"
+      JwtSettings__SecretKey: "4ffe50319fbe565a10c6cb8b2300cf91ad85c31a73f1a96826f0907535fb868f"
+      JwtSettings__Issuer: "CryptoJackpotIdentity"
+      JwtSettings__Audience: "CryptoJackpotApp"
+      JwtSettings__ExpirationInMinutes: "60"
       Kafka__BootstrapServers: "redpanda:9092"
     ports:
       - "5003:80"
@@ -167,6 +175,10 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:80
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=cryptojackpot_wallet_db;Username=postgres;Password=postgres"
+      JwtSettings__SecretKey: "4ffe50319fbe565a10c6cb8b2300cf91ad85c31a73f1a96826f0907535fb868f"
+      JwtSettings__Issuer: "CryptoJackpotIdentity"
+      JwtSettings__Audience: "CryptoJackpotApp"
+      JwtSettings__ExpirationInMinutes: "60"
       Kafka__BootstrapServers: "redpanda:9092"
     ports:
       - "5004:80"
@@ -185,6 +197,10 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:80
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=cryptojackpot_winner_db;Username=postgres;Password=postgres"
+      JwtSettings__SecretKey: "4ffe50319fbe565a10c6cb8b2300cf91ad85c31a73f1a96826f0907535fb868f"
+      JwtSettings__Issuer: "CryptoJackpotIdentity"
+      JwtSettings__Audience: "CryptoJackpotApp"
+      JwtSettings__ExpirationInMinutes: "60"
       Kafka__BootstrapServers: "redpanda:9092"
     ports:
       - "5005:80"
