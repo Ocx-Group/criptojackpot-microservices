@@ -23,8 +23,6 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
     private readonly ILogger<CreateUserCommandHandler> _logger;
     private readonly IMapper _mapper;
 
-    private const long DefaultRoleId = 2;
-
     public CreateUserCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
@@ -61,7 +59,10 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
         {
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
-            var user = CreateUser(request);
+            var user = _mapper.Map<User>(request);
+            user.Password = _passwordHasher.Hash(request.Password);
+            user.SecurityCode = Guid.NewGuid().ToString();
+            
             var createdUser = await _userRepository.CreateAsync(user);
 
             // Publish domain event for referral processing (decoupled)
@@ -82,19 +83,4 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
             return Result.Fail<UserDto>(new InternalServerError("Failed to create user"));
         }
     }
-
-    private User CreateUser(CreateUserCommand request) => new()
-    {
-        Email = request.Email,
-        Password = _passwordHasher.Hash(request.Password),
-        Name = request.Name,
-        LastName = request.LastName,
-        Phone = request.Phone,
-        CountryId = request.CountryId ?? 1,
-        StatePlace = string.Empty,
-        City = string.Empty,
-        SecurityCode = Guid.NewGuid().ToString(),
-        Status = false,
-        RoleId = DefaultRoleId
-    };
 }
