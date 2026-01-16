@@ -79,6 +79,26 @@ public class LotteryHub : Hub<ILotteryHubClient>
     }
 
     /// <summary>
+    /// Refresh available numbers for a lottery.
+    /// Useful when client suspects data is out of sync or for manual refresh.
+    /// </summary>
+    /// <param name="lotteryId">The lottery ID to refresh</param>
+    public async Task RefreshNumbers(Guid lotteryId)
+    {
+        try
+        {
+            _logger.LogInformation("RefreshNumbers called for lottery {LotteryId}", lotteryId);
+            var availableNumbers = await _lotteryNumberService.GetAvailableNumbersAsync(lotteryId);
+            await Clients.Caller.ReceiveAvailableNumbers(lotteryId, availableNumbers);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in RefreshNumbers for lottery {LotteryId}", lotteryId);
+            await Clients.Caller.ReceiveError($"Error refreshing numbers: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Reserve N series of a number for the current user.
     /// The system automatically assigns the next available series in order.
     /// Example: User requests number 10 with quantity 2 → System assigns Series 1 and Series 2 (if available)
