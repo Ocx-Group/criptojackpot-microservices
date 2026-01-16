@@ -46,13 +46,25 @@ public class LotteryHub : Hub<ILotteryHubClient>
     /// <param name="lotteryId">The lottery ID to join</param>
     public async Task JoinLottery(Guid lotteryId)
     {
-        var groupName = GetLotteryGroupName(lotteryId);
-        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-        _logger.LogInformation("Client {ConnectionId} joined lottery {LotteryId}", Context.ConnectionId, lotteryId);
-        
-        // Send current available numbers to the newly connected client
-        var availableNumbers = await _lotteryNumberService.GetAvailableNumbersAsync(lotteryId);
-        await Clients.Caller.ReceiveAvailableNumbers(lotteryId, availableNumbers);
+        try
+        {
+            _logger.LogInformation("JoinLottery called with lotteryId: {LotteryId}", lotteryId);
+            
+            var groupName = GetLotteryGroupName(lotteryId);
+            await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+            _logger.LogInformation("Client {ConnectionId} joined lottery {LotteryId}", Context.ConnectionId, lotteryId);
+            
+            // Send current available numbers to the newly connected client
+            var availableNumbers = await _lotteryNumberService.GetAvailableNumbersAsync(lotteryId);
+            _logger.LogInformation("Retrieved {Count} available numbers for lottery {LotteryId}", availableNumbers.Count, lotteryId);
+            
+            await Clients.Caller.ReceiveAvailableNumbers(lotteryId, availableNumbers);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in JoinLottery for lottery {LotteryId}: {Message}", lotteryId, ex.Message);
+            await Clients.Caller.ReceiveError($"Error joining lottery: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -76,44 +88,70 @@ public class LotteryHub : Hub<ILotteryHubClient>
     /// <param name="quantity">How many series to reserve (default: 1)</param>
     public async Task ReserveNumber(Guid lotteryId, int number, int quantity = 1)
     {
-        var userId = GetUserId();
-        if (userId == null)
+        try
         {
-            await Clients.Caller.ReceiveError("Unauthorized");
-            return;
-        }
-
-        var result = await _lotteryNumberService.ReserveNumberByQuantityAsync(lotteryId, number, quantity, userId.Value);
-        
-        if (result.IsSuccess)
-        {
-            var reservations = result.Value;
-            var groupName = GetLotteryGroupName(lotteryId);
-            
-            // Notify all clients in the lottery group about each reserved series
-            foreach (var reservation in reservations)
-            {
-                await Clients.Group(groupName).NumberReserved(
-                    lotteryId, 
-                    reservation.NumberId, 
-                    reservation.Number, 
-                    reservation.Series);
-            }
-            
-            // Confirm all reservations to the caller
-            await Clients.Caller.ReservationsConfirmed(reservations);
-            
             _logger.LogInformation(
-                "User {UserId} reserved {Count} series of number {Number} in lottery {LotteryId}. Series: [{Series}]",
-                userId, 
-                reservations.Count, 
-                number, 
-                lotteryId,
-                string.Join(", ", reservations.Select(r => r.Series)));
+                "ReserveNumber called - LotteryId: {LotteryId}, Number: {Number}, Quantity: {Quantity}",
+                lotteryId, number, quantity);
+
+            var userId = GetUserId();
+            _logger.LogInformation("UserId from token: {UserId}", userId);
+            
+            if (userId == null)
+            {
+                _logger.LogWarning("ReserveNumber failed: Unauthorized - no userId in token");
+                await Clients.Caller.ReceiveError("Unauthorized");
+                return;
+            }
+
+            _logger.LogInformation("Calling ReserveNumberByQuantityAsync...");
+            var result = await _lotteryNumberService.ReserveNumberByQuantityAsync(lotteryId, number, quantity, userId.Value);
+            _logger.LogInformation("ReserveNumberByQuantityAsync result - IsSuccess: {IsSuccess}", result.IsSuccess);
+            
+            if (result.IsSuccess)
+            {
+                var reservations = result.Value;
+                _logger.LogInformation("Reservations count: {Count}", reservations.Count);
+                
+                var groupName = GetLotteryGroupName(lotteryId);
+                
+                // Notify all clients in the lottery group about each reserved series
+                foreach (var reservation in reservations)
+                {
+                    _logger.LogInformation(
+                        "Notifying group about reservation - Number: {Number}, Series: {Series}",
+                        reservation.Number, reservation.Series);
+                        
+                    await Clients.Group(groupName).NumberReserved(
+                        lotteryId, 
+                        reservation.NumberId, 
+                        reservation.Number, 
+                        reservation.Series);
+                }
+                
+                // Confirm all reservations to the caller
+                await Clients.Caller.ReservationsConfirmed(reservations);
+                
+                _logger.LogInformation(
+                    "User {UserId} reserved {Count} series of number {Number} in lottery {LotteryId}. Series: [{Series}]",
+                    userId, 
+                    reservations.Count, 
+                    number, 
+                    lotteryId,
+                    string.Join(", ", reservations.Select(r => r.Series)));
+            }
+            else
+            {
+                var errorMessage = result.Errors.First().Message;
+                _logger.LogWarning("ReserveNumber failed: {Error}", errorMessage);
+                await Clients.Caller.ReceiveError(errorMessage);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            await Clients.Caller.ReceiveError(result.Errors.First().Message);
+            _logger.LogError(ex, "Exception in ReserveNumber - LotteryId: {LotteryId}, Number: {Number}, Quantity: {Quantity}",
+                lotteryId, number, quantity);
+            await Clients.Caller.ReceiveError($"Error reserving number: {ex.Message}");
         }
     }
 
@@ -127,7 +165,18 @@ public class LotteryHub : Hub<ILotteryHubClient>
     /// </summary>
     private long? GetUserId()
     {
+        // Try NameIdentifier first (standard .NET claim)
         var userIdClaim = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        // Fallback to 'sub' claim (standard JWT claim)
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            userIdClaim = Context.User?.FindFirst("sub")?.Value;
+        }
+        
+        _logger.LogDebug("GetUserId - Claims: {Claims}", 
+            string.Join(", ", Context.User?.Claims.Select(c => $"{c.Type}={c.Value}") ?? Array.Empty<string>()));
+        
         return long.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 }
