@@ -38,6 +38,12 @@ public static class DependencyContainer
             // Allow microservices to add consumers to the bus
             configureBus?.Invoke(x);
 
+            // Register the message scheduler if enabled
+            if (useMessageScheduler)
+            {
+                x.AddDelayedMessageScheduler();
+            }
+
             // Configure Entity Framework Outbox for transactional consistency
             x.AddEntityFrameworkOutbox<TDbContext>(o =>
             {
@@ -101,6 +107,12 @@ public static class DependencyContainer
         {
             // Allow microservices to add consumers to the bus
             configureBus?.Invoke(x);
+
+            // Register the message scheduler if enabled
+            if (useMessageScheduler)
+            {
+                x.AddDelayedMessageScheduler();
+            }
 
             // In-memory for internal messaging with optional scheduler
             x.UsingInMemory((context, cfg) =>
