@@ -4,6 +4,11 @@ namespace CryptoJackpot.Identity.Domain.Models;
 
 public class User : BaseEntity
 {
+    /// <summary>
+    /// External GUID for API exposure and cross-service communication
+    /// </summary>
+    public Guid UserGuid { get; set; } = Guid.NewGuid();
+    
     public string Name { get; set; } = null!;
     public string LastName { get; set; } = null!;
     public string Email { get; set; } = null!;

@@ -18,6 +18,7 @@ public class IdentityMappingProfile : Profile
         
         // CreateUserCommand -> User mapping
         CreateMap<CreateUserCommand, User>()
+            .ForMember(dest => dest.UserGuid, opt => opt.MapFrom(_ => Guid.NewGuid()))
             .ForMember(dest => dest.Password, opt => opt.Ignore())
             .ForMember(dest => dest.SecurityCode, opt => opt.Ignore())
             .ForMember(dest => dest.Role, opt => opt.Ignore())

@@ -10,6 +10,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.HasKey(e => e.Id);
+        builder.Property(e => e.Id).ValueGeneratedOnAdd();
+        
+        // UserGuid for external API exposure
+        builder.Property(e => e.UserGuid).IsRequired();
+        builder.HasIndex(e => e.UserGuid).IsUnique();
+        
         builder.Property(e => e.Name).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(100);
         builder.Property(e => e.LastName).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(100);
         builder.Property(e => e.Email).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(100);

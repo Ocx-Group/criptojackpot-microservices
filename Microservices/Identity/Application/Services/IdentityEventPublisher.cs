@@ -24,6 +24,7 @@ public class IdentityEventPublisher : IIdentityEventPublisher
             await _eventBus.Publish(new UserRegisteredEvent
             {
                 UserId = user.Id,
+                UserGuid = user.UserGuid,
                 Email = user.Email,
                 Name = user.Name,
                 LastName = user.LastName,
