@@ -16,13 +16,13 @@ public class LotteryNumberRepository : ILotteryNumberRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<LotteryNumber>> GetNumbersByLotteryAsync(Guid lotteryId)
+    public async Task<IEnumerable<LotteryNumber>> GetNumbersByLotteryAsync(long lotteryId)
         => await _context.LotteryNumbers.Where(x => x.LotteryId == lotteryId).ToListAsync();
 
     /// <summary>
     /// Obtiene solo los números vendidos (más eficiente para exclusión)
     /// </summary>
-    public async Task<HashSet<int>> GetSoldNumbersAsync(Guid lotteryId)
+    public async Task<HashSet<int>> GetSoldNumbersAsync(long lotteryId)
         => (await _context.LotteryNumbers
                 .Where(x => x.LotteryId == lotteryId && !x.IsAvailable)
                 .Select(x => x.Number)
@@ -32,7 +32,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     /// <summary>
     /// Verifica si un número específico está disponible (O(log N) con índice compuesto)
     /// </summary>
-    public async Task<bool> IsNumberAvailableAsync(Guid lotteryId, int number, int series)
+    public async Task<bool> IsNumberAvailableAsync(long lotteryId, int number, int series)
         => !await _context.LotteryNumbers
             .AnyAsync(x => x.LotteryId == lotteryId && x.Number == number && x.Series == series);
 
@@ -40,7 +40,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     /// Verifica disponibilidad de múltiples números en una sola consulta (elimina problema N+1)
     /// Usa el índice IX_LotteryNumbers_LotteryId_Number_Series para búsqueda O(log N) por número
     /// </summary>
-    public async Task<List<int>> GetAlreadyReservedNumbersAsync(Guid lotteryId, int series, IEnumerable<int> numbers)
+    public async Task<List<int>> GetAlreadyReservedNumbersAsync(long lotteryId, int series, IEnumerable<int> numbers)
     {
         var numbersList = numbers.ToList();
         
@@ -56,7 +56,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     /// Obtiene N números aleatorios disponibles (sin considerar series específicas).
     /// Útil para sugerir números al usuario antes de seleccionar serie.
     /// </summary>
-    public async Task<List<int>> GetRandomAvailableNumbersAsync(Guid lotteryId, int count, int maxNumber, int minNumber = 1)
+    public async Task<List<int>> GetRandomAvailableNumbersAsync(long lotteryId, int count, int maxNumber, int minNumber = 1)
     {
         // Optimización: Solo traer los números vendidos, no todos los registros
         var soldNumbers = await _context.LotteryNumbers
@@ -101,7 +101,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     /// Optimizado para loterías con millones de combinaciones.
     /// </summary>
     public async Task<List<(int Number, int Series)>> GetRandomAvailableNumbersWithSeriesAsync(
-        Guid lotteryId, int count, int maxNumber, int totalSeries, int minNumber = 1)
+        long lotteryId, int count, int maxNumber, int totalSeries, int minNumber = 1)
     {
         // Estrategia: Para loterías grandes, usar sampling aleatorio con verificación en lote
         // En lugar de cargar todos los vendidos, verificamos candidatos aleatorios
@@ -127,7 +127,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     }
 
     private async Task<List<(int Number, int Series)>> GetRandomBySamplingAsync(
-        Guid lotteryId, int count, int maxNumber, int totalSeries, int minNumber)
+        long lotteryId, int count, int maxNumber, int totalSeries, int minNumber)
     {
         var result = new List<(int Number, int Series)>(count);
         var maxAttempts = count * 20; // Margen amplio para colisiones
@@ -174,7 +174,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     }
 
     private async Task<List<(int Number, int Series)>> GetRandomFromAvailablePoolAsync(
-        Guid lotteryId, int count, int maxNumber, int totalSeries, int minNumber)
+        long lotteryId, int count, int maxNumber, int totalSeries, int minNumber)
     {
         // Cuando hay muchos vendidos, es mejor obtener los vendidos y excluirlos
         var soldCombinations = await _context.LotteryNumbers
@@ -223,7 +223,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
         {
             // Extraer información del contexto para la excepción de dominio
             var firstNumber = numbers.FirstOrDefault();
-            var lotteryId = firstNumber?.LotteryId ?? Guid.Empty;
+            var lotteryId = firstNumber?.LotteryId ?? 0;
             var ticketId = firstNumber?.TicketId ?? Guid.Empty;
             
             throw new DuplicateNumberReservationException(lotteryId, ticketId, ex);
@@ -265,7 +265,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     /// <summary>
     /// Reserves lottery numbers for an order (during checkout)
     /// </summary>
-    public async Task<bool> ReserveNumbersAsync(List<Guid> numberIds, Guid orderId)
+    public async Task<bool> ReserveNumbersAsync(List<long> numberIds, Guid orderId)
     {
         var numbers = await _context.LotteryNumbers
             .Where(x => numberIds.Contains(x.Id) && x.Status == NumberStatus.Available)
@@ -290,7 +290,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     /// <summary>
     /// Confirms lottery numbers as sold (after payment)
     /// </summary>
-    public async Task<bool> ConfirmNumbersSoldAsync(List<Guid> numberIds, Guid ticketId)
+    public async Task<bool> ConfirmNumbersSoldAsync(List<long> numberIds, Guid ticketId)
     {
         var numbers = await _context.LotteryNumbers
             .Where(x => numberIds.Contains(x.Id) && x.Status == NumberStatus.Reserved)
@@ -340,15 +340,73 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     /// <summary>
     /// Gets lottery numbers by their IDs
     /// </summary>
-    public async Task<List<LotteryNumber>> GetByIdsAsync(List<Guid> numberIds)
+    public async Task<List<LotteryNumber>> GetByIdsAsync(List<long> numberIds)
         => await _context.LotteryNumbers
             .Where(x => numberIds.Contains(x.Id))
             .ToListAsync();
 
     /// <summary>
+    /// Gets lottery numbers by their GUIDs (for cross-microservice communication)
+    /// </summary>
+    public async Task<List<LotteryNumber>> GetByGuidsAsync(List<Guid> lotteryNumberGuids)
+        => await _context.LotteryNumbers
+            .Where(x => lotteryNumberGuids.Contains(x.LotteryNumberGuid))
+            .ToListAsync();
+
+    /// <summary>
+    /// Confirms lottery numbers as sold using GUIDs (for integration events)
+    /// </summary>
+    public async Task<bool> ConfirmNumbersSoldByGuidsAsync(List<Guid> lotteryNumberGuids, Guid ticketId)
+    {
+        var numbers = await _context.LotteryNumbers
+            .Where(x => lotteryNumberGuids.Contains(x.LotteryNumberGuid) && x.Status == NumberStatus.Reserved)
+            .ToListAsync();
+
+        if (numbers.Count != lotteryNumberGuids.Count)
+            return false;
+
+        var now = DateTime.UtcNow;
+        foreach (var number in numbers)
+        {
+            number.Status = NumberStatus.Sold;
+            number.TicketId = ticketId;
+            number.ReservationExpiresAt = null;
+            number.UpdatedAt = now;
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    /// <summary>
+    /// Reserves lottery numbers using GUIDs (for integration events)
+    /// </summary>
+    public async Task<bool> ReserveNumbersByGuidsAsync(List<Guid> lotteryNumberGuids, Guid orderId)
+    {
+        var numbers = await _context.LotteryNumbers
+            .Where(x => lotteryNumberGuids.Contains(x.LotteryNumberGuid) && x.Status == NumberStatus.Available)
+            .ToListAsync();
+
+        if (numbers.Count != lotteryNumberGuids.Count)
+            return false;
+
+        var now = DateTime.UtcNow;
+        foreach (var number in numbers)
+        {
+            number.Status = NumberStatus.Reserved;
+            number.OrderId = orderId;
+            number.ReservationExpiresAt = now.AddMinutes(5);
+            number.UpdatedAt = now;
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    /// <summary>
     /// Finds an available number (first available series if series not specified)
     /// </summary>
-    public async Task<LotteryNumber?> FindAvailableNumberAsync(Guid lotteryId, int number, int? series = null)
+    public async Task<LotteryNumber?> FindAvailableNumberAsync(long lotteryId, int number, int? series = null)
     {
         var query = _context.LotteryNumbers
             .Where(x => x.LotteryId == lotteryId && 
@@ -369,7 +427,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     /// Finds available numbers matching the specified numbers and series
     /// </summary>
     public async Task<List<LotteryNumber>> FindAvailableNumbersAsync(
-        Guid lotteryId, 
+        long lotteryId, 
         int series, 
         IEnumerable<int> numbers)
     {
@@ -415,7 +473,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     /// Uses pessimistic locking (FOR UPDATE SKIP LOCKED) to prevent race conditions
     /// when multiple users try to reserve the same number simultaneously.
     /// </summary>
-    public async Task<List<LotteryNumber>> GetNextAvailableSeriesAsync(Guid lotteryId, int number, int quantity)
+    public async Task<List<LotteryNumber>> GetNextAvailableSeriesAsync(long lotteryId, int number, int quantity)
     {
         // Use raw SQL with FOR UPDATE SKIP LOCKED to prevent race conditions
         // SKIP LOCKED ensures that if another transaction has locked a row, we skip it
@@ -439,7 +497,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     /// Gets the next N available series for a specific number without locking.
     /// Use this for read-only queries (e.g., displaying availability to user).
     /// </summary>
-    public async Task<List<LotteryNumber>> GetNextAvailableSeriesReadOnlyAsync(Guid lotteryId, int number, int quantity)
+    public async Task<List<LotteryNumber>> GetNextAvailableSeriesReadOnlyAsync(long lotteryId, int number, int quantity)
     {
         return await _context.LotteryNumbers
             .AsNoTracking()
@@ -454,7 +512,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
     /// <summary>
     /// Gets available series count for a specific number.
     /// </summary>
-    public async Task<int> GetAvailableSeriesCountAsync(Guid lotteryId, int number)
+    public async Task<int> GetAvailableSeriesCountAsync(long lotteryId, int number)
     {
         return await _context.LotteryNumbers
             .CountAsync(n => n.LotteryId == lotteryId && 

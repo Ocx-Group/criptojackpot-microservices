@@ -14,7 +14,7 @@ public class ReservationWithOrderDto
     /// <summary>
     /// The lottery ID these numbers belong to.
     /// </summary>
-    public Guid LotteryId { get; set; }
+    public Guid LotteryGuid { get; set; }
     
     /// <summary>
     /// Total amount for the current order.

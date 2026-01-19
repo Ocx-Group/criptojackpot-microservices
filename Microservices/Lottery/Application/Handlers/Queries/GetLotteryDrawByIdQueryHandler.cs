@@ -23,7 +23,7 @@ public class GetLotteryDrawByIdQueryHandler : IRequestHandler<GetLotteryDrawById
 
     public async Task<Result<LotteryDrawDto>> Handle(GetLotteryDrawByIdQuery request, CancellationToken cancellationToken)
     {
-        var lotteryDraw = await _lotteryDrawRepository.GetLotteryByIdAsync(request.LotteryId);
+        var lotteryDraw = await _lotteryDrawRepository.GetLotteryByGuidAsync(request.LotteryId);
 
         if (lotteryDraw is null)
             return Result.Fail<LotteryDrawDto>(new NotFoundError("Lottery not found"));

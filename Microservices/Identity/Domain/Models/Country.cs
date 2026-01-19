@@ -4,7 +4,6 @@ namespace CryptoJackpot.Identity.Domain.Models;
 
 public class Country : BaseEntity
 {
-    public long Id { get; set; }
     public string Name { get; set; } = null!;
     public string? Iso3 { get; set; }
     public string? NumericCode { get; set; }

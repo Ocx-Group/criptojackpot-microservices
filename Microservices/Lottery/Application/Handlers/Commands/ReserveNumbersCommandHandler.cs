@@ -39,7 +39,7 @@ public class ReserveNumbersCommandHandler : IRequestHandler<ReserveNumbersComman
     {
         try
         {
-            var lottery = await _lotteryDrawRepository.GetLotteryByIdAsync(request.LotteryId);
+            var lottery = await _lotteryDrawRepository.GetLotteryByGuidAsync(request.LotteryId);
             if (lottery is null)
                 return Result.Fail<List<LotteryNumberDto>>(new NotFoundError("Lottery not found"));
 
@@ -56,7 +56,7 @@ public class ReserveNumbersCommandHandler : IRequestHandler<ReserveNumbersComman
 
             // Find available numbers matching the request
             var availableNumbers = await _lotteryNumberRepository.FindAvailableNumbersAsync(
-                request.LotteryId, 
+                lottery.Id, 
                 request.Series, 
                 request.Numbers);
 

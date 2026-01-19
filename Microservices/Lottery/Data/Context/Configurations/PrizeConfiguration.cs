@@ -10,6 +10,9 @@ public class PrizeConfiguration : IEntityTypeConfiguration<Prize>
     {
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Id).ValueGeneratedOnAdd();
+        builder.Property(e => e.PrizeGuid).IsRequired();
+        builder.HasIndex(e => e.PrizeGuid).IsUnique();
+        
         builder.Property(e => e.LotteryId).IsRequired(false);
         builder.Property(e => e.Tier).IsRequired();
         builder.Property(e => e.Name).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(200);

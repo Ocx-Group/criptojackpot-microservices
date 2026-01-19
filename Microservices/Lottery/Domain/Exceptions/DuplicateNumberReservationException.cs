@@ -5,17 +5,17 @@
 /// </summary>
 public class DuplicateNumberReservationException : Exception
 {
-    public Guid LotteryId { get; }
+    public long LotteryId { get; }
     public Guid TicketId { get; }
 
-    public DuplicateNumberReservationException(Guid lotteryId, Guid ticketId)
+    public DuplicateNumberReservationException(long lotteryId, Guid ticketId)
         : base("One or more numbers were reserved by another user.")
     {
         LotteryId = lotteryId;
         TicketId = ticketId;
     }
 
-    public DuplicateNumberReservationException(Guid lotteryId, Guid ticketId, Exception innerException)
+    public DuplicateNumberReservationException(long lotteryId, Guid ticketId, Exception innerException)
         : base("One or more numbers were reserved by another user.", innerException)
     {
         LotteryId = lotteryId;

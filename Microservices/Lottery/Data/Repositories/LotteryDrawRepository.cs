@@ -26,10 +26,10 @@ public class LotteryDrawRepository : ILotteryDrawRepository
         return lotteryDraw;
     }
 
-    public async Task<LotteryDraw?> GetLotteryByIdAsync(Guid lotteryDrawId)
+    public async Task<LotteryDraw?> GetLotteryByGuidAsync(Guid lotteryGuid)
         => await _context.LotteryDraws
             .Include(x => x.Prizes)
-            .FirstOrDefaultAsync(x => x.LotteryGuid == lotteryDrawId);
+            .FirstOrDefaultAsync(x => x.LotteryGuid == lotteryGuid);
 
     public async Task<PagedList<LotteryDraw>> GetAllLotteryDrawsAsync(Pagination pagination)
     {

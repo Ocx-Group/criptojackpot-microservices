@@ -22,37 +22,37 @@ public class LotteryNotificationService : ILotteryNotificationService
         _logger = logger;
     }
 
-    public async Task NotifyNumbersReleasedAsync(Guid lotteryId, List<NumberStatusDto> numbers)
+    public async Task NotifyNumbersReleasedAsync(Guid lotteryGuid, List<NumberStatusDto> numbers)
     {
-        var groupName = GetLotteryGroupName(lotteryId);
+        var groupName = GetLotteryGroupName(lotteryGuid);
         
-        await _hubContext.Clients.Group(groupName).NumbersReleased(lotteryId, numbers);
+        await _hubContext.Clients.Group(groupName).NumbersReleased(lotteryGuid, numbers);
         
         _logger.LogInformation(
             "Broadcasted {Count} numbers released for lottery {LotteryId}",
-            numbers.Count, lotteryId);
+            numbers.Count, lotteryGuid);
     }
 
-    public async Task NotifyNumbersSoldAsync(Guid lotteryId, List<NumberStatusDto> numbers)
+    public async Task NotifyNumbersSoldAsync(Guid lotteryGuid, List<NumberStatusDto> numbers)
     {
-        var groupName = GetLotteryGroupName(lotteryId);
+        var groupName = GetLotteryGroupName(lotteryGuid);
         
-        await _hubContext.Clients.Group(groupName).NumbersSold(lotteryId, numbers);
+        await _hubContext.Clients.Group(groupName).NumbersSold(lotteryGuid, numbers);
         
         _logger.LogInformation(
             "Broadcasted {Count} numbers sold for lottery {LotteryId}",
-            numbers.Count, lotteryId);
+            numbers.Count, lotteryGuid);
     }
 
-    public async Task NotifyNumberReservedAsync(Guid lotteryId, Guid numberId, int number, int series)
+    public async Task NotifyNumberReservedAsync(Guid lotteryGuid, long numberId, Guid numberGuid, int number, int series)
     {
-        var groupName = GetLotteryGroupName(lotteryId);
+        var groupName = GetLotteryGroupName(lotteryGuid);
         
-        await _hubContext.Clients.Group(groupName).NumberReserved(lotteryId, numberId, number, series);
+        await _hubContext.Clients.Group(groupName).NumberReserved(lotteryGuid, numberId, numberGuid, number, series);
         
         _logger.LogInformation(
             "Broadcasted number {Number} series {Series} reserved for lottery {LotteryId}",
-            number, series, lotteryId);
+            number, series, lotteryGuid);
     }
 
     private static string GetLotteryGroupName(Guid lotteryId) => $"lottery-{lotteryId}";

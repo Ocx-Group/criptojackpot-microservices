@@ -11,32 +11,32 @@ public interface ILotteryHubClient
     /// <summary>
     /// Notifies clients when a number has been reserved.
     /// </summary>
-    Task NumberReserved(Guid lotteryId, Guid numberId, int number, int series);
+    Task NumberReserved(Guid lotteryGuid, long numberId, Guid numberGuid, int number, int series);
 
     /// <summary>
     /// Notifies clients when a number has been released (available again).
     /// </summary>
-    Task NumberReleased(Guid lotteryId, Guid numberId, int number, int series);
+    Task NumberReleased(Guid lotteryGuid, long numberId, Guid numberGuid, int number, int series);
 
     /// <summary>
     /// Notifies clients when a number has been sold (permanently unavailable).
     /// </summary>
-    Task NumberSold(Guid lotteryId, Guid numberId, int number, int series);
+    Task NumberSold(Guid lotteryGuid, long numberId, Guid numberGuid, int number, int series);
 
     /// <summary>
     /// Notifies clients when multiple numbers have been released.
     /// </summary>
-    Task NumbersReleased(Guid lotteryId, List<NumberStatusDto> numbers);
+    Task NumbersReleased(Guid lotteryGuid, List<NumberStatusDto> numbers);
 
     /// <summary>
     /// Notifies clients when multiple numbers have been sold.
     /// </summary>
-    Task NumbersSold(Guid lotteryId, List<NumberStatusDto> numbers);
+    Task NumbersSold(Guid lotteryGuid, List<NumberStatusDto> numbers);
 
     /// <summary>
     /// Sends the current available numbers to a client.
     /// </summary>
-    Task ReceiveAvailableNumbers(Guid lotteryId, List<AvailableNumberDto> numbers);
+    Task ReceiveAvailableNumbers(Guid lotteryGuid, List<AvailableNumberDto> numbers);
 
     /// <summary>
     /// Confirms a single reservation to the requesting client.

@@ -49,7 +49,6 @@ public class UpdatePrizeCommandHandler : IRequestHandler<UpdatePrizeCommand, Res
             prize.AdditionalImages = request.AdditionalImageUrls
                 .Select((url, index) => new PrizeImage
                 {
-                    Id = Guid.NewGuid(),
                     PrizeId = prize.Id,
                     ImageUrl = url,
                     Caption = string.Empty,

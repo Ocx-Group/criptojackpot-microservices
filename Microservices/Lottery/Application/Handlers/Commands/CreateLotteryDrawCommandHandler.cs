@@ -49,13 +49,14 @@ public class CreateLotteryDrawCommandHandler : IRequestHandler<CreateLotteryDraw
 
             if (request.PrizeId.HasValue)
             {
-                await _prizeRepository.LinkPrizeToLotteryAsync(request.PrizeId.Value, createdLottery.LotteryGuid);
+                await _prizeRepository.LinkPrizeToLotteryAsync(request.PrizeId.Value, createdLottery.Id);
             }
 
             // Publish event to message bus for async number generation
             await _eventBus.Publish(new LotteryCreatedEvent
             {
                 LotteryId = createdLottery.LotteryGuid,
+                LotteryDbId = createdLottery.Id,
                 MinNumber = createdLottery.MinNumber,
                 MaxNumber = createdLottery.MaxNumber,
                 TotalSeries = createdLottery.TotalSeries

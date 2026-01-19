@@ -26,13 +26,13 @@ public class GetAvailableNumbersQueryHandler : IRequestHandler<GetAvailableNumbe
 
     public async Task<Result<List<LotteryNumberDto>>> Handle(GetAvailableNumbersQuery request, CancellationToken cancellationToken)
     {
-        var lottery = await _lotteryDrawRepository.GetLotteryByIdAsync(request.LotteryId);
+        var lottery = await _lotteryDrawRepository.GetLotteryByGuidAsync(request.LotteryId);
         if (lottery is null)
             return Result.Fail<List<LotteryNumberDto>>(new NotFoundError("Lottery not found"));
 
         var maxNumber = lottery.MaxNumber - lottery.MinNumber + 1;
         var availableNumbers = await _lotteryNumberRepository.GetRandomAvailableNumbersAsync(
-            request.LotteryId, request.Count, maxNumber, lottery.MinNumber);
+            lottery.Id, request.Count, maxNumber, lottery.MinNumber);
 
         var result = availableNumbers.Select(n => new LotteryNumberDto
         {

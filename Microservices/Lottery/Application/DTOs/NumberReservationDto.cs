@@ -5,8 +5,9 @@ namespace CryptoJackpot.Lottery.Application.DTOs;
 /// </summary>
 public class NumberReservationDto
 {
-    public Guid NumberId { get; set; }
-    public Guid LotteryId { get; set; }
+    public long NumberId { get; set; }
+    public Guid LotteryNumberGuid { get; set; }
+    public Guid LotteryGuid { get; set; }
     public int Number { get; set; }
     public int Series { get; set; }
     public DateTime ReservationExpiresAt { get; set; }

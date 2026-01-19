@@ -37,7 +37,7 @@ public class OrderExpiredConsumer : IConsumer<OrderExpiredEvent>
             message.OrderId, message.LotteryNumberIds.Count);
 
         // Get the numbers before releasing to get their details
-        var numbers = await _lotteryNumberRepository.GetByIdsAsync(message.LotteryNumberIds);
+        var numbers = await _lotteryNumberRepository.GetByGuidsAsync(message.LotteryNumberIds);
         
         var success = await _lotteryNumberRepository.ReleaseNumbersByOrderAsync(message.OrderId);
 

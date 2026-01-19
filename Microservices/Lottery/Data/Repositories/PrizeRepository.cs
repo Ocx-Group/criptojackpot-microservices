@@ -25,8 +25,8 @@ public class PrizeRepository : IPrizeRepository
         return prize;
     }
 
-    public async Task<Prize?> GetPrizeAsync(Guid id)
-        => await _context.Prizes.FindAsync(id);
+    public async Task<Prize?> GetPrizeAsync(Guid prizeGuid)
+        => await _context.Prizes.FirstOrDefaultAsync(p => p.PrizeGuid == prizeGuid);
 
     public async Task<PagedList<Prize>> GetAllPrizesAsync(Pagination pagination)
     {
@@ -64,9 +64,9 @@ public class PrizeRepository : IPrizeRepository
         return prize;
     }
 
-    public async Task LinkPrizeToLotteryAsync(Guid prizeId, Guid lotteryId)
+    public async Task LinkPrizeToLotteryAsync(Guid prizeGuid, long lotteryId)
     {
-        var prize = await _context.Prizes.FindAsync(prizeId);
+        var prize = await _context.Prizes.FirstOrDefaultAsync(p => p.PrizeGuid == prizeGuid);
         if (prize is not null)
         {
             prize.LotteryId = lotteryId;
@@ -75,7 +75,7 @@ public class PrizeRepository : IPrizeRepository
         }
     }
 
-    public async Task UnlinkPrizesFromLotteryAsync(Guid lotteryId)
+    public async Task UnlinkPrizesFromLotteryAsync(long lotteryId)
     {
         var prizes = await _context.Prizes
             .Where(p => p.LotteryId == lotteryId)

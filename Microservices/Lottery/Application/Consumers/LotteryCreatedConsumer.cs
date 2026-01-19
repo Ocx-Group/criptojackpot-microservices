@@ -34,7 +34,7 @@ public class LotteryCreatedConsumer : IConsumer<LotteryCreatedEvent>
         try
         {
             var lotteryNumbers = LotteryNumbersGenerator.Generate(
-                message.LotteryId,
+                message.LotteryDbId,
                 message.MinNumber,
                 message.MaxNumber,
                 message.TotalSeries);

@@ -27,11 +27,10 @@ public class LotteryMappingProfile : Profile
         
         // Command to Entity mappings
         CreateMap<CreatePrizeCommand, Prize>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(_ => Guid.NewGuid()))
+            .ForMember(dest => dest.PrizeGuid, opt => opt.MapFrom(_ => Guid.NewGuid()))
             .ForMember(dest => dest.AdditionalImages, opt => opt.MapFrom(src => 
                 src.AdditionalImageUrls.Select((url, index) => new PrizeImage
                 {
-                    Id = Guid.NewGuid(),
                     ImageUrl = url,
                     Caption = string.Empty,
                     DisplayOrder = index

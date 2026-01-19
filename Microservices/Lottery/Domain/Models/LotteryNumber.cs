@@ -5,8 +5,8 @@ namespace CryptoJackpot.Lottery.Domain.Models;
 
 public class LotteryNumber : BaseEntity
 {
-    public Guid Id { get; set; }
-    public Guid LotteryId { get; set; }
+    public Guid LotteryNumberGuid { get; set; } = Guid.NewGuid();
+    public long LotteryId { get; set; }
     public int Number { get; set; }
     public int Series { get; set; }
     public NumberStatus Status { get; set; }

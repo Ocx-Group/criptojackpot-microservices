@@ -26,11 +26,11 @@ public class GetNumberStatsQueryHandler : IRequestHandler<GetNumberStatsQuery, R
 
     public async Task<Result<LotteryNumberStatsDto>> Handle(GetNumberStatsQuery request, CancellationToken cancellationToken)
     {
-        var lottery = await _lotteryDrawRepository.GetLotteryByIdAsync(request.LotteryId);
+        var lottery = await _lotteryDrawRepository.GetLotteryByGuidAsync(request.LotteryId);
         if (lottery is null)
             return Result.Fail<LotteryNumberStatsDto>(new NotFoundError("Lottery not found"));
 
-        var soldNumbers = await _lotteryNumberRepository.GetSoldNumbersAsync(request.LotteryId);
+        var soldNumbers = await _lotteryNumberRepository.GetSoldNumbersAsync(lottery.Id);
         var totalPossible = (lottery.MaxNumber - lottery.MinNumber + 1) * lottery.TotalSeries;
 
         var stats = new LotteryNumberStatsDto

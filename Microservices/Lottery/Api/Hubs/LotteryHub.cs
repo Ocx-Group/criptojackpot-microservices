@@ -141,7 +141,8 @@ public class LotteryHub : Hub<ILotteryHubClient>
                 {
                     await Clients.Group(groupName).NumberReserved(
                         lotteryId, 
-                        reservation.NumberId, 
+                        reservation.NumberId,
+                        reservation.LotteryNumberGuid,
                         reservation.Number, 
                         reservation.Series);
                 }

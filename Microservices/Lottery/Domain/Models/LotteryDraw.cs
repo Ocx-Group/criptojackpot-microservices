@@ -5,7 +5,7 @@ namespace CryptoJackpot.Lottery.Domain.Models;
 
 public class LotteryDraw : BaseEntity
 {
-    public Guid LotteryGuid { get; set; }
+    public Guid LotteryGuid { get; set; } = Guid.NewGuid();
     public string LotteryNo { get; set; } = null!;
     public string Title { get; set; } = null!;
     public string Description { get; set; } = null!;

@@ -4,7 +4,6 @@ namespace CryptoJackpot.Identity.Domain.Models;
 
 public class UserReferral : BaseEntity
 {
-    public long Id { get; set; }
     public long ReferrerId { get; set; }
     public long ReferredId { get; set; }
     public string UsedSecurityCode { get; set; } = null!;

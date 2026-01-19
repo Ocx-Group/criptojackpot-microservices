@@ -19,7 +19,7 @@ public static class LotteryNumbersGenerator
     /// <param name="totalSeries">Total number of series to generate</param>
     /// <returns>Lazy enumerable of LotteryNumber entities</returns>
     public static IEnumerable<LotteryNumber> Generate(
-        Guid lotteryId,
+        long lotteryId,
         int minNumber,
         int maxNumber,
         int totalSeries)
@@ -32,8 +32,8 @@ public static class LotteryNumbersGenerator
             {
                 yield return new LotteryNumber
                 {
-                    Id = Guid.NewGuid(),
                     LotteryId = lotteryId,
+                    LotteryNumberGuid = Guid.NewGuid(),
                     Number = number,
                     Series = series,
                     Status = NumberStatus.Available,

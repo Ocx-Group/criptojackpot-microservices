@@ -11,16 +11,16 @@ public interface ILotteryNotificationService
     /// <summary>
     /// Broadcasts that numbers have been released (available again).
     /// </summary>
-    Task NotifyNumbersReleasedAsync(Guid lotteryId, List<NumberStatusDto> numbers);
+    Task NotifyNumbersReleasedAsync(Guid lotteryGuid, List<NumberStatusDto> numbers);
 
     /// <summary>
     /// Broadcasts that numbers have been sold.
     /// </summary>
-    Task NotifyNumbersSoldAsync(Guid lotteryId, List<NumberStatusDto> numbers);
+    Task NotifyNumbersSoldAsync(Guid lotteryGuid, List<NumberStatusDto> numbers);
 
     /// <summary>
     /// Broadcasts that a single number has been reserved.
     /// </summary>
-    Task NotifyNumberReservedAsync(Guid lotteryId, Guid numberId, int number, int series);
+    Task NotifyNumberReservedAsync(Guid lotteryGuid, long numberId, Guid numberGuid, int number, int series);
 }
 

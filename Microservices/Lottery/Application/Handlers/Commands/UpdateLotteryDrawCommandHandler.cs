@@ -30,7 +30,7 @@ public class UpdateLotteryDrawCommandHandler : IRequestHandler<UpdateLotteryDraw
 
     public async Task<Result<LotteryDrawDto>> Handle(UpdateLotteryDrawCommand request, CancellationToken cancellationToken)
     {
-        var lotteryDraw = await _lotteryDrawRepository.GetLotteryByIdAsync(request.LotteryId);
+        var lotteryDraw = await _lotteryDrawRepository.GetLotteryByGuidAsync(request.LotteryId);
 
         if (lotteryDraw is null)
             return Result.Fail<LotteryDrawDto>(new NotFoundError("Lottery not found"));
@@ -57,11 +57,11 @@ public class UpdateLotteryDrawCommandHandler : IRequestHandler<UpdateLotteryDraw
             var updatedLottery = await _lotteryDrawRepository.UpdateLotteryDrawAsync(lotteryDraw);
 
             // Unlink current prize and link new one if provided
-            await _prizeRepository.UnlinkPrizesFromLotteryAsync(request.LotteryId);
+            await _prizeRepository.UnlinkPrizesFromLotteryAsync(lotteryDraw.Id);
             
             if (request.PrizeId.HasValue)
             {
-                await _prizeRepository.LinkPrizeToLotteryAsync(request.PrizeId.Value, request.LotteryId);
+                await _prizeRepository.LinkPrizeToLotteryAsync(request.PrizeId.Value, lotteryDraw.Id);
             }
 
             _logger.LogInformation("Lottery {LotteryId} updated successfully", updatedLottery.LotteryGuid);

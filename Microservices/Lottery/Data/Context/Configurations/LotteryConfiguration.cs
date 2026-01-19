@@ -9,7 +9,11 @@ public class LotteryConfiguration : IEntityTypeConfiguration<LotteryDraw>
 {
     public void Configure(EntityTypeBuilder<LotteryDraw> builder)
     {
-        builder.HasKey(e => e.LotteryGuid);
+        builder.HasKey(e => e.Id);
+        builder.Property(e => e.Id).ValueGeneratedOnAdd();
+        builder.Property(e => e.LotteryGuid).IsRequired();
+        builder.HasIndex(e => e.LotteryGuid).IsUnique();
+        
         builder.Property(e => e.LotteryNo).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(50);
         builder.Property(e => e.Title).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(200);
         builder.Property(e => e.Description).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(500);

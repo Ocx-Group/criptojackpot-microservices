@@ -9,6 +9,10 @@ public class LotteryNumberConfiguration : IEntityTypeConfiguration<LotteryNumber
     public void Configure(EntityTypeBuilder<LotteryNumber> builder)
     {
         builder.HasKey(e => e.Id);
+        builder.Property(e => e.Id).ValueGeneratedOnAdd();
+        builder.Property(e => e.LotteryNumberGuid).IsRequired();
+        builder.HasIndex(e => e.LotteryNumberGuid).IsUnique();
+        
         builder.Property(e => e.LotteryId).IsRequired();
         builder.Property(e => e.Number).IsRequired();
         builder.Property(e => e.Series).IsRequired();

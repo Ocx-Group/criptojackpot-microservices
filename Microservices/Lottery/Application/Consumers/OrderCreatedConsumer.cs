@@ -29,7 +29,7 @@ public class OrderCreatedConsumer : IConsumer<OrderCreatedEvent>
             "Received OrderCreatedEvent for Order {OrderId}. Reserving {Count} numbers.",
             message.OrderId, message.LotteryNumberIds.Count);
 
-        var success = await _lotteryNumberRepository.ReserveNumbersAsync(
+        var success = await _lotteryNumberRepository.ReserveNumbersByGuidsAsync(
             message.LotteryNumberIds, 
             message.OrderId);
 

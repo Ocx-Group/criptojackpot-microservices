@@ -5,10 +5,10 @@ namespace CryptoJackpot.Lottery.Domain.Interfaces;
 public interface IPrizeRepository
 {
     Task<Prize> CreatePrizeAsync(Prize prize);
-    Task<Prize?> GetPrizeAsync(Guid id);
+    Task<Prize?> GetPrizeAsync(Guid prizeGuid);
     Task<PagedList<Prize>> GetAllPrizesAsync(Pagination pagination);
     Task<Prize> UpdatePrizeAsync(Prize prize);
     Task<Prize> DeletePrizeAsync(Prize prize);
-    Task LinkPrizeToLotteryAsync(Guid prizeId, Guid lotteryId);
-    Task UnlinkPrizesFromLotteryAsync(Guid lotteryId);
+    Task LinkPrizeToLotteryAsync(Guid prizeGuid, long lotteryId);
+    Task UnlinkPrizesFromLotteryAsync(long lotteryId);
 }
