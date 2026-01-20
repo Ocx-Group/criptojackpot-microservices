@@ -220,10 +220,10 @@ services:
       ASPNETCORE_URLS: http://+:80
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=cryptojackpot_notification_db;Username=postgres;Password=postgres"
       Kafka__BootstrapServers: "redpanda:9092"
-      Brevo__ApiKey: "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"
-      Brevo__SenderEmail: "noreply@cryptojackpot.com"
-      Brevo__SenderName: "CryptoJackpot"
-      Brevo__BaseUrl: "http://localhost:3000"
+      Brevo__ApiKey: "${BREVO_API_KEY}"
+      Brevo__SenderEmail: "${BREVO_SENDER_EMAIL:-noreply@cryptojackpot.com}"
+      Brevo__SenderName: "${BREVO_SENDER_NAME:-CryptoJackpot}"
+      Brevo__BaseUrl: "${BREVO_BASE_URL:-http://localhost:3000}"
     ports:
       - "5006:80"
     depends_on:
