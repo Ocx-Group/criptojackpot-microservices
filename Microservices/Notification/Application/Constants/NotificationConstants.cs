@@ -10,7 +10,7 @@ public static class TemplateNames
 
 public static class UrlPaths
 {
-    public const string ConfirmEmail = "/confirm-email";
+    public const string ConfirmEmail = "/user_confirm_email";
     public const string ReferralProgram = "/referal-program";
     public const string LotteryDetails = "/lottery";
 }
