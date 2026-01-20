@@ -62,6 +62,11 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
             var user = _mapper.Map<User>(request);
             user.Password = _passwordHasher.Hash(request.Password);
             user.SecurityCode = Guid.NewGuid().ToString();
+            user.Status = false;
+            
+            // Ensure UserGuid is generated 
+            if (user.UserGuid == Guid.Empty)
+                user.UserGuid = Guid.NewGuid();
             
             var createdUser = await _userRepository.CreateAsync(user);
 
