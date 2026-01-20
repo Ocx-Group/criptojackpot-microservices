@@ -28,6 +28,7 @@ public static class KafkaTopics
     // Notification Events
     public const string EmailSent = "email-sent";
     public const string NotificationFailed = "notification-failed";
+    public const string SendMarketingEmail = "send-marketing-email";
     
     // Consumer Groups
     public const string NotificationGroup = "notification-group";

@@ -1,6 +1,7 @@
 using CryptoJackpot.Domain.Core.Constants;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Notification;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Notification.Application.Configuration;
 using CryptoJackpot.Notification.Application.Consumers;
@@ -162,6 +163,10 @@ public static class DependencyInjection
                 rider.AddConsumer<PasswordResetRequestedConsumer>();
                 rider.AddConsumer<ReferralCreatedConsumer>();
                 rider.AddConsumer<LotteryMarketingConsumer>();
+                rider.AddConsumer<SendMarketingEmailConsumer>();
+                
+                // Register producer for distributing individual email jobs
+                rider.AddProducer<SendMarketingEmailEvent>(KafkaTopics.SendMarketingEmail);
             },
             configureBus: bus =>
             {
@@ -190,6 +195,17 @@ public static class DependencyInjection
                     KafkaTopics.LotteryCreated,
                     KafkaTopics.NotificationGroup,
                     e => e.ConfigureConsumer<LotteryMarketingConsumer>(context));
+
+                // Marketing email distribution topic - multiple consumers can process in parallel
+                kafka.TopicEndpoint<SendMarketingEmailEvent>(
+                    KafkaTopics.SendMarketingEmail,
+                    KafkaTopics.NotificationGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<SendMarketingEmailConsumer>(context);
+                        // Enable concurrent message processing for higher throughput
+                        e.ConcurrentMessageLimit = 10;
+                    });
             });
     }
 }

@@ -1,48 +1,57 @@
-﻿using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
+﻿using CryptoJackpot.Domain.Core.Bus;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
-using CryptoJackpot.Notification.Application.Commands;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Notification;
 using MassTransit;
-using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace CryptoJackpot.Notification.Application.Consumers;
 
 /// <summary>
-/// Consumer that handles LotteryCreatedEvent to send marketing emails to all users.
-/// Uses MassTransit Request/Response pattern to get user list from Identity service.
+/// Consumer that handles LotteryCreatedEvent to queue marketing emails to all users.
+/// Uses MassTransit Request/Response to get users, then publishes individual email events
+/// for parallel processing by SendMarketingEmailConsumer.
+/// 
+/// Scalability: Can handle 100,000+ users by distributing work via Kafka.
 /// </summary>
 public class LotteryMarketingConsumer : IConsumer<LotteryCreatedEvent>
 {
+    private const int BatchSize = 100;
+    
     private readonly ILogger<LotteryMarketingConsumer> _logger;
-    private readonly IMediator _mediator;
+    private readonly IEventBus _eventBus;
     private readonly IRequestClient<GetAllUsersRequest> _usersClient;
 
     public LotteryMarketingConsumer(
-        IMediator mediator, 
+        IEventBus eventBus,
         IRequestClient<GetAllUsersRequest> usersClient,
         ILogger<LotteryMarketingConsumer> logger)
     {
         _logger = logger;
-        _mediator = mediator;
+        _eventBus = eventBus;
         _usersClient = usersClient;
     }
 
     public async Task Consume(ConsumeContext<LotteryCreatedEvent> context)
     {
         var lottery = context.Message;
+        var campaignId = Guid.NewGuid();
         
         _logger.LogInformation(
-            "Received LotteryCreatedEvent for lottery {LotteryId} - {Title}. Starting marketing email campaign.",
-            lottery.LotteryId, lottery.Title);
+            "Received LotteryCreatedEvent for lottery {LotteryId} - {Title}. Starting marketing campaign {CampaignId}.",
+            lottery.LotteryId, lottery.Title, campaignId);
 
         try
         {
             // Request all active users from Identity service via MassTransit Request/Response
-            var response = await _usersClient.GetResponse<GetAllUsersResponse>(new GetAllUsersRequest
-            {
-                OnlyActiveUsers = true,
-                OnlyConfirmedEmails = true
-            });
+            var response = await _usersClient.GetResponse<GetAllUsersResponse>(
+                new GetAllUsersRequest
+                {
+                    OnlyActiveUsers = true,
+                    OnlyConfirmedEmails = true
+                },
+                context.CancellationToken,
+                timeout: RequestTimeout.After(m: 2)); // 2 minute timeout for large user lists
 
             if (!response.Message.Success)
             {
@@ -51,23 +60,27 @@ public class LotteryMarketingConsumer : IConsumer<LotteryCreatedEvent>
             }
 
             var users = response.Message.Users.ToList();
-            _logger.LogInformation("Retrieved {Count} users for lottery marketing campaign", users.Count);
+            _logger.LogInformation(
+                "Campaign {CampaignId}: Retrieved {Count} users for lottery {LotteryId}",
+                campaignId, users.Count, lottery.LotteryId);
 
             if (users.Count == 0)
             {
-                _logger.LogWarning("No users found for marketing campaign. Skipping email send.");
+                _logger.LogWarning("Campaign {CampaignId}: No users found. Skipping.", campaignId);
                 return;
             }
 
-            // Send marketing email to each user
-            var successCount = 0;
-            var failCount = 0;
+            // Publish individual email events in batches for parallel processing
+            var batchNumber = 0;
+            var totalQueued = 0;
 
-            foreach (var user in users)
+            foreach (var batch in users.Chunk(BatchSize))
             {
-                try
+                batchNumber++;
+                
+                foreach (var user in batch)
                 {
-                    await _mediator.Send(new SendLotteryMarketingEmailCommand
+                    await _eventBus.Publish(new SendMarketingEmailEvent
                     {
                         Email = user.Email,
                         UserName = user.Name,
@@ -78,29 +91,34 @@ public class LotteryMarketingConsumer : IConsumer<LotteryCreatedEvent>
                         TicketPrice = lottery.TicketPrice,
                         StartDate = lottery.StartDate,
                         EndDate = lottery.EndDate,
-                        MaxTickets = lottery.MaxTickets
+                        MaxTickets = lottery.MaxTickets,
+                        CampaignId = campaignId,
+                        BatchNumber = batchNumber
                     });
                     
-                    successCount++;
+                    totalQueued++;
                 }
-                catch (Exception ex)
-                {
-                    failCount++;
-                    _logger.LogError(ex, "Failed to send marketing email to {Email}", user.Email);
-                }
+                
+                _logger.LogDebug(
+                    "Campaign {CampaignId}: Queued batch {BatchNumber} ({Count} emails)",
+                    campaignId, batchNumber, batch.Length);
             }
 
             _logger.LogInformation(
-                "Lottery marketing campaign completed for {LotteryId}. Sent: {Success}, Failed: {Failed}",
-                lottery.LotteryId, successCount, failCount);
+                "Campaign {CampaignId}: Successfully queued {Total} marketing emails for lottery {LotteryId} in {Batches} batches",
+                campaignId, totalQueued, lottery.LotteryId, batchNumber);
         }
         catch (RequestTimeoutException ex)
         {
-            _logger.LogError(ex, "Timeout waiting for Identity service response for lottery {LotteryId}", lottery.LotteryId);
+            _logger.LogError(ex, 
+                "Campaign {CampaignId}: Timeout waiting for Identity service response for lottery {LotteryId}",
+                campaignId, lottery.LotteryId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing LotteryCreatedEvent for lottery {LotteryId}", lottery.LotteryId);
+            _logger.LogError(ex, 
+                "Campaign {CampaignId}: Error processing LotteryCreatedEvent for lottery {LotteryId}",
+                campaignId, lottery.LotteryId);
             throw;
         }
     }
