@@ -140,26 +140,48 @@ if [ "$FULL" = true ]; then
         "cryptojackpotdistributed-api-gateway"
     )
     
+    deleted_count=0
     for image in "${IMAGES[@]}"; do
         if docker images -q "$image" 2>/dev/null | grep -q .; then
-            echo -e "${GRAY}   Eliminando: $image${NC}"
+            echo -e "${GRAY}   ✓ Eliminando: $image${NC}"
             docker rmi -f "$image" 2>/dev/null || true
+            ((deleted_count++))
         fi
     done
+    
+    if [ $deleted_count -eq 0 ]; then
+        echo -e "${GRAY}   (No había imágenes antiguas)${NC}"
+    else
+        echo -e "${GRAY}   $deleted_count imagen(es) eliminada(s)${NC}"
+    fi
 
-    # Paso 3: Reconstruir sin caché
+    # Paso 3: Reconstruir sin caché (con progreso visible)
     echo ""
     echo -e "${YELLOW}🔨 Reconstruyendo imágenes (sin caché)...${NC}"
     echo -e "${GRAY}   Esto puede tomar varios minutos...${NC}"
+    echo -e "${GRAY}   ─────────────────────────────────────${NC}"
     echo ""
-    docker compose build --no-cache --pull
+    
+    # --progress=plain muestra el progreso detallado
+    docker compose build --no-cache --pull --progress=plain
+    
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo -e "${RED}❌ Error durante el build. Revisa los mensajes anteriores.${NC}"
+        exit 1
+    fi
 
-    # Paso 4: Levantar todo
+    # Paso 4: Levantar microservicios
     echo ""
-    echo -e "${GREEN}🚀 Levantando todos los servicios...${NC}"
+    echo -e "${GRAY}   ─────────────────────────────────────${NC}"
+    echo -e "${GREEN}🚀 Levantando microservicios...${NC}"
     docker compose up -d
 
-    # Paso 5: Mostrar estado
+    # Paso 5: Levantar infraestructura (último para que todo conecte)
+    echo -e "${GREEN}🏗️  Levantando infraestructura...${NC}"
+    docker compose -f docker-compose.infra.yaml up -d
+
+    # Paso 6: Mostrar estado
     echo ""
     echo -e "${GREEN}✅ Despliegue local completado!${NC}"
     echo ""

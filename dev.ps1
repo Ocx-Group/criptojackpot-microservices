@@ -110,29 +110,61 @@ if ($Full) {
         "cryptojackpotdistributed-api-gateway"
     )
     
+    $deletedCount = 0
     foreach ($image in $images) {
         $exists = docker images -q $image 2>$null
         if ($exists) {
-            Write-Host "   Eliminando: $image" -ForegroundColor Gray
-            docker rmi -f $image 2>$null
+            Write-Host "   ✓ Eliminando: $image" -ForegroundColor Gray
+            docker rmi -f $image 2>$null | Out-Null
+            $deletedCount++
         }
     }
+    
+    if ($deletedCount -eq 0) {
+        Write-Host "   (No había imágenes antiguas)" -ForegroundColor DarkGray
+    } else {
+        Write-Host "   $deletedCount imagen(es) eliminada(s)" -ForegroundColor Gray
+    }
 
-    # Paso 3: Reconstruir sin caché
+    # Paso 3: Reconstruir sin caché (con progreso visible)
     Write-Host ""
     Write-Host "🔨 Reconstruyendo imágenes (sin caché)..." -ForegroundColor Yellow
     Write-Host "   Esto puede tomar varios minutos..." -ForegroundColor Gray
+    Write-Host "   ─────────────────────────────────────" -ForegroundColor DarkGray
     Write-Host ""
-    docker compose build --no-cache --pull
+    
+    # --progress=plain muestra el progreso detallado de cada paso
+    docker compose build --no-cache --pull --progress=plain
+    
+    $buildFailed = $LASTEXITCODE -ne 0
+    
+    if ($buildFailed) {
+        Write-Host ""
+        Write-Host "⚠️  Error durante el build de microservicios." -ForegroundColor Red
+        Write-Host "   Se levantará solo la infraestructura para que puedas trabajar desde el IDE." -ForegroundColor Yellow
+        Write-Host ""
+    }
 
-    # Paso 4: Levantar todo
-    Write-Host ""
-    Write-Host "🚀 Levantando todos los servicios..." -ForegroundColor Green
-    docker compose up -d
+    # Paso 4: Levantar microservicios (solo si el build fue exitoso)
+    if (-not $buildFailed) {
+        Write-Host ""
+        Write-Host "   ─────────────────────────────────────" -ForegroundColor DarkGray
+        Write-Host "🚀 Levantando microservicios..." -ForegroundColor Green
+        docker compose up -d
+    }
 
-    # Paso 5: Mostrar estado
+    # Paso 5: Levantar infraestructura (siempre, aunque falle el build)
+    Write-Host "🏗️  Levantando infraestructura..." -ForegroundColor Green
+    docker compose -f docker-compose.infra.yaml up -d
+
+    # Paso 6: Mostrar estado
     Write-Host ""
-    Write-Host "✅ Despliegue local completado!" -ForegroundColor Green
+    if ($buildFailed) {
+        Write-Host "⚠️  Despliegue parcial - Solo infraestructura" -ForegroundColor Yellow
+        Write-Host "   Corrige los errores de build y ejecuta de nuevo." -ForegroundColor Gray
+    } else {
+        Write-Host "✅ Despliegue local completado!" -ForegroundColor Green
+    }
     Write-Host ""
     Write-Host "📋 Servicios disponibles:" -ForegroundColor Cyan
     Write-Host "   API Gateway:       http://localhost:5000" -ForegroundColor Gray
