@@ -11,6 +11,8 @@ public static class KafkaTopics
     public const string UserLoggedIn = "user-logged-in";
     public const string PasswordResetRequested = "password-reset-requested";
     public const string ReferralCreated = "referral-created";
+    public const string GetUsersForMarketingRequest = "get-users-for-marketing-request";
+    public const string GetUsersForMarketingResponse = "get-users-for-marketing-response";
     
     // Lottery Events
     public const string LotteryCreated = "lottery-created";
@@ -35,5 +37,6 @@ public static class KafkaTopics
     public const string AnalyticsGroup = "analytics-group";
     public const string LotteryGroup = "lottery-group";
     public const string OrderGroup = "order-group";
+    public const string IdentityGroup = "identity-group";
 }
 

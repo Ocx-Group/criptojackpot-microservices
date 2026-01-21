@@ -183,14 +183,11 @@ public static class IoCExtension
                 rider.AddConsumer<ReferralCreatedConsumer>();
                 rider.AddConsumer<LotteryMarketingConsumer>();
                 rider.AddConsumer<SendMarketingEmailConsumer>();
+                rider.AddConsumer<MarketingUsersResponseConsumer>();
 
-                // Register producer for distributing individual email jobs
+                // Register producers for distributing events
                 rider.AddProducer<SendMarketingEmailEvent>(KafkaTopics.SendMarketingEmail);
-            },
-            configureBus: bus =>
-            {
-                // Register request client for getting users from Identity service
-                bus.AddRequestClient<GetAllUsersRequest>();
+                rider.AddProducer<GetUsersForMarketingRequestEvent>(KafkaTopics.GetUsersForMarketingRequest);
             },
             configureKafkaEndpoints: (context, kafka) =>
             {
@@ -214,6 +211,12 @@ public static class IoCExtension
                     KafkaTopics.LotteryCreated,
                     KafkaTopics.NotificationGroup,
                     e => e.ConfigureConsumer<LotteryMarketingConsumer>(context));
+
+                // Marketing users response - Saga pattern response from Identity service
+                kafka.TopicEndpoint<GetUsersForMarketingResponseEvent>(
+                    KafkaTopics.GetUsersForMarketingResponse,
+                    KafkaTopics.NotificationGroup,
+                    e => e.ConfigureConsumer<MarketingUsersResponseConsumer>(context));
 
                 // Marketing email distribution topic - multiple consumers can process in parallel
                 kafka.TopicEndpoint<SendMarketingEmailEvent>(

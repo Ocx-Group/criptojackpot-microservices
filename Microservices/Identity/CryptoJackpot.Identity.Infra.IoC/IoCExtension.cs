@@ -268,11 +268,22 @@ public static class IoCExtension
                 rider.AddProducer<PasswordResetRequestedEvent>(KafkaTopics.PasswordResetRequested);
                 rider.AddProducer<ReferralCreatedEvent>(KafkaTopics.ReferralCreated);
                 rider.AddProducer<UserLoggedInEvent>(KafkaTopics.UserLoggedIn);
+                rider.AddProducer<GetUsersForMarketingResponseEvent>(KafkaTopics.GetUsersForMarketingResponse);
+                
+                // Register consumer for marketing users request (Saga pattern)
+                rider.AddConsumer<GetUsersForMarketingConsumer>();
             },
-            configureBus: bus =>
+            configureKafkaEndpoints: (context, kafka) =>
             {
-                // Register consumer for Request/Response pattern (used by Notification service)
-                bus.AddConsumer<GetAllUsersConsumer>();
+                // Marketing users request - Saga pattern for async Request/Response
+                kafka.TopicEndpoint<GetUsersForMarketingRequestEvent>(
+                    KafkaTopics.GetUsersForMarketingRequest,
+                    KafkaTopics.IdentityGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<GetUsersForMarketingConsumer>(context);
+                        e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+                    });
             });
     }
 }
