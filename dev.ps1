@@ -54,12 +54,15 @@ if ($InfraOnly) {
 
     # Detener contenedores del compose principal si están corriendo
     Write-Host "🛑 Deteniendo contenedores existentes..." -ForegroundColor Yellow
-    docker compose down 2>$null
-    docker compose -f docker-compose.infra.yaml down 2>$null
+    Write-Host "   Deteniendo docker-compose.yaml..." -ForegroundColor Gray
+    docker compose down --timeout 10 2>&1 | Out-Null
+    Write-Host "   Deteniendo docker-compose.infra.yaml..." -ForegroundColor Gray
+    docker compose -f docker-compose.infra.yaml down --timeout 10 2>&1 | Out-Null
+    Write-Host "   ✓ Contenedores detenidos" -ForegroundColor Gray
 
     if ($Clean) {
         Write-Host "🧹 Limpieza profunda: Eliminando volúmenes..." -ForegroundColor Red
-        docker compose -f docker-compose.infra.yaml down -v
+        docker compose -f docker-compose.infra.yaml down -v --timeout 10
     }
 
     # Levantar solo infraestructura
@@ -90,12 +93,15 @@ if ($Full) {
 
     # Paso 1: Detener todo
     Write-Host "🛑 Deteniendo contenedores existentes..." -ForegroundColor Yellow
-    docker compose down 2>$null
-    docker compose -f docker-compose.infra.yaml down 2>$null
+    Write-Host "   Deteniendo docker-compose.yaml..." -ForegroundColor Gray
+    docker compose down --timeout 10 2>&1 | Out-Null
+    Write-Host "   Deteniendo docker-compose.infra.yaml..." -ForegroundColor Gray
+    docker compose -f docker-compose.infra.yaml down --timeout 10 2>&1 | Out-Null
+    Write-Host "   ✓ Contenedores detenidos" -ForegroundColor Gray
 
     if ($Clean) {
         Write-Host "🧹 Limpieza profunda: Eliminando volúmenes..." -ForegroundColor Red
-        docker compose down -v
+        docker compose down -v --timeout 10
     }
 
     # Paso 2: Eliminar imágenes de microservicios para forzar rebuild
@@ -145,17 +151,17 @@ if ($Full) {
         Write-Host ""
     }
 
-    # Paso 4: Levantar microservicios (solo si el build fue exitoso)
+    # Paso 4: Levantar infraestructura primero (desde docker-compose.infra.yaml)
+    Write-Host ""
+    Write-Host "   ─────────────────────────────────────" -ForegroundColor DarkGray
+    Write-Host "🏗️  Levantando infraestructura..." -ForegroundColor Green
+    docker compose -f docker-compose.infra.yaml up -d
+
+    # Paso 5: Levantar microservicios (solo si el build fue exitoso)
     if (-not $buildFailed) {
-        Write-Host ""
-        Write-Host "   ─────────────────────────────────────" -ForegroundColor DarkGray
         Write-Host "🚀 Levantando microservicios..." -ForegroundColor Green
         docker compose up -d
     }
-
-    # Paso 5: Levantar infraestructura (siempre, aunque falle el build)
-    Write-Host "🏗️  Levantando infraestructura..." -ForegroundColor Green
-    docker compose -f docker-compose.infra.yaml up -d
 
     # Paso 6: Mostrar estado
     Write-Host ""
@@ -168,10 +174,13 @@ if ($Full) {
     Write-Host ""
     Write-Host "📋 Servicios disponibles:" -ForegroundColor Cyan
     Write-Host "   API Gateway:       http://localhost:5000" -ForegroundColor Gray
-    Write-Host "   PostgreSQL:        localhost:5432" -ForegroundColor Gray
+    Write-Host "   PostgreSQL:        localhost:5433" -ForegroundColor Gray
+    Write-Host "   Redpanda (Kafka):  localhost:29092" -ForegroundColor Gray
     Write-Host "   Redpanda Console:  http://localhost:8080" -ForegroundColor Gray
+    Write-Host "   MinIO:             http://localhost:9000" -ForegroundColor Gray
     Write-Host ""
     Write-Host "📊 Estado de los contenedores:" -ForegroundColor Cyan
     docker compose ps
+    docker compose -f docker-compose.infra.yaml ps
     Write-Host ""
 }
