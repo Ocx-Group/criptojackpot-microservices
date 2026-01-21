@@ -24,10 +24,7 @@ public class UpdateLotteryDrawCommandValidator : AbstractValidator<UpdateLottery
         RuleFor(c => c.MaxNumber)
             .GreaterThan(0).WithMessage("MaxNumber must be greater than 0")
             .GreaterThan(c => c.MinNumber).WithMessage("MaxNumber must be greater than MinNumber");
-
-        RuleFor(c => c.TotalSeries)
-            .GreaterThan(0).WithMessage("TotalSeries must be greater than 0");
-
+        
         RuleFor(c => c.TicketPrice)
             .GreaterThan(0).WithMessage("TicketPrice must be greater than 0");
 

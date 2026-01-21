@@ -8,7 +8,6 @@ public class CreateLotteryDrawRequest
     public string Description { get; set; } = null!;
     public int MinNumber { get; set; }
     public int MaxNumber { get; set; }
-    public int TotalSeries { get; set; }
     public decimal TicketPrice { get; set; }
     public int MaxTickets { get; set; }
     public DateTime StartDate { get; set; }

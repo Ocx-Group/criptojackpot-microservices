@@ -41,6 +41,7 @@ public class LotteryMappingProfile : Profile
             .ForMember(dest => dest.LotteryGuid, opt => opt.Ignore())
             .ForMember(dest => dest.LotteryNo, opt => opt.Ignore())
             .ForMember(dest => dest.SoldTickets, opt => opt.Ignore())
+            .ForMember(dest => dest.TotalSeries, opt => opt.Ignore())
             .ForMember(dest => dest.Prizes, opt => opt.Ignore())
             .ForMember(dest => dest.LotteryNumbers, opt => opt.Ignore());
 

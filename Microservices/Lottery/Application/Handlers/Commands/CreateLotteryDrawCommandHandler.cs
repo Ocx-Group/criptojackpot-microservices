@@ -44,18 +44,25 @@ public class CreateLotteryDrawCommandHandler : IRequestHandler<CreateLotteryDraw
             lotteryDraw.LotteryGuid = Guid.NewGuid();
             lotteryDraw.LotteryNo = LotteryNumberGenerator.Generate();
             lotteryDraw.SoldTickets = 0;
+            
+            // Calcular TotalSeries automáticamente
+            var numbersPerSeries = request.MaxNumber - request.MinNumber + 1;
+            lotteryDraw.TotalSeries = request.MaxTickets / numbersPerSeries;
 
             var createdLottery = await _lotteryDrawRepository.CreateLotteryAsync(lotteryDraw);
 
             if (request.PrizeId.HasValue)
             {
                 await _prizeRepository.LinkPrizeToLotteryAsync(request.PrizeId.Value, createdLottery.Id);
+                
+                // Recargar la lotería con los premios vinculados
+                createdLottery = await _lotteryDrawRepository.GetLotteryByGuidAsync(createdLottery.LotteryGuid);
             }
 
             // Publish event to message bus for async number generation
             await _eventBus.Publish(new LotteryCreatedEvent
             {
-                LotteryId = createdLottery.LotteryGuid,
+                LotteryId = createdLottery!.LotteryGuid,
                 LotteryDbId = createdLottery.Id,
                 MinNumber = createdLottery.MinNumber,
                 MaxNumber = createdLottery.MaxNumber,

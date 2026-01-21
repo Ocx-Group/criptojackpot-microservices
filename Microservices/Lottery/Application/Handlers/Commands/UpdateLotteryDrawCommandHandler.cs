@@ -42,7 +42,11 @@ public class UpdateLotteryDrawCommandHandler : IRequestHandler<UpdateLotteryDraw
             lotteryDraw.Description = request.Description;
             lotteryDraw.MinNumber = request.MinNumber;
             lotteryDraw.MaxNumber = request.MaxNumber;
-            lotteryDraw.TotalSeries = request.TotalSeries;
+            
+            // Calcular TotalSeries automáticamente basado en MaxTickets
+            var numbersPerSeries = request.MaxNumber - request.MinNumber + 1;
+            lotteryDraw.TotalSeries = request.MaxTickets / numbersPerSeries;
+            
             lotteryDraw.TicketPrice = request.TicketPrice;
             lotteryDraw.MaxTickets = request.MaxTickets;
             lotteryDraw.StartDate = request.StartDate;
@@ -63,8 +67,11 @@ public class UpdateLotteryDrawCommandHandler : IRequestHandler<UpdateLotteryDraw
             {
                 await _prizeRepository.LinkPrizeToLotteryAsync(request.PrizeId.Value, lotteryDraw.Id);
             }
+            
+            // Recargar la lotería con los premios actualizados
+            updatedLottery = await _lotteryDrawRepository.GetLotteryByGuidAsync(updatedLottery.LotteryGuid);
 
-            _logger.LogInformation("Lottery {LotteryId} updated successfully", updatedLottery.LotteryGuid);
+            _logger.LogInformation("Lottery {LotteryId} updated successfully", updatedLottery!.LotteryGuid);
 
             return Result.Ok(_mapper.Map<LotteryDrawDto>(updatedLottery));
         }
