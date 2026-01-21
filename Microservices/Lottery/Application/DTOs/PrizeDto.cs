@@ -4,8 +4,8 @@ namespace CryptoJackpot.Lottery.Application.DTOs;
 
 public class PrizeDto
 {
-    public Guid Id { get; set; }
-    public Guid? LotteryId { get; set; }
+    public Guid PrizeGuid { get; set; }
+    public Guid? LotteryGuid { get; set; }
     public int Tier { get; set; }
     public string Name { get; set; } = null!;
     public string Description { get; set; } = null!;

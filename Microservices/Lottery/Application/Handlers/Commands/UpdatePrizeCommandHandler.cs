@@ -46,7 +46,7 @@ public class UpdatePrizeCommandHandler : IRequestHandler<UpdatePrizeCommand, Res
             prize.CashAlternative = request.CashAlternative;
             prize.IsDeliverable = request.IsDeliverable;
             prize.IsDigital = request.IsDigital;
-            prize.AdditionalImages = request.AdditionalImageUrls
+            prize.AdditionalImages = request.AdditionalImages
                 .Select(img => new PrizeImage
                 {
                     PrizeId = prize.Id,

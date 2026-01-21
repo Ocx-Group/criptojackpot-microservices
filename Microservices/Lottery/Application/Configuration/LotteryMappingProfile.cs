@@ -13,7 +13,8 @@ public class LotteryMappingProfile : Profile
     public LotteryMappingProfile()
     {
         // Prize mappings
-        CreateMap<Prize, PrizeDto>();
+        CreateMap<Prize, PrizeDto>()
+            .ForMember(dest => dest.LotteryGuid, opt => opt.MapFrom((src, _) => src.LotteryId.HasValue ? src.Lottery?.LotteryGuid : null));
         CreateMap<PrizeImage, PrizeImageDto>();
         
         // LotteryDraw mappings
@@ -29,7 +30,7 @@ public class LotteryMappingProfile : Profile
         CreateMap<CreatePrizeCommand, Prize>()
             .ForMember(dest => dest.PrizeGuid, opt => opt.MapFrom(_ => Guid.NewGuid()))
             .ForMember(dest => dest.AdditionalImages, opt => opt.MapFrom(src => 
-                src.AdditionalImageUrls.Select(img => new PrizeImage
+                src.AdditionalImages.Select(img => new PrizeImage
                 {
                     ImageUrl = img.ImageUrl,
                     Caption = img.Caption,

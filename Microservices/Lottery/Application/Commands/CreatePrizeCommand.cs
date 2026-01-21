@@ -14,7 +14,7 @@ public class CreatePrizeCommand : IRequest<Result<PrizeDto>>
     public PrizeType Type { get; set; }
     public int Tier { get; set; }
     public string MainImageUrl { get; set; } = null!;
-    public List<PrizeImageRequest> AdditionalImageUrls { get; set; } = [];
+    public List<PrizeImageRequest> AdditionalImages { get; set; } = [];
     public Dictionary<string, string> Specifications { get; set; } = [];
     public decimal? CashAlternative { get; set; }
     public bool IsDeliverable { get; set; }
