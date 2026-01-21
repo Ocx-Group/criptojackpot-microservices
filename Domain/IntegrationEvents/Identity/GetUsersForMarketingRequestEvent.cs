@@ -25,12 +25,7 @@ public class GetUsersForMarketingRequestEvent : Event
     public int MaxTickets { get; set; }
     
     /// <summary>
-    /// If true, only returns users with confirmed emails
-    /// </summary>
-    public bool OnlyConfirmedEmails { get; set; } = true;
-    
-    /// <summary>
-    /// If true, only returns active users
+    /// If true, only returns active users (Status = true means email confirmed)
     /// </summary>
     public bool OnlyActiveUsers { get; set; } = true;
 }

@@ -1,4 +1,4 @@
-﻿# 📧 Flujo de Marketing de Lotería - Patrón Saga
+﻿﻿# 📧 Flujo de Marketing de Lotería - Patrón Saga
 
 Este documento describe el flujo de eventos cuando se crea una nueva lotería y se envían emails de marketing a todos los usuarios registrados.
 
@@ -97,8 +97,7 @@ public class GetUsersForMarketingRequestEvent : Event
     public Guid LotteryId { get; set; }
     public string LotteryTitle { get; set; }
     // ... lottery info passed through for the response
-    public bool OnlyConfirmedEmails { get; set; }
-    public bool OnlyActiveUsers { get; set; }
+    public bool OnlyActiveUsers { get; set; } // Status = true means email confirmed
 }
 ```
 

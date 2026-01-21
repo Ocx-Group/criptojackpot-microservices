@@ -54,8 +54,7 @@ public class LotteryMarketingConsumer : IConsumer<LotteryCreatedEvent>
                 StartDate = lottery.StartDate,
                 EndDate = lottery.EndDate,
                 MaxTickets = lottery.MaxTickets,
-                OnlyActiveUsers = true,
-                OnlyConfirmedEmails = true
+                OnlyActiveUsers = true // Status = true means email confirmed
             });
 
             _logger.LogInformation(
