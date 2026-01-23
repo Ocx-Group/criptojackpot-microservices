@@ -1,0 +1,28 @@
+﻿# Ingress para herramientas de administración
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cryptojackpot-tools-ingress
+  namespace: cryptojackpot
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: tools.cryptojackpot.local
+      http:
+        paths:
+          - path: /kafka
+            pathType: Prefix
+            backend:
+              service:
+                name: redpanda-console
+                port:
+                  number: 8080
+          - path: /minio
+            pathType: Prefix
+            backend:
+              service:
+                name: minio
+                port:
+                  number: 9001

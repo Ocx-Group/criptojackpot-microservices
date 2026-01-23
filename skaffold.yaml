@@ -1,0 +1,152 @@
+﻿# Skaffold Configuration for CryptoJackpotDistributed
+# Permite desarrollo local con hot-reload simulando producción
+apiVersion: skaffold/v4beta6
+kind: Config
+metadata:
+  name: cryptojackpot-distributed
+
+# Perfiles para diferentes entornos
+profiles:
+  # Perfil de desarrollo con hot-reload
+  - name: dev
+    activation:
+      - command: dev
+    build:
+      local:
+        push: false
+        useBuildkit: true
+      artifacts:
+        - image: cryptojackpot/identity-api
+          context: .
+          docker:
+            dockerfile: Microservices/Identity/Api/Dockerfile
+        - image: cryptojackpot/lottery-api
+          context: .
+          docker:
+            dockerfile: Microservices/Lottery/Api/Dockerfile
+        - image: cryptojackpot/order-api
+          context: .
+          docker:
+            dockerfile: Microservices/Order/Api/Dockerfile
+        - image: cryptojackpot/wallet-api
+          context: .
+          docker:
+            dockerfile: Microservices/Wallet/Api/Dockerfile
+        - image: cryptojackpot/winner-api
+          context: .
+          docker:
+            dockerfile: Microservices/Winner/Api/Dockerfile
+        - image: cryptojackpot/notification-api
+          context: .
+          docker:
+            dockerfile: Microservices/Notification/Api/Dockerfile
+    manifests:
+      rawYaml:
+        - k8s/local/namespace.yaml
+        - k8s/local/configmap.yaml
+        - k8s/local/secrets/*.yaml
+        - k8s/local/postgres/*.yaml
+        - k8s/local/redpanda/*.yaml
+        - k8s/local/minio/*.yaml
+        - k8s/local/microservices/**/*.yaml
+        - k8s/local/ingress/*.yaml
+    deploy:
+      kubectl: {}
+    portForward:
+      - resourceType: service
+        resourceName: identity-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5001
+      - resourceType: service
+        resourceName: lottery-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5002
+      - resourceType: service
+        resourceName: order-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5003
+      - resourceType: service
+        resourceName: wallet-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5004
+      - resourceType: service
+        resourceName: winner-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5005
+      - resourceType: service
+        resourceName: notification-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5006
+      - resourceType: service
+        resourceName: postgres
+        namespace: cryptojackpot
+        port: 5432
+        localPort: 5433
+      - resourceType: service
+        resourceName: redpanda
+        namespace: cryptojackpot
+        port: 9092
+        localPort: 9092
+      - resourceType: service
+        resourceName: redpanda-console
+        namespace: cryptojackpot
+        port: 8080
+        localPort: 8080
+      - resourceType: service
+        resourceName: minio
+        namespace: cryptojackpot
+        port: 9001
+        localPort: 9001
+
+# Build por defecto
+build:
+  local:
+    push: false
+    useBuildkit: true
+  artifacts:
+    - image: cryptojackpot/identity-api
+      context: .
+      docker:
+        dockerfile: Microservices/Identity/Api/Dockerfile
+    - image: cryptojackpot/lottery-api
+      context: .
+      docker:
+        dockerfile: Microservices/Lottery/Api/Dockerfile
+    - image: cryptojackpot/order-api
+      context: .
+      docker:
+        dockerfile: Microservices/Order/Api/Dockerfile
+    - image: cryptojackpot/wallet-api
+      context: .
+      docker:
+        dockerfile: Microservices/Wallet/Api/Dockerfile
+    - image: cryptojackpot/winner-api
+      context: .
+      docker:
+        dockerfile: Microservices/Winner/Api/Dockerfile
+    - image: cryptojackpot/notification-api
+      context: .
+      docker:
+        dockerfile: Microservices/Notification/Api/Dockerfile
+
+# Manifests por defecto
+manifests:
+  rawYaml:
+    - k8s/local/namespace.yaml
+    - k8s/local/configmap.yaml
+    - k8s/local/secrets/*.yaml
+    - k8s/local/postgres/*.yaml
+    - k8s/local/redpanda/*.yaml
+    - k8s/local/minio/*.yaml
+    - k8s/local/microservices/**/*.yaml
+    - k8s/local/ingress/*.yaml
+
+# Deploy por defecto
+deploy:
+  kubectl: {}

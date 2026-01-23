@@ -1,0 +1,15 @@
+﻿# ConfigMap para desarrollo local
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: cryptojackpot
+data:
+  ASPNETCORE_ENVIRONMENT: "Development"
+  ASPNETCORE_URLS: "http://+:80"
+  Logging__LogLevel__Default: "Information"
+  Logging__LogLevel__Microsoft.AspNetCore: "Warning"
+  # Las conexiones a servicios internos del cluster
+  POSTGRES_HOST: "postgres.cryptojackpot.svc.cluster.local"
+  POSTGRES_PORT: "5432"
+  KAFKA_BOOTSTRAP_SERVERS: "redpanda.cryptojackpot.svc.cluster.local:9092"

@@ -1,0 +1,123 @@
+﻿# Identity API - Deployment local
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-api
+  namespace: cryptojackpot
+  labels:
+    app: identity-api
+    tier: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identity-api
+  template:
+    metadata:
+      labels:
+        app: identity-api
+        tier: api
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z postgres.cryptojackpot.svc.cluster.local 5432; do
+                echo "Waiting for PostgreSQL..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+      containers:
+        - name: identity-api
+          image: cryptojackpot/identity-api
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: IDENTITY_DB_CONNECTION
+            - name: JwtSettings__SecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_SECRET_KEY
+            - name: JwtSettings__Issuer
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_ISSUER
+            - name: JwtSettings__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_AUDIENCE
+            - name: JwtSettings__ExpirationInMinutes
+              value: "60"
+            - name: DigitalOcean__Endpoint
+              valueFrom:
+                secretKeyRef:
+                  name: digitalocean-spaces-secrets
+                  key: SPACES_ENDPOINT
+            - name: DigitalOcean__BucketName
+              valueFrom:
+                secretKeyRef:
+                  name: digitalocean-spaces-secrets
+                  key: SPACES_BUCKET
+            - name: DigitalOcean__AccessKey
+              valueFrom:
+                secretKeyRef:
+                  name: digitalocean-spaces-secrets
+                  key: SPACES_ACCESS_KEY
+            - name: DigitalOcean__SecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: digitalocean-spaces-secrets
+                  key: SPACES_SECRET_KEY
+            - name: Kafka__BootstrapServers
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-secrets
+                  key: KAFKA_BOOTSTRAP_SERVERS
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: identity-api
+  namespace: cryptojackpot
+  labels:
+    app: identity-api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: identity-api

@@ -1,0 +1,15 @@
+﻿# Redpanda Console Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redpanda-console
+  namespace: cryptojackpot
+  labels:
+    app: redpanda-console
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: redpanda-console
