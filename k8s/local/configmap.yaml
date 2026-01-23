@@ -13,3 +13,6 @@ data:
   POSTGRES_HOST: "postgres.cryptojackpot.svc.cluster.local"
   POSTGRES_PORT: "5432"
   KAFKA_BOOTSTRAP_SERVERS: "redpanda.cryptojackpot.svc.cluster.local:9092"
+  # CORS - Orígenes permitidos para SignalR y APIs
+  Cors__AllowedOrigins__0: "http://localhost:3000"
+  Cors__AllowedOrigins__1: "http://cryptojackpot.local"
