@@ -1,7 +1,10 @@
 ﻿using System.Text;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Wallet.Application;
+using CryptoJackpot.Wallet.Application.Providers;
 using CryptoJackpot.Wallet.Data.Context;
+using CryptoJackpot.Wallet.Domain.Constants;
+using CryptoJackpot.Wallet.Domain.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +13,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace CryptoJackpot.Wallet.Infra.IoC;
 
@@ -25,6 +30,7 @@ public static class IoCExtension
         AddControllers(services, configuration);
         AddRepositories(services);
         AddApplicationServices(services);
+        AddCoinPayments(services, configuration);
         AddInfrastructure(services, configuration);
     }
 
@@ -180,6 +186,51 @@ public static class IoCExtension
 
         // MediatR
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+    }
+
+    private static void AddCoinPayments(IServiceCollection services, IConfiguration configuration)
+    {
+        var coinPaymentsSettings = configuration.GetSection(ConfigurationKeys.CoinPaymentsSection);
+        var privateKey = coinPaymentsSettings["PrivateKey"] 
+            ?? throw new InvalidOperationException("CoinPayments PrivateKey is not configured");
+        var publicKey = coinPaymentsSettings["PublicKey"] 
+            ?? throw new InvalidOperationException("CoinPayments PublicKey is not configured");
+        var baseUrl = coinPaymentsSettings["BaseUrl"] ?? ServiceDefaults.CoinPaymentsBaseUrl;
+        
+        // Configure HttpClient with retry and circuit breaker policies
+        services.AddHttpClient(ServiceDefaults.CoinPaymentsHttpClient, client =>
+            {
+                client.BaseAddress = new Uri(baseUrl);
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.Timeout = TimeSpan.FromSeconds(ServiceDefaults.HttpClientTimeoutSeconds);
+            })
+            .AddPolicyHandler(GetRetryPolicy())
+            .AddPolicyHandler(GetCircuitBreakerPolicy());
+
+        // Register the provider
+        services.AddSingleton<ICoinPaymentProvider>(sp =>
+        {
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            return new CoinPaymentProvider(privateKey, publicKey, httpClientFactory);
+        });
+    }
+
+    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            .WaitAndRetryAsync(ResilienceSettings.RetryCount, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+    }
+
+    private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .CircuitBreakerAsync(
+                ResilienceSettings.CircuitBreakerFailureThreshold, 
+                TimeSpan.FromSeconds(ResilienceSettings.CircuitBreakerDurationSeconds));
     }
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)

@@ -12,8 +12,5 @@
     <ProjectReference Include="..\Domain\CryptoJackpot.Wallet.Domain.csproj" />
     <ProjectReference Include="..\..\..\Domain\CryptoJackpot.Domain.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Providers\" />
-  </ItemGroup>
 </Project>
 
