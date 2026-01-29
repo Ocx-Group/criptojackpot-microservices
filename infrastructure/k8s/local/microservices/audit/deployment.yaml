@@ -33,6 +33,7 @@ spec:
       containers:
         - name: audit-api
           image: cryptojackpot/audit-api
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
           envFrom:
