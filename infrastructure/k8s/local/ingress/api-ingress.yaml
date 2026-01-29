@@ -104,6 +104,14 @@ spec:
             name: wallet-api
             port:
               number: 80
+      # CoinPayments API (Wallet service)
+      - path: /api/v1/coinpayments
+        pathType: Prefix
+        backend:
+          service:
+            name: wallet-api
+            port:
+              number: 80
       # Winner API
       - path: /api/v1/winners
         pathType: Prefix
