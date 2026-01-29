@@ -42,7 +42,7 @@ public static class CoinPaymentProviderExtensions
         
         var parms = new SortedList<string, string>
         {
-            ["amount"] = request.Amount.ToString("F8"),
+            ["amount"] = request.Amount.ToString("F8", System.Globalization.CultureInfo.InvariantCulture),
             ["currency1"] = request.CurrencyFrom,
             ["currency2"] = request.CurrencyTo
         };

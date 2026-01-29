@@ -7,6 +7,83 @@ metadata:
 
 # Perfiles para diferentes entornos
 profiles:
+  # Perfil de DEBUG con remote debugging
+  - name: debug
+    activation:
+      - command: debug
+    build:
+      local:
+        push: false
+        useBuildkit: true
+      artifacts:
+        - image: cryptojackpot/identity-api
+          context: .
+          docker:
+            dockerfile: Microservices/Identity/Api/Dockerfile.debug
+        - image: cryptojackpot/lottery-api
+          context: .
+          docker:
+            dockerfile: Microservices/Lottery/Api/Dockerfile.debug
+        - image: cryptojackpot/order-api
+          context: .
+          docker:
+            dockerfile: Microservices/Order/Api/Dockerfile.debug
+        - image: cryptojackpot/wallet-api
+          context: .
+          docker:
+            dockerfile: Microservices/Wallet/Api/Dockerfile.debug
+        - image: cryptojackpot/winner-api
+          context: .
+          docker:
+            dockerfile: Microservices/Winner/Api/Dockerfile.debug
+        - image: cryptojackpot/notification-api
+          context: .
+          docker:
+            dockerfile: Microservices/Notification/Api/Dockerfile.debug
+    manifests:
+      rawYaml:
+        - infrastructure/k8s/local/namespace.yaml
+        - infrastructure/k8s/local/configmap.yaml
+        - infrastructure/k8s/local/secrets/*.yaml
+        - infrastructure/k8s/local/postgres/*.yaml
+        - infrastructure/k8s/local/redpanda/*.yaml
+        - infrastructure/k8s/local/minio/*.yaml
+        - infrastructure/k8s/local/microservices/**/*.yaml
+        - infrastructure/k8s/local/ingress/*.yaml
+    deploy:
+      kubectl: {}
+    portForward:
+      - resourceType: service
+        resourceName: identity-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5001
+      - resourceType: service
+        resourceName: lottery-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5002
+      - resourceType: service
+        resourceName: order-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5003
+      - resourceType: service
+        resourceName: wallet-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5004
+      - resourceType: service
+        resourceName: winner-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5005
+      - resourceType: service
+        resourceName: notification-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5006
+
   # Perfil de desarrollo con hot-reload
   - name: dev
     activation:

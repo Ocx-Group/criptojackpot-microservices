@@ -29,9 +29,9 @@ public static class ConfigurationKeys
 public static class ServiceDefaults
 {
     /// <summary>
-    /// Default CoinPayments API base URL
+    /// Default CoinPayments API endpoint URL
     /// </summary>
-    public const string CoinPaymentsBaseUrl = "https://www.coinpayments.net/";
+    public const string CoinPaymentsBaseUrl = "https://www.coinpayments.net/api.php";
     
     /// <summary>
     /// Default HTTP client timeout in seconds

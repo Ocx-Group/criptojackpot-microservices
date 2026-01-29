@@ -2,15 +2,16 @@
 using System.Security.Cryptography;
 using System.Text;
 using CryptoJackpot.Domain.Core.Responses;
-using CryptoJackpot.Wallet.Domain.Constants;
 using CryptoJackpot.Wallet.Domain.Interfaces;
 
 namespace CryptoJackpot.Wallet.Application.Providers;
 
 public class CoinPaymentProvider : ICoinPaymentProvider
 {
-    private const string ApiUrl = ServiceDefaults.CoinPaymentsBaseUrl;
     private const string ApiVersion = "1";
+    
+    private static long _lastNonce;
+    private static readonly object _nonceLock = new();
     
     private readonly string _privateKey;
     private readonly string _publicKey;
@@ -38,7 +39,7 @@ public class CoinPaymentProvider : ICoinPaymentProvider
         parameters["version"] = ApiVersion;
         parameters["key"] = _publicKey;
         parameters["command"] = command;
-        parameters["nonce"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+        parameters["nonce"] = GenerateNonce().ToString();
 
         var postData = BuildPostData(parameters);
         var hmacSignature = GenerateHmacSignature(postData);
@@ -63,6 +64,21 @@ public class CoinPaymentProvider : ICoinPaymentProvider
         return postDataBuilder.ToString();
     }
 
+    private static long GenerateNonce()
+    {
+        lock (_nonceLock)
+        {
+            // Usar segundos es más seguro ante reinicios y desajustes de reloj
+            var currentNonce = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        
+            if (currentNonce <= _lastNonce)
+                currentNonce = _lastNonce + 1;
+        
+            _lastNonce = currentNonce;
+            return currentNonce;
+        }
+    }
+
     private string GenerateHmacSignature(string postData)
     {
         var keyBytes = Encoding.UTF8.GetBytes(_privateKey);
@@ -84,7 +100,7 @@ public class CoinPaymentProvider : ICoinPaymentProvider
         try
         {
             using var httpClient = _httpClientFactory.CreateClient("CoinPayments");
-            using var requestMessage = new HttpRequestMessage(HttpMethod.Post, ApiUrl);
+            using var requestMessage = new HttpRequestMessage(HttpMethod.Post, (string?)null);
             
             requestMessage.Content = new StringContent(
                 postData, 
