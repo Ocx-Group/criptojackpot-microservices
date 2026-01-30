@@ -1,3 +1,5 @@
+using CryptoJackpot.Identity.Application.Models;
+
 namespace CryptoJackpot.Identity.Application.Interfaces;
 
 /// <summary>
@@ -94,30 +96,3 @@ public interface IKeycloakAdminService
     Task LogoutAsync(string keycloakUserId, CancellationToken cancellationToken = default);
 }
 
-/// <summary>
-/// Represents a user from Keycloak.
-/// </summary>
-public class KeycloakUserDto
-{
-    public string Id { get; set; } = null!;
-    public string? Username { get; set; }
-    public string? Email { get; set; }
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public bool EmailVerified { get; set; }
-    public bool Enabled { get; set; }
-    public Dictionary<string, List<string>>? Attributes { get; set; }
-}
-
-/// <summary>
-/// Represents token response from Keycloak.
-/// </summary>
-public class KeycloakTokenResponse
-{
-    public string AccessToken { get; set; } = null!;
-    public string? RefreshToken { get; set; }
-    public int ExpiresIn { get; set; }
-    public int RefreshExpiresIn { get; set; }
-    public string TokenType { get; set; } = "Bearer";
-    public string? IdToken { get; set; }
-}

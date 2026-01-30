@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using CryptoJackpot.Identity.Application.Configuration;
 using CryptoJackpot.Identity.Application.Interfaces;
+using CryptoJackpot.Identity.Application.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -375,32 +376,5 @@ public class KeycloakAdminService : IKeycloakAdminService
         _tokenExpiry = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
 
         _logger.LogDebug("Obtained new admin token, expires at {Expiry}", _tokenExpiry);
-    }
-
-    private sealed class KeycloakTokenResponseInternal
-    {
-        [JsonPropertyName("access_token")]
-        public string AccessToken { get; set; } = null!;
-        
-        [JsonPropertyName("refresh_token")]
-        public string? RefreshToken { get; set; }
-        
-        [JsonPropertyName("expires_in")]
-        public int ExpiresIn { get; set; }
-        
-        [JsonPropertyName("refresh_expires_in")]
-        public int RefreshExpiresIn { get; set; }
-        
-        [JsonPropertyName("token_type")]
-        public string? TokenType { get; set; }
-        
-        [JsonPropertyName("id_token")]
-        public string? IdToken { get; set; }
-    }
-
-    private sealed class KeycloakRole
-    {
-        public string Id { get; set; } = null!;
-        public string Name { get; set; } = null!;
     }
 }
