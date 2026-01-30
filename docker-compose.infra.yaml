@@ -105,9 +105,24 @@ services:
     depends_on:
       - mongodb
 
+  redis:
+    image: redis:7-alpine
+    container_name: cryptojackpot-redis
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
   redpanda_data:
   mongodb_data:
   minio_data:
+  redis_data:
 

@@ -218,6 +218,25 @@ function Deploy-Infrastructure {
     }
     Write-Host "  ✓ MongoDB listo" -ForegroundColor Green
     
+    # Redis (SignalR Backplane)
+    Write-Host "  Desplegando Redis (SignalR Backplane)..." -ForegroundColor Cyan
+    kubectl apply -f "$basePath\redis\redis-deployment.yaml"
+    kubectl apply -f "$basePath\redis\redis-service.yaml"
+    
+    # Esperar a que Redis esté listo
+    Write-Host "  Esperando a que Redis esté listo..." -ForegroundColor Cyan
+    $retryCount = 0
+    while ($retryCount -lt $maxRetries) {
+        $ready = kubectl get pod -l app=redis -n cryptojackpot -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>$null
+        if ($ready -eq "True") {
+            break
+        }
+        Start-Sleep -Seconds 2
+        $retryCount++
+        Write-Host "    Esperando... ($retryCount/$maxRetries)" -ForegroundColor Gray
+    }
+    Write-Host "  ✓ Redis listo" -ForegroundColor Green
+    
     Write-Host ""
 }
 
@@ -246,6 +265,7 @@ function Show-Summary {
     Write-Host "  - Audit API:        http://localhost:5007" -ForegroundColor Gray
     Write-Host "  - PostgreSQL:       localhost:5433" -ForegroundColor Gray
     Write-Host "  - MongoDB:          localhost:27017" -ForegroundColor Gray
+    Write-Host "  - Redis:            localhost:6379" -ForegroundColor Gray
     Write-Host "  - Kafka (Redpanda): localhost:9092" -ForegroundColor Gray
     Write-Host ""
     Write-Host "Para ver los pods:" -ForegroundColor White

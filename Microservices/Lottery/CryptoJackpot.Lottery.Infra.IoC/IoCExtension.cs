@@ -246,11 +246,27 @@ public static class IoCExtension
 
     /// <summary>
     /// Adds SignalR services for real-time lottery updates.
+    /// When RedisConnection is configured, enables Redis backplane for multi-instance scaling.
     /// Call this method in the API project's Program.cs.
     /// </summary>
-    public static void AddLotterySignalR(this IServiceCollection services)
+    public static void AddLotterySignalR(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSignalR();
+        var redisConnection = configuration.GetConnectionString("RedisConnection");
+        
+        var signalBuilder = services.AddSignalR(options =>
+        {
+            // Optional: Configure SignalR options for better performance
+            options.EnableDetailedErrors = true;
+            options.MaximumReceiveMessageSize = 64 * 1024; // 64 KB
+        });
+
+        if (!string.IsNullOrEmpty(redisConnection))
+        {
+            signalBuilder.AddStackExchangeRedis(redisConnection, options =>
+            {
+                options.Configuration.ChannelPrefix = new StackExchange.Redis.RedisChannel("LotteryHub", StackExchange.Redis.RedisChannel.PatternMode.Literal);
+            });
+        }
     }
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)

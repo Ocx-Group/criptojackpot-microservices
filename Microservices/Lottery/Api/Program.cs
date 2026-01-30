@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddLotteryServices(builder.Configuration);
 
 // SignalR for real-time lottery updates
-builder.Services.AddLotterySignalR();
+builder.Services.AddLotterySignalR(builder.Configuration);
 
 // Register notification service (needs to be in API layer for Hub access)
 builder.Services.AddScoped<ILotteryNotificationService, LotteryNotificationService>();
