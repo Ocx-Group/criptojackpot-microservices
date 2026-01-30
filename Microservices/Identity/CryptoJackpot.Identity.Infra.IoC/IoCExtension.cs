@@ -18,6 +18,7 @@ using CryptoJackpot.Infra.IoC;
 using FluentValidation;
 using MassTransit;
 using MediatR;
+using Npgsql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -26,6 +27,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 namespace CryptoJackpot.Identity.Infra.IoC;
 
 public static class IoCExtension
@@ -72,7 +74,7 @@ public static class IoCExtension
                             await context.Database.MigrateAsync();
                             logger.LogInformation("Migrations applied successfully.");
                         }
-                        catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P07") // relation already exists
+                        catch (PostgresException ex) when (ex.SqlState == "42P07") // relation already exists
                         {
                             logger.LogWarning(ex, "Some tables already exist, skipping migration. Consider updating __EFMigrationsHistory table manually.");
                         }
@@ -137,9 +139,17 @@ public static class IoCExtension
         if (string.IsNullOrEmpty(connectionString))
             throw new InvalidOperationException("Database connection string 'DefaultConnection' is not configured");
 
-        services.AddDbContext<IdentityDbContext>(options =>
-            options.UseNpgsql(connectionString)
-                .UseSnakeCaseNamingConvention());
+        // Configure Npgsql DataSource with optimizations for multi-replica scenarios
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+        dataSourceBuilder.EnableDynamicJson();
+        var dataSource = dataSourceBuilder.Build();
+
+        // Use AddDbContextPool instead of AddDbContext for better performance
+        // This reuses DbContext instances, reducing object creation overhead in high-concurrency scenarios
+        services.AddDbContextPool<IdentityDbContext>(options =>
+            options.UseNpgsql(dataSource)
+                .UseSnakeCaseNamingConvention(),
+            poolSize: 128);
     }
 
     private static void AddSwagger(IServiceCollection services)
