@@ -24,6 +24,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 using Quartz;
 
 namespace CryptoJackpot.Order.Infra.IoC;
@@ -111,9 +112,17 @@ public static class IoCExtension
         if (string.IsNullOrEmpty(connectionString))
             throw new InvalidOperationException("Database connection string 'DefaultConnection' is not configured");
 
-        services.AddDbContext<OrderDbContext>(options =>
-            options.UseNpgsql(connectionString)
-                .UseSnakeCaseNamingConvention());
+        // Configure Npgsql DataSource with optimizations for multi-replica scenarios
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+        dataSourceBuilder.EnableDynamicJson();
+        var dataSource = dataSourceBuilder.Build();
+
+        // Use AddDbContextPool instead of AddDbContext for better performance
+        // This reuses DbContext instances, reducing object creation overhead in high-concurrency scenarios
+        services.AddDbContextPool<OrderDbContext>(options =>
+            options.UseNpgsql(dataSource)
+                .UseSnakeCaseNamingConvention(),
+            poolSize: 128);
     }
 
     private static void AddSwagger(IServiceCollection services)
