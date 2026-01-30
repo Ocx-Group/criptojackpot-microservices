@@ -173,7 +173,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:80
-      ConnectionStrings__DefaultConnection: "Host=postgres;Database=cryptojackpot_lottery_db;Username=postgres;Password=postgres;MaxPoolSize=50;MinPoolSize=10;ConnectionLifetime=300"
+      ConnectionStrings__DefaultConnection: "Host=pgbouncer;Port=6432;Database=cryptojackpot_lottery_db;Username=postgres;Password=postgres"
       ConnectionStrings__RedisConnection: "redis:6379"
       JwtSettings__SecretKey: "4ffe50319fbe565a10c6cb8b2300cf91ad85c31a73f1a96826f0907535fb868f"
       JwtSettings__Issuer: "CryptoJackpotIdentity"
@@ -183,7 +183,7 @@ services:
     ports:
       - "5002:80"
     depends_on:
-      postgres:
+      pgbouncer:
         condition: service_healthy
       redpanda:
         condition: service_healthy
