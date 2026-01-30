@@ -52,12 +52,8 @@ services:
     image: edoburu/pgbouncer:latest
     container_name: cryptojackpot-pgbouncer
     environment:
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - LISTEN_PORT=6432
-      - AUTH_TYPE=md5
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/postgres
+      - AUTH_TYPE=plain
       - POOL_MODE=transaction
       - MAX_CLIENT_CONN=1000
       - DEFAULT_POOL_SIZE=20

@@ -50,6 +50,7 @@ profiles:
         - infrastructure/k8s/local/configmap.yaml
         - infrastructure/k8s/local/secrets/*.yaml
         - infrastructure/k8s/local/postgres/*.yaml
+        - infrastructure/k8s/local/redis/*.yaml
         - infrastructure/k8s/local/redpanda/*.yaml
         - infrastructure/k8s/local/minio/*.yaml
         - infrastructure/k8s/local/mongodb/*.yaml
@@ -137,6 +138,7 @@ profiles:
         - infrastructure/k8s/local/configmap.yaml
         - infrastructure/k8s/local/secrets/*.yaml
         - infrastructure/k8s/local/postgres/*.yaml
+        - infrastructure/k8s/local/redis/*.yaml
         - infrastructure/k8s/local/redpanda/*.yaml
         - infrastructure/k8s/local/minio/*.yaml
         - infrastructure/k8s/local/mongodb/*.yaml
@@ -185,6 +187,16 @@ profiles:
         namespace: cryptojackpot
         port: 5432
         localPort: 5433
+      - resourceType: service
+        resourceName: pgbouncer
+        namespace: cryptojackpot
+        port: 6432
+        localPort: 6432
+      - resourceType: service
+        resourceName: redis
+        namespace: cryptojackpot
+        port: 6379
+        localPort: 6379
       - resourceType: service
         resourceName: redpanda
         namespace: cryptojackpot
@@ -248,6 +260,7 @@ manifests:
     - infrastructure/k8s/local/configmap.yaml
     - infrastructure/k8s/local/secrets/*.yaml
     - infrastructure/k8s/local/postgres/*.yaml
+    - infrastructure/k8s/local/redis/*.yaml
     - infrastructure/k8s/local/redpanda/*.yaml
     - infrastructure/k8s/local/minio/*.yaml
     - infrastructure/k8s/local/mongodb/*.yaml

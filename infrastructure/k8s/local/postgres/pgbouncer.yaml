@@ -1,5 +1,31 @@
 # PgBouncer - Connection Pooler for PostgreSQL
 # Manages hundreds of virtual connections from microservices into a small real pool
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbouncer-config
+  namespace: cryptojackpot
+data:
+  pgbouncer.ini: |
+    [databases]
+    * = host=postgres.cryptojackpot.svc.cluster.local port=5432
+    
+    [pgbouncer]
+    listen_addr = 0.0.0.0
+    listen_port = 5432
+    auth_type = trust
+    auth_file = /etc/pgbouncer/userlist.txt
+    pool_mode = transaction
+    max_client_conn = 1000
+    default_pool_size = 20
+    min_pool_size = 5
+    reserve_pool_size = 5
+    ignore_startup_parameters = extra_float_digits
+    admin_users = postgres
+    stats_users = postgres
+  userlist.txt: |
+    "postgres" "postgres_local_dev_2025"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,33 +47,12 @@ spec:
         - name: pgbouncer
           image: edoburu/pgbouncer:latest
           ports:
-            - containerPort: 6432
+            - containerPort: 5432
               name: pgbouncer
-          env:
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secrets
-                  key: POSTGRES_USER
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secrets
-                  key: POSTGRES_PASSWORD
-            - name: DB_HOST
-              value: "postgres.cryptojackpot.svc.cluster.local"
-            - name: DB_PORT
-              value: "5432"
-            - name: LISTEN_PORT
-              value: "6432"
-            - name: AUTH_TYPE
-              value: "md5"
-            - name: POOL_MODE
-              value: "transaction"
-            - name: MAX_CLIENT_CONN
-              value: "1000"
-            - name: DEFAULT_POOL_SIZE
-              value: "20"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/pgbouncer
+              readOnly: true
           resources:
             requests:
               memory: "64Mi"
@@ -57,14 +62,18 @@ spec:
               cpu: "200m"
           readinessProbe:
             tcpSocket:
-              port: 6432
+              port: 5432
             initialDelaySeconds: 5
             periodSeconds: 5
           livenessProbe:
             tcpSocket:
-              port: 6432
+              port: 5432
             initialDelaySeconds: 15
             periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: pgbouncer-config
 ---
 apiVersion: v1
 kind: Service
@@ -77,7 +86,7 @@ spec:
   type: ClusterIP
   ports:
     - port: 6432
-      targetPort: 6432
+      targetPort: 5432
       name: pgbouncer
   selector:
     app: pgbouncer
