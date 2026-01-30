@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿﻿using System.Text;
 using Asp.Versioning;
 using CryptoJackpot.Domain.Core.Behaviors;
 using CryptoJackpot.Domain.Core.Constants;
@@ -127,13 +127,21 @@ public static class IoCExtension
         if (string.IsNullOrEmpty(connectionString))
             throw new InvalidOperationException("Database connection string 'DefaultConnection' is not configured");
 
+        // Configure Npgsql DataSource with optimizations for multi-replica scenarios
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
         dataSourceBuilder.EnableDynamicJson();
         var dataSource = dataSourceBuilder.Build();
 
-        services.AddDbContext<LotteryDbContext>(options =>
+        // Use AddDbContextPool instead of AddDbContext for better performance
+        // This reuses DbContext instances, reducing object creation overhead in high-concurrency scenarios
+        // poolSize: Number of DbContext instances to keep in the pool (not database connections)
+        // Database connection pooling is handled by Npgsql via connection string parameters:
+        // - MaxPoolSize: Max connections per replica (set in connection string)
+        // - MinPoolSize: Warm connections ready to use (set in connection string)
+        services.AddDbContextPool<LotteryDbContext>(options =>
             options.UseNpgsql(dataSource)
-                .UseSnakeCaseNamingConvention());
+                .UseSnakeCaseNamingConvention(),
+            poolSize: 128);
     }
 
     private static void AddSwagger(IServiceCollection services)
