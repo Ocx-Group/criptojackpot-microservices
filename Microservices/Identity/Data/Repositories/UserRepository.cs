@@ -53,14 +53,7 @@ public class UserRepository : IUserRepository
         }
         return null;
     }
-
-    public async Task<User?> GetByEmailVerificationTokenAsync(string token)
-    {
-        return await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.EmailVerificationToken == token);
-    }
-
+    
     public async Task<bool> ExistsByEmailAsync(string email)
     {
         return await _context.Users.AnyAsync(u => u.Email == email);

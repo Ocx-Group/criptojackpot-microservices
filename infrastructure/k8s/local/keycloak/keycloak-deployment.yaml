@@ -35,6 +35,37 @@ spec:
             - name: realm-config
               mountPath: /opt/keycloak/data/import
               readOnly: true
+            # Email theme templates
+            - name: email-theme-properties
+              mountPath: /opt/keycloak/themes/cryptojackpot/email/theme.properties
+              subPath: theme.properties
+            - name: email-theme-messages-en
+              mountPath: /opt/keycloak/themes/cryptojackpot/email/messages/messages_en.properties
+              subPath: messages_en.properties
+            - name: email-theme-messages-es
+              mountPath: /opt/keycloak/themes/cryptojackpot/email/messages/messages_es.properties
+              subPath: messages_es.properties
+            - name: email-theme-template
+              mountPath: /opt/keycloak/themes/cryptojackpot/email/html/template.ftl
+              subPath: template.ftl
+            - name: email-theme-verification
+              mountPath: /opt/keycloak/themes/cryptojackpot/email/html/email-verification.ftl
+              subPath: email-verification.ftl
+            - name: email-theme-password-reset
+              mountPath: /opt/keycloak/themes/cryptojackpot/email/html/password-reset.ftl
+              subPath: password-reset.ftl
+            - name: email-theme-execute-actions
+              mountPath: /opt/keycloak/themes/cryptojackpot/email/html/executeActions.ftl
+              subPath: executeActions.ftl
+            - name: email-theme-verification-text
+              mountPath: /opt/keycloak/themes/cryptojackpot/email/text/email-verification.ftl
+              subPath: email-verification-text.ftl
+            - name: email-theme-password-reset-text
+              mountPath: /opt/keycloak/themes/cryptojackpot/email/text/password-reset.ftl
+              subPath: password-reset-text.ftl
+            - name: email-theme-execute-actions-text
+              mountPath: /opt/keycloak/themes/cryptojackpot/email/text/executeActions.ftl
+              subPath: executeActions-text.ftl
           resources:
             requests:
               memory: "512Mi"
@@ -70,3 +101,64 @@ spec:
         - name: realm-config
           configMap:
             name: keycloak-realm-config
+        # Email theme volumes from ConfigMap
+        - name: email-theme-properties
+          configMap:
+            name: keycloak-email-themes
+            items:
+              - key: theme.properties
+                path: theme.properties
+        - name: email-theme-messages-en
+          configMap:
+            name: keycloak-email-themes
+            items:
+              - key: messages_en.properties
+                path: messages_en.properties
+        - name: email-theme-messages-es
+          configMap:
+            name: keycloak-email-themes
+            items:
+              - key: messages_es.properties
+                path: messages_es.properties
+        - name: email-theme-template
+          configMap:
+            name: keycloak-email-themes
+            items:
+              - key: template.ftl
+                path: template.ftl
+        - name: email-theme-verification
+          configMap:
+            name: keycloak-email-themes
+            items:
+              - key: email-verification.ftl
+                path: email-verification.ftl
+        - name: email-theme-password-reset
+          configMap:
+            name: keycloak-email-themes
+            items:
+              - key: password-reset.ftl
+                path: password-reset.ftl
+        - name: email-theme-execute-actions
+          configMap:
+            name: keycloak-email-themes
+            items:
+              - key: executeActions.ftl
+                path: executeActions.ftl
+        - name: email-theme-verification-text
+          configMap:
+            name: keycloak-email-themes
+            items:
+              - key: email-verification-text.ftl
+                path: email-verification-text.ftl
+        - name: email-theme-password-reset-text
+          configMap:
+            name: keycloak-email-themes
+            items:
+              - key: password-reset-text.ftl
+                path: password-reset-text.ftl
+        - name: email-theme-execute-actions-text
+          configMap:
+            name: keycloak-email-themes
+            items:
+              - key: executeActions-text.ftl
+                path: executeActions-text.ftl

@@ -8,8 +8,9 @@ using MediatR;
 namespace CryptoJackpot.Identity.Application.Handlers.Commands;
 
 /// <summary>
-/// Handles email confirmation using the verification token sent via Notification Service.
-/// Also syncs the verified status with Keycloak.
+/// Syncs local user status with Keycloak's email verification status.
+/// This endpoint is called by Keycloak after successful email verification
+/// or can be used to manually sync status.
 /// </summary>
 public class ConfirmEmailCommandHandler : IRequestHandler<ConfirmEmailCommand, Result<string>>
 {
@@ -27,31 +28,33 @@ public class ConfirmEmailCommandHandler : IRequestHandler<ConfirmEmailCommand, R
     public async Task<Result<string>> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Token))
-            return Result.Fail<string>(new BadRequestError("Invalid confirmation token"));
+            return Result.Fail<string>(new BadRequestError("Invalid token"));
 
-        // Find user by verification token
-        var user = await _userRepository.GetByEmailVerificationTokenAsync(request.Token);
+        // Token is the KeycloakId - find user and sync status
+        var user = await _userRepository.GetByKeycloakIdAsync(request.Token);
 
         if (user == null)
-            return Result.Fail<string>(new NotFoundError("Invalid or expired confirmation token"));
-
-        if (user.Status)
-            return Result.Fail<string>(new BadRequestError("Email already confirmed"));
-
-        // Validate and consume the token
-        if (!user.ValidateAndConsumeEmailVerificationToken(request.Token))
-            return Result.Fail<string>(new BadRequestError("Invalid or expired confirmation token"));
-
-        // Update Keycloak to mark email as verified
-        if (!string.IsNullOrEmpty(user.KeycloakId))
         {
-            await _keycloakAdminService.UpdateUserAsync(
-                user.KeycloakId,
-                emailVerified: true,
-                cancellationToken: cancellationToken);
+            // Try by email if token is email
+            user = await _userRepository.GetByEmailAsync(request.Token);
         }
 
-        // Save changes to local database
+        if (user == null || string.IsNullOrEmpty(user.KeycloakId))
+            return Result.Fail<string>(new NotFoundError("User not found"));
+
+        if (user.Status)
+            return Result.Ok("Email already confirmed");
+
+        // Check Keycloak for verification status
+        var keycloakUser = await _keycloakAdminService.GetUserByIdAsync(user.KeycloakId, cancellationToken);
+        if (keycloakUser == null)
+            return Result.Fail<string>(new NotFoundError("User not found in authentication service"));
+
+        if (!keycloakUser.EmailVerified)
+            return Result.Fail<string>(new BadRequestError("Email not yet verified. Please check your email."));
+
+        // Sync local status with Keycloak
+        user.Status = true;
         await _userRepository.UpdateAsync(user);
 
         return Result.Ok("Email confirmed successfully");

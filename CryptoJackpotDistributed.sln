@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -232,6 +231,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "secrets", "secrets", "{1111
 		Infrastructure\k8s\local\secrets\redpanda-secrets.yaml = Infrastructure\k8s\local\secrets\redpanda-secrets.yaml
 		Infrastructure\k8s\local\secrets\spaces-secrets.yaml = Infrastructure\k8s\local\secrets\spaces-secrets.yaml
 		infrastructure\k8s\local\secrets\mongodb-secrets.yaml = infrastructure\k8s\local\secrets\mongodb-secrets.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{11111111-1111-1111-1111-11111111111D}"
+	ProjectSection(SolutionItems) = preProject
+		infrastructure\k8s\local\keycloak\keycloak-configmap.yaml = infrastructure\k8s\local\keycloak\keycloak-configmap.yaml
+		infrastructure\k8s\local\keycloak\keycloak-deployment.yaml = infrastructure\k8s\local\keycloak\keycloak-deployment.yaml
+		infrastructure\k8s\local\keycloak\keycloak-email-themes-configmap.yaml = infrastructure\k8s\local\keycloak\keycloak-email-themes-configmap.yaml
+		infrastructure\k8s\local\keycloak\keycloak-realm-configmap.yaml = infrastructure\k8s\local\keycloak\keycloak-realm-configmap.yaml
+		infrastructure\k8s\local\keycloak\keycloak-secrets.yaml = infrastructure\k8s\local\keycloak\keycloak-secrets.yaml
+		infrastructure\k8s\local\keycloak\keycloak-service.yaml = infrastructure\k8s\local\keycloak\keycloak-service.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "prod", "prod", "{A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}"
@@ -968,6 +977,7 @@ Global
 		{11111111-1111-1111-1111-11111111111A} = {F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}
 		{11111111-1111-1111-1111-11111111111B} = {F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}
 		{11111111-1111-1111-1111-11111111111C} = {F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}
+		{11111111-1111-1111-1111-11111111111D} = {F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}
 		{A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A} = {A1B2C3D4-E5F6-4A5B-8C9D-1E2F3A4B5C6D}
 		{22222222-2222-2222-2222-222222222221} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
 		{22222222-2222-2222-2222-222222222222} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}

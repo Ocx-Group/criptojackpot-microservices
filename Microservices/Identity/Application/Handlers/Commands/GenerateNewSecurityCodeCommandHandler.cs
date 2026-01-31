@@ -10,22 +10,21 @@ using MediatR;
 namespace CryptoJackpot.Identity.Application.Handlers.Commands;
 
 /// <summary>
-/// Regenerates the email verification token and resends the verification email
-/// via the Notification Service.
+/// Resends the email verification via Keycloak.
 /// </summary>
 public class GenerateNewSecurityCodeCommandHandler : IRequestHandler<GenerateNewSecurityCodeCommand, Result<UserDto>>
 {
     private readonly IUserRepository _userRepository;
-    private readonly IIdentityEventPublisher _eventPublisher;
+    private readonly IKeycloakAdminService _keycloakAdminService;
     private readonly IMapper _mapper;
 
     public GenerateNewSecurityCodeCommandHandler(
         IUserRepository userRepository,
-        IIdentityEventPublisher eventPublisher,
+        IKeycloakAdminService keycloakAdminService,
         IMapper mapper)
     {
         _userRepository = userRepository;
-        _eventPublisher = eventPublisher;
+        _keycloakAdminService = keycloakAdminService;
         _mapper = mapper;
     }
 
@@ -38,12 +37,11 @@ public class GenerateNewSecurityCodeCommandHandler : IRequestHandler<GenerateNew
         if (user.Status)
             return Result.Fail<UserDto>(new BadRequestError("Email already verified"));
 
-        // Generate new verification token
-        user.GenerateEmailVerificationToken();
-        await _userRepository.UpdateAsync(user);
+        if (string.IsNullOrEmpty(user.KeycloakId))
+            return Result.Fail<UserDto>(new BadRequestError("User not linked to authentication service"));
 
-        // Publish event to send new verification email via Notification Service
-        await _eventPublisher.PublishUserRegisteredAsync(user);
+        // Resend verification email via Keycloak
+        await _keycloakAdminService.SendVerificationEmailAsync(user.KeycloakId, cancellationToken);
 
         return Result.Ok(_mapper.Map<UserDto>(user));
     }

@@ -24,13 +24,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(100);
         builder.HasIndex(e => e.KeycloakId).IsUnique();
         
-        // Email verification token
-        builder.Property(e => e.EmailVerificationToken)
-            .HasColumnType(ColumnTypes.Text)
-            .HasMaxLength(50);
-        builder.HasIndex(e => e.EmailVerificationToken).IsUnique();
-        builder.Property(e => e.EmailVerificationTokenExpiry);
-        
         builder.Property(e => e.Name).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(100);
         builder.Property(e => e.LastName).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(100);
         builder.Property(e => e.Email).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(100);

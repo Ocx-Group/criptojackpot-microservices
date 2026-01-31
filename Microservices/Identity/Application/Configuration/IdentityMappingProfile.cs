@@ -20,8 +20,6 @@ public class IdentityMappingProfile : Profile
         CreateMap<CreateUserCommand, User>()
             .ForMember(dest => dest.UserGuid, opt => opt.MapFrom(_ => Guid.NewGuid()))
             .ForMember(dest => dest.KeycloakId, opt => opt.Ignore())
-            .ForMember(dest => dest.EmailVerificationToken, opt => opt.Ignore())
-            .ForMember(dest => dest.EmailVerificationTokenExpiry, opt => opt.Ignore())
             .ForMember(dest => dest.Role, opt => opt.Ignore())
             .ForMember(dest => dest.Country, opt => opt.Ignore())
             .ForMember(dest => dest.Referrals, opt => opt.Ignore())

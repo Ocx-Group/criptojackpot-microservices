@@ -6,6 +6,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CryptoJackpot.Identity.Application.Services;
 
+/// <summary>
+/// Publishes identity-related events to the event bus.
+/// Note: Email verification and password reset emails are now handled by Keycloak.
+/// </summary>
 public class IdentityEventPublisher : IIdentityEventPublisher
 {
     private readonly IEventBus _eventBus;
@@ -15,27 +19,6 @@ public class IdentityEventPublisher : IIdentityEventPublisher
     {
         _eventBus = eventBus;
         _logger = logger;
-    }
-
-    public async Task PublishUserRegisteredAsync(User user)
-    {
-        try
-        {
-            await _eventBus.Publish(new UserRegisteredEvent
-            {
-                UserId = user.Id,
-                UserGuid = user.UserGuid,
-                Email = user.Email,
-                Name = user.Name,
-                LastName = user.LastName,
-                ConfirmationToken = user.EmailVerificationToken!
-            });
-            _logger.LogInformation("UserRegisteredEvent published for user {UserId}", user.Id);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to publish UserRegisteredEvent for user {UserId}", user.Id);
-        }
     }
 
     public async Task PublishReferralCreatedAsync(User referrer, User referred, string referralCode)
@@ -69,25 +52,6 @@ public class IdentityEventPublisher : IIdentityEventPublisher
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to publish UserLoggedInEvent for user {UserId}", user.Id);
-        }
-    }
-
-    public async Task PublishPasswordResetRequestedAsync(User user, string securityCode)
-    {
-        try
-        {
-            await _eventBus.Publish(new PasswordResetRequestedEvent
-            {
-                Email = user.Email,
-                Name = user.Name,
-                LastName = user.LastName,
-                SecurityCode = securityCode
-            });
-            _logger.LogInformation("PasswordResetRequestedEvent published for user {UserId}", user.Id);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to publish PasswordResetRequestedEvent for user {UserId}", user.Id);
         }
     }
 }

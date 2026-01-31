@@ -17,7 +17,6 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
 {
     private readonly IUserRepository _userRepository;
     private readonly IKeycloakAdminService _keycloakAdminService;
-    private readonly IIdentityEventPublisher _eventPublisher;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMediator _mediator;
     private readonly ILogger<CreateUserCommandHandler> _logger;
@@ -26,7 +25,6 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
     public CreateUserCommandHandler(
         IUserRepository userRepository,
         IKeycloakAdminService keycloakAdminService,
-        IIdentityEventPublisher eventPublisher,
         IUnitOfWork unitOfWork,
         IMediator mediator,
         ILogger<CreateUserCommandHandler> logger,
@@ -34,7 +32,6 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
     {
         _userRepository = userRepository;
         _keycloakAdminService = keycloakAdminService;
-        _eventPublisher = eventPublisher;
         _unitOfWork = unitOfWork;
         _mediator = mediator;
         _logger = logger;
@@ -76,8 +73,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
 
             var user = _mapper.Map<User>(request);
             user.KeycloakId = keycloakId;
-            user.Status = false; // Will be activated after email verification
-            user.GenerateEmailVerificationToken(); // Generate token for Notification Service
+            user.Status = false; // Will be activated when Keycloak verifies email
             
             // Ensure UserGuid is generated 
             if (user.UserGuid == Guid.Empty)
@@ -88,8 +84,8 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
             // Publish domain event for referral processing 
             await _mediator.Publish(new UserCreatedDomainEvent(createdUser, referrer, request.ReferralCode), cancellationToken);
 
-            // Publish integration event to Kafka for Notification service
-            await _eventPublisher.PublishUserRegisteredAsync(createdUser);
+            // Send verification email via Keycloak
+            await _keycloakAdminService.SendVerificationEmailAsync(keycloakId, cancellationToken);
 
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
