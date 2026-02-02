@@ -241,6 +241,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{11
 		infrastructure\k8s\local\keycloak\keycloak-realm-configmap.yaml = infrastructure\k8s\local\keycloak\keycloak-realm-configmap.yaml
 		infrastructure\k8s\local\keycloak\keycloak-secrets.yaml = infrastructure\k8s\local\keycloak\keycloak-secrets.yaml
 		infrastructure\k8s\local\keycloak\keycloak-service.yaml = infrastructure\k8s\local\keycloak\keycloak-service.yaml
+		infrastructure\k8s\local\keycloak\keycloak-login-theme-configmap.yaml = infrastructure\k8s\local\keycloak\keycloak-login-theme-configmap.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "prod", "prod", "{A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}"

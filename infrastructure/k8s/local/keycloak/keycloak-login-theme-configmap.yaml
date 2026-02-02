@@ -1,0 +1,633 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-login-theme
+  namespace: cryptojackpot
+  labels:
+    app: keycloak
+data:
+  theme.properties: |
+    parent=keycloak
+    import=common/keycloak
+    styles=css/login.css
+    
+  login.css: |
+    /* CryptoJackpot Theme - Login Styles */
+    
+    /* Root variables */
+    :root {
+      --pf-global--primary-color--100: #FFA500;
+      --pf-global--primary-color--200: #FF8C00;
+      --pf-global--BackgroundColor--dark-100: #000000;
+      --pf-global--BackgroundColor--dark-200: #1a1a1a;
+      --pf-global--Color--light-100: #ffffff;
+      --pf-global--BorderRadius--sm: 8px;
+    }
+    
+    /* Body and background */
+    body {
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 50%, #2d2d2d 100%) !important;
+      min-height: 100vh;
+    }
+    
+    /* Login container */
+    .login-pf-page {
+      background: transparent !important;
+    }
+    
+    .login-pf-page .card-pf {
+      background-color: rgba(0, 0, 0, 0.85) !important;
+      border: 1px solid #333 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 8px 32px rgba(255, 165, 0, 0.15) !important;
+      max-width: 450px !important;
+      margin: 0 auto !important;
+      padding: 30px !important;
+    }
+    
+    /* Header / Logo area */
+    .login-pf-page .login-pf-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    #kc-header-wrapper {
+      font-size: 32px !important;
+      font-weight: bold !important;
+      color: #FFA500 !important;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    /* Hide default Keycloak logo */
+    .login-pf-page .login-pf-brand {
+      display: none;
+    }
+    
+    /* Form title */
+    #kc-page-title {
+      color: #ffffff !important;
+      font-size: 24px !important;
+      font-weight: 600 !important;
+      text-align: center;
+      margin-bottom: 25px !important;
+    }
+    
+    /* Labels */
+    .login-pf-page label {
+      color: #cccccc !important;
+      font-weight: 500 !important;
+      margin-bottom: 8px !important;
+    }
+    
+    /* Input fields */
+    .login-pf-page input[type="text"],
+    .login-pf-page input[type="password"],
+    .login-pf-page input[type="email"] {
+      background-color: #1a1a1a !important;
+      border: 2px solid #333 !important;
+      border-radius: 8px !important;
+      color: #ffffff !important;
+      padding: 14px 16px !important;
+      font-size: 16px !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    .login-pf-page input[type="text"]:focus,
+    .login-pf-page input[type="password"]:focus,
+    .login-pf-page input[type="email"]:focus {
+      border-color: #FFA500 !important;
+      box-shadow: 0 0 0 3px rgba(255, 165, 0, 0.2) !important;
+      outline: none !important;
+    }
+    
+    .login-pf-page input::placeholder {
+      color: #666666 !important;
+    }
+    
+    /* Primary button (Login, Submit, etc.) */
+    .login-pf-page .btn-primary,
+    .login-pf-page #kc-login,
+    .login-pf-page #kc-register {
+      background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%) !important;
+      border: none !important;
+      border-radius: 8px !important;
+      color: #ffffff !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      padding: 14px 24px !important;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease !important;
+      width: 100% !important;
+      margin-top: 10px !important;
+    }
+    
+    .login-pf-page .btn-primary:hover,
+    .login-pf-page #kc-login:hover,
+    .login-pf-page #kc-register:hover {
+      background: linear-gradient(135deg, #FF8C00 0%, #FF7400 100%) !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 20px rgba(255, 165, 0, 0.4) !important;
+    }
+    
+    /* Secondary/Link buttons */
+    .login-pf-page .btn-default,
+    .login-pf-page a {
+      color: #FFA500 !important;
+      text-decoration: none !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    .login-pf-page .btn-default:hover,
+    .login-pf-page a:hover {
+      color: #FF8C00 !important;
+      text-decoration: underline !important;
+    }
+    
+    /* Links container */
+    #kc-form-options,
+    #kc-registration {
+      text-align: center;
+      margin-top: 20px;
+    }
+    
+    #kc-form-options span,
+    #kc-registration span {
+      color: #888888 !important;
+    }
+    
+    /* Forgot password link */
+    .login-pf-page #kc-form-options a {
+      color: #FFA500 !important;
+      font-size: 14px !important;
+    }
+    
+    /* Register link */
+    #kc-registration a {
+      color: #FFA500 !important;
+      font-weight: 600 !important;
+    }
+    
+    /* Error messages */
+    .login-pf-page .alert-error,
+    .login-pf-page .kc-feedback-text {
+      background-color: rgba(220, 53, 69, 0.2) !important;
+      border: 1px solid #dc3545 !important;
+      border-radius: 8px !important;
+      color: #ff6b6b !important;
+      padding: 12px 16px !important;
+      margin-bottom: 20px !important;
+    }
+    
+    /* Success messages */
+    .login-pf-page .alert-success {
+      background-color: rgba(40, 167, 69, 0.2) !important;
+      border: 1px solid #28a745 !important;
+      border-radius: 8px !important;
+      color: #51cf66 !important;
+      padding: 12px 16px !important;
+      margin-bottom: 20px !important;
+    }
+    
+    /* Info messages */
+    .login-pf-page .alert-info {
+      background-color: rgba(255, 165, 0, 0.2) !important;
+      border: 1px solid #FFA500 !important;
+      border-radius: 8px !important;
+      color: #FFA500 !important;
+      padding: 12px 16px !important;
+      margin-bottom: 20px !important;
+    }
+    
+    /* Checkbox styling */
+    .login-pf-page input[type="checkbox"] {
+      accent-color: #FFA500 !important;
+      width: 18px !important;
+      height: 18px !important;
+    }
+    
+    /* Remember me label */
+    .login-pf-page #kc-form-options label {
+      color: #888888 !important;
+      font-size: 14px !important;
+    }
+    
+    /* Social login buttons */
+    .login-pf-page #kc-social-providers {
+      margin-top: 30px !important;
+      padding-top: 20px !important;
+      border-top: 1px solid #333 !important;
+    }
+    
+    .login-pf-page #kc-social-providers h4 {
+      color: #888888 !important;
+      text-align: center;
+      font-size: 14px !important;
+      margin-bottom: 15px !important;
+    }
+    
+    .login-pf-page .social-provider-button {
+      background-color: #1a1a1a !important;
+      border: 1px solid #333 !important;
+      border-radius: 8px !important;
+      color: #ffffff !important;
+      margin-bottom: 10px !important;
+      transition: all 0.3s ease !important;
+    }
+    
+    .login-pf-page .social-provider-button:hover {
+      background-color: #2d2d2d !important;
+      border-color: #FFA500 !important;
+    }
+    
+    /* Footer */
+    .login-pf-page .login-pf-footer {
+      text-align: center;
+      margin-top: 30px;
+    }
+    
+    .login-pf-page .login-pf-footer-text {
+      color: #666666 !important;
+      font-size: 12px !important;
+    }
+    
+    /* Form groups spacing */
+    .login-pf-page .form-group {
+      margin-bottom: 20px !important;
+    }
+    
+    /* Password visibility toggle */
+    .login-pf-page .pf-c-button.pf-m-control {
+      background-color: transparent !important;
+      color: #888888 !important;
+    }
+    
+    /* Terms and conditions checkbox area */
+    .login-pf-page #kc-terms-text {
+      color: #cccccc !important;
+      font-size: 14px !important;
+      line-height: 1.6 !important;
+      max-height: 200px;
+      overflow-y: auto;
+      background-color: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .login-pf-page .card-pf {
+        margin: 20px !important;
+        padding: 20px !important;
+      }
+      
+      #kc-header-wrapper {
+        font-size: 24px !important;
+      }
+      
+      #kc-page-title {
+        font-size: 20px !important;
+      }
+    }
+    
+    /* Loading spinner */
+    .login-pf-page .pf-c-spinner {
+      --pf-c-spinner--Color: #FFA500 !important;
+    }
+    
+    /* Required field indicator */
+    .login-pf-page .required::after {
+      color: #FFA500 !important;
+    }
+
+  messages_en.properties: |
+    # Login page
+    loginTitle=Sign In to CryptoJackpot
+    loginTitleHtml=Sign In to <strong>CryptoJackpot</strong>
+    registerTitle=Create Account
+    doLogIn=Sign In
+    doRegister=Create Account
+    doForgotPassword=Forgot Password?
+    doSubmit=Submit
+    doContinue=Continue
+    doCancel=Cancel
+    noAccount=Don't have an account?
+    registerLinkTitle=Register
+    loginLinkTitle=Already have an account? Sign In
+    
+    # Registration
+    registerTitle=Join CryptoJackpot
+    emailLabel=Email Address
+    firstNameLabel=First Name
+    lastNameLabel=Last Name
+    passwordLabel=Password
+    passwordConfirmLabel=Confirm Password
+    
+    # Password reset
+    emailForgotTitle=Reset Your Password
+    emailInstruction=Enter your email address and we'll send you a link to reset your password.
+    updatePasswordTitle=Create New Password
+    passwordNew=New Password
+    passwordNewConfirm=Confirm New Password
+    
+    # Email verification
+    emailVerifyTitle=Verify Your Email
+    emailVerifyInstruction=An email with instructions to verify your email address has been sent to you.
+    
+    # Error messages
+    invalidUserMessage=Invalid email or password
+    accountDisabledMessage=Account is disabled. Please contact support.
+    accountTemporarilyDisabledMessage=Account temporarily locked. Please try again later.
+    expiredCodeMessage=This link has expired. Please request a new one.
+    
+    # Success messages
+    emailVerifiedMessage=Your email has been verified. You can now sign in.
+    passwordUpdatedMessage=Your password has been updated successfully.
+
+  messages_es.properties: |
+    # Login page
+    loginTitle=Iniciar Sesión en CryptoJackpot
+    loginTitleHtml=Iniciar Sesión en <strong>CryptoJackpot</strong>
+    registerTitle=Crear Cuenta
+    doLogIn=Iniciar Sesión
+    doRegister=Crear Cuenta
+    doForgotPassword=¿Olvidaste tu contraseña?
+    doSubmit=Enviar
+    doContinue=Continuar
+    doCancel=Cancelar
+    noAccount=¿No tienes una cuenta?
+    registerLinkTitle=Regístrate
+    loginLinkTitle=¿Ya tienes cuenta? Inicia Sesión
+    
+    # Registration
+    registerTitle=Únete a CryptoJackpot
+    emailLabel=Correo Electrónico
+    firstNameLabel=Nombre
+    lastNameLabel=Apellido
+    passwordLabel=Contraseña
+    passwordConfirmLabel=Confirmar Contraseña
+    
+    # Password reset
+    emailForgotTitle=Restablecer Contraseña
+    emailInstruction=Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+    updatePasswordTitle=Crear Nueva Contraseña
+    passwordNew=Nueva Contraseña
+    passwordNewConfirm=Confirmar Nueva Contraseña
+    
+    # Email verification
+    emailVerifyTitle=Verifica tu Correo
+    emailVerifyInstruction=Se ha enviado un correo con instrucciones para verificar tu dirección de correo electrónico.
+    
+    # Error messages
+    invalidUserMessage=Correo o contraseña inválidos
+    accountDisabledMessage=Cuenta deshabilitada. Por favor contacta soporte.
+    accountTemporarilyDisabledMessage=Cuenta bloqueada temporalmente. Intenta más tarde.
+    expiredCodeMessage=Este enlace ha expirado. Por favor solicita uno nuevo.
+    
+    # Success messages
+    emailVerifiedMessage=Tu correo ha sido verificado. Ya puedes iniciar sesión.
+    passwordUpdatedMessage=Tu contraseña ha sido actualizada exitosamente.
+
+  login.ftl: |
+    <#import "template.ftl" as layout>
+    <@layout.registrationLayout displayMessage=!messagesPerField.existsError('username','password') displayInfo=realm.password && realm.registrationAllowed && !registrationDisabled??; section>
+        <#if section = "header">
+            ${msg("loginTitle")}
+        <#elseif section = "form">
+            <div id="kc-form">
+                <div id="kc-form-wrapper">
+                    <#if realm.password>
+                        <form id="kc-form-login" onsubmit="login.disabled = true; return true;" action="${url.loginAction}" method="post">
+                            <div class="form-group">
+                                <label for="username" class="pf-c-form__label">
+                                    <span class="pf-c-form__label-text">${msg("emailLabel")}</span>
+                                </label>
+                                <input tabindex="1" id="username" class="pf-c-form-control" name="username" value="${(login.username!'')}" type="email" autofocus autocomplete="email" placeholder="${msg("emailLabel")}" aria-invalid="<#if messagesPerField.existsError('username','password')>true</#if>"/>
+                                <#if messagesPerField.existsError('username','password')>
+                                    <span id="input-error" class="pf-c-form__helper-text pf-m-error" aria-live="polite">
+                                        ${kcSanitize(messagesPerField.getFirstError('username','password'))?no_esc}
+                                    </span>
+                                </#if>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password" class="pf-c-form__label">
+                                    <span class="pf-c-form__label-text">${msg("passwordLabel")}</span>
+                                </label>
+                                <input tabindex="2" id="password" class="pf-c-form-control" name="password" type="password" autocomplete="current-password" placeholder="${msg("passwordLabel")}" aria-invalid="<#if messagesPerField.existsError('username','password')>true</#if>"/>
+                            </div>
+
+                            <div class="form-group" id="kc-form-options">
+                                <#if realm.rememberMe && !usernameHidden??>
+                                    <div class="checkbox">
+                                        <label>
+                                            <#if login.rememberMe??>
+                                                <input tabindex="3" id="rememberMe" name="rememberMe" type="checkbox" checked> ${msg("rememberMe")}
+                                            <#else>
+                                                <input tabindex="3" id="rememberMe" name="rememberMe" type="checkbox"> ${msg("rememberMe")}
+                                            </#if>
+                                        </label>
+                                    </div>
+                                </#if>
+                                <#if realm.resetPasswordAllowed>
+                                    <span><a tabindex="5" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a></span>
+                                </#if>
+                            </div>
+
+                            <div id="kc-form-buttons" class="form-group">
+                                <input type="hidden" id="id-hidden-input" name="credentialId" <#if auth.selectedCredential?has_content>value="${auth.selectedCredential}"</#if>/>
+                                <input tabindex="4" class="btn-primary" name="login" id="kc-login" type="submit" value="${msg("doLogIn")}"/>
+                            </div>
+                        </form>
+                    </#if>
+                </div>
+            </div>
+        <#elseif section = "info">
+            <#if realm.password && realm.registrationAllowed && !registrationDisabled??>
+                <div id="kc-registration">
+                    <span>${msg("noAccount")} <a tabindex="6" href="${url.registrationUrl}">${msg("doRegister")}</a></span>
+                </div>
+            </#if>
+        <#elseif section = "socialProviders">
+            <#if realm.password && social.providers??>
+                <div id="kc-social-providers">
+                    <h4>${msg("identity-provider-login-label")}</h4>
+                    <ul>
+                        <#list social.providers as p>
+                            <li><a id="social-${p.alias}" class="social-provider-button" type="button" href="${p.loginUrl}">
+                                <#if p.iconClasses?has_content><i class="${p.iconClasses}" aria-hidden="true"></i></#if>
+                                <span>${p.displayName!}</span>
+                            </a></li>
+                        </#list>
+                    </ul>
+                </div>
+            </#if>
+        </#if>
+    </@layout.registrationLayout>
+
+  register.ftl: |
+    <#import "template.ftl" as layout>
+    <@layout.registrationLayout displayMessage=!messagesPerField.existsError('firstName','lastName','email','password','password-confirm'); section>
+        <#if section = "header">
+            ${msg("registerTitle")}
+        <#elseif section = "form">
+            <form id="kc-register-form" action="${url.registrationAction}" method="post">
+                <div class="form-group">
+                    <label for="firstName" class="pf-c-form__label">
+                        <span class="pf-c-form__label-text">${msg("firstNameLabel")}</span>
+                        <span class="pf-c-form__label-required" aria-hidden="true">*</span>
+                    </label>
+                    <input type="text" id="firstName" class="pf-c-form-control" name="firstName" value="${(register.formData.firstName!'')}" placeholder="${msg("firstNameLabel")}" aria-invalid="<#if messagesPerField.existsError('firstName')>true</#if>"/>
+                    <#if messagesPerField.existsError('firstName')>
+                        <span class="pf-c-form__helper-text pf-m-error">${kcSanitize(messagesPerField.get('firstName'))?no_esc}</span>
+                    </#if>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName" class="pf-c-form__label">
+                        <span class="pf-c-form__label-text">${msg("lastNameLabel")}</span>
+                        <span class="pf-c-form__label-required" aria-hidden="true">*</span>
+                    </label>
+                    <input type="text" id="lastName" class="pf-c-form-control" name="lastName" value="${(register.formData.lastName!'')}" placeholder="${msg("lastNameLabel")}" aria-invalid="<#if messagesPerField.existsError('lastName')>true</#if>"/>
+                    <#if messagesPerField.existsError('lastName')>
+                        <span class="pf-c-form__helper-text pf-m-error">${kcSanitize(messagesPerField.get('lastName'))?no_esc}</span>
+                    </#if>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="pf-c-form__label">
+                        <span class="pf-c-form__label-text">${msg("emailLabel")}</span>
+                        <span class="pf-c-form__label-required" aria-hidden="true">*</span>
+                    </label>
+                    <input type="email" id="email" class="pf-c-form-control" name="email" value="${(register.formData.email!'')}" placeholder="${msg("emailLabel")}" autocomplete="email" aria-invalid="<#if messagesPerField.existsError('email')>true</#if>"/>
+                    <#if messagesPerField.existsError('email')>
+                        <span class="pf-c-form__helper-text pf-m-error">${kcSanitize(messagesPerField.get('email'))?no_esc}</span>
+                    </#if>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="pf-c-form__label">
+                        <span class="pf-c-form__label-text">${msg("passwordLabel")}</span>
+                        <span class="pf-c-form__label-required" aria-hidden="true">*</span>
+                    </label>
+                    <input type="password" id="password" class="pf-c-form-control" name="password" placeholder="${msg("passwordLabel")}" autocomplete="new-password" aria-invalid="<#if messagesPerField.existsError('password','password-confirm')>true</#if>"/>
+                    <#if messagesPerField.existsError('password')>
+                        <span class="pf-c-form__helper-text pf-m-error">${kcSanitize(messagesPerField.get('password'))?no_esc}</span>
+                    </#if>
+                </div>
+
+                <div class="form-group">
+                    <label for="password-confirm" class="pf-c-form__label">
+                        <span class="pf-c-form__label-text">${msg("passwordConfirmLabel")}</span>
+                        <span class="pf-c-form__label-required" aria-hidden="true">*</span>
+                    </label>
+                    <input type="password" id="password-confirm" class="pf-c-form-control" name="password-confirm" placeholder="${msg("passwordConfirmLabel")}" aria-invalid="<#if messagesPerField.existsError('password-confirm')>true</#if>"/>
+                    <#if messagesPerField.existsError('password-confirm')>
+                        <span class="pf-c-form__helper-text pf-m-error">${kcSanitize(messagesPerField.get('password-confirm'))?no_esc}</span>
+                    </#if>
+                </div>
+
+                <div class="form-group">
+                    <div id="kc-form-buttons">
+                        <input class="btn-primary" type="submit" value="${msg("doRegister")}"/>
+                    </div>
+                    <div id="kc-form-options">
+                        <span><a href="${url.loginUrl}">${msg("loginLinkTitle")}</a></span>
+                    </div>
+                </div>
+            </form>
+        </#if>
+    </@layout.registrationLayout>
+
+  login-reset-password.ftl: |
+    <#import "template.ftl" as layout>
+    <@layout.registrationLayout displayInfo=true displayMessage=!messagesPerField.existsError('username'); section>
+        <#if section = "header">
+            ${msg("emailForgotTitle")}
+        <#elseif section = "form">
+            <form id="kc-reset-password-form" action="${url.loginAction}" method="post">
+                <div class="form-group">
+                    <label for="username" class="pf-c-form__label">
+                        <span class="pf-c-form__label-text">${msg("emailLabel")}</span>
+                    </label>
+                    <input type="email" id="username" name="username" class="pf-c-form-control" autofocus placeholder="${msg("emailLabel")}" value="${(auth.attemptedUsername!'')}" aria-invalid="<#if messagesPerField.existsError('username')>true</#if>"/>
+                    <#if messagesPerField.existsError('username')>
+                        <span class="pf-c-form__helper-text pf-m-error">${kcSanitize(messagesPerField.getFirstError('username'))?no_esc}</span>
+                    </#if>
+                </div>
+                <div class="form-group">
+                    <div id="kc-form-buttons">
+                        <input class="btn-primary" type="submit" value="${msg("doSubmit")}"/>
+                    </div>
+                    <div id="kc-form-options">
+                        <span><a href="${url.loginUrl}">${msg("backToLogin", "Back to Login")}</a></span>
+                    </div>
+                </div>
+            </form>
+        <#elseif section = "info">
+            <p>${msg("emailInstruction")}</p>
+        </#if>
+    </@layout.registrationLayout>
+
+  login-update-password.ftl: |
+    <#import "template.ftl" as layout>
+    <@layout.registrationLayout displayMessage=!messagesPerField.existsError('password','password-confirm'); section>
+        <#if section = "header">
+            ${msg("updatePasswordTitle")}
+        <#elseif section = "form">
+            <form id="kc-passwd-update-form" action="${url.loginAction}" method="post">
+                <input type="text" id="username" name="username" value="${username}" autocomplete="username" readonly="readonly" style="display:none;"/>
+                <input type="password" id="password-hidden" name="password-hidden" autocomplete="current-password" style="display:none;"/>
+
+                <div class="form-group">
+                    <label for="password-new" class="pf-c-form__label">
+                        <span class="pf-c-form__label-text">${msg("passwordNew")}</span>
+                        <span class="pf-c-form__label-required" aria-hidden="true">*</span>
+                    </label>
+                    <input type="password" id="password-new" name="password-new" class="pf-c-form-control" autofocus autocomplete="new-password" placeholder="${msg("passwordNew")}" aria-invalid="<#if messagesPerField.existsError('password','password-confirm')>true</#if>"/>
+                    <#if messagesPerField.existsError('password')>
+                        <span class="pf-c-form__helper-text pf-m-error">${kcSanitize(messagesPerField.get('password'))?no_esc}</span>
+                    </#if>
+                </div>
+
+                <div class="form-group">
+                    <label for="password-confirm" class="pf-c-form__label">
+                        <span class="pf-c-form__label-text">${msg("passwordNewConfirm")}</span>
+                        <span class="pf-c-form__label-required" aria-hidden="true">*</span>
+                    </label>
+                    <input type="password" id="password-confirm" name="password-confirm" class="pf-c-form-control" autocomplete="new-password" placeholder="${msg("passwordNewConfirm")}" aria-invalid="<#if messagesPerField.existsError('password-confirm')>true</#if>"/>
+                    <#if messagesPerField.existsError('password-confirm')>
+                        <span class="pf-c-form__helper-text pf-m-error">${kcSanitize(messagesPerField.get('password-confirm'))?no_esc}</span>
+                    </#if>
+                </div>
+
+                <div class="form-group">
+                    <div id="kc-form-buttons">
+                        <#if isAppInitiatedAction??>
+                            <input class="btn-primary" type="submit" value="${msg("doSubmit")}" />
+                            <button class="btn-default" type="submit" name="cancel-aia" value="true">${msg("doCancel")}</button>
+                        <#else>
+                            <input class="btn-primary" type="submit" value="${msg("doSubmit")}" />
+                        </#if>
+                    </div>
+                </div>
+            </form>
+        </#if>
+    </@layout.registrationLayout>
+
+  login-verify-email.ftl: |
+    <#import "template.ftl" as layout>
+    <@layout.registrationLayout displayInfo=true; section>
+        <#if section = "header">
+            ${msg("emailVerifyTitle")}
+        <#elseif section = "form">
+            <p class="instruction">${msg("emailVerifyInstruction")}</p>
+        <#elseif section = "info">
+            <p>${msg("emailVerifyInstruction")}</p>
+            <p>
+                <a href="${url.loginAction}">${msg("doClickHere")} ${msg("emailVerifyInstruction")}</a>
+            </p>
+        </#if>
+    </@layout.registrationLayout>

@@ -11,6 +11,4 @@ public class UpdateUserRequest
     public string LastName { get; set; } = null!;
 
     public string? Phone { get; set; }
-
-    public string? Password { get; set; }
 }

@@ -13,6 +13,7 @@ namespace CryptoJackpot.Identity.Api.Controllers;
 [ApiController]
 [ApiVersion("1")]
 [Route("api/v{version:apiVersion}/users")]
+[Authorize]
 public class UserController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -24,16 +25,6 @@ public class UserController : ControllerBase
         _mapper = mapper;
     }
 
-    [AllowAnonymous]
-    [HttpPost()]
-    public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
-    {
-        var command = _mapper.Map<CreateUserCommand>(request);
-        var result = await _mediator.Send(command);
-        return result.ToActionResult();
-    }
-
-    [Authorize]
     [HttpGet("{userId:long}")]
     public async Task<IActionResult> GetById([FromRoute] long userId)
     {
@@ -51,7 +42,6 @@ public class UserController : ControllerBase
         return result.ToActionResult();
     }
 
-    [Authorize]
     [HttpPut("{userId:long}")]
     public async Task<IActionResult> Update(long userId, [FromBody] UpdateUserRequest request)
     {
@@ -60,59 +50,9 @@ public class UserController : ControllerBase
             UserId = userId,
             Name = request.Name,
             LastName = request.LastName,
-            Phone = request.Phone,
-            Password = request.Password
+            Phone = request.Phone
         };
 
-        var result = await _mediator.Send(command);
-        return result.ToActionResult();
-    }
-
-    [Authorize]
-    [HttpPatch("update-password")]
-    public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequest request)
-    {
-        var command = new UpdatePasswordCommand
-        {
-            UserId = request.UserId,
-            CurrentPassword = request.CurrentPassword,
-            NewPassword = request.NewPassword
-        };
-
-        var result = await _mediator.Send(command);
-        return result.ToActionResult();
-    }
-
-    [AllowAnonymous]
-    [HttpPost("request-password-reset")]
-    public async Task<IActionResult> RequestPasswordReset([FromBody] RequestPasswordResetRequest request)
-    {
-        var command = new RequestPasswordResetCommand { Email = request.Email };
-        var result = await _mediator.Send(command);
-        return result.ToActionResult();
-    }
-
-    [AllowAnonymous]
-    [HttpPost("reset-password-with-code")]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordWithCodeRequest request)
-    {
-        var command = new ResetPasswordWithCodeCommand
-        {
-            Email = request.Email,
-            SecurityCode = request.SecurityCode,
-            NewPassword = request.NewPassword,
-            ConfirmPassword = request.ConfirmPassword
-        };
-
-        var result = await _mediator.Send(command);
-        return result.ToActionResult();
-    }
-
-    [Authorize]
-    [HttpPatch("generate-new-security-code")]
-    public async Task<IActionResult> GenerateSecurityCode([FromBody] GenerateSecurityCodeRequest request)
-    {
-        var command = new GenerateNewSecurityCodeCommand { UserId = request.UserId };
         var result = await _mediator.Send(command);
         return result.ToActionResult();
     }
@@ -132,7 +72,6 @@ public class UserController : ControllerBase
         return result.ToActionResult();
     }
 
-    [Authorize]
     [HttpPatch("update-image-profile")]
     public async Task<IActionResult> UpdateImage([FromBody] UpdateUserImageRequest request)
     {
@@ -146,4 +85,3 @@ public class UserController : ControllerBase
         return result.ToActionResult();
     }
 }
-

@@ -31,6 +31,7 @@ data:
       "quickLoginCheckMilliSeconds": 1000,
       "maxDeltaTimeSeconds": 43200,
       "failureFactor": 5,
+      "loginTheme": "cryptojackpot",
       "emailTheme": "cryptojackpot",
       "smtpServer": {
         "host": "${SMTP_HOST:smtp-relay.brevo.com}",

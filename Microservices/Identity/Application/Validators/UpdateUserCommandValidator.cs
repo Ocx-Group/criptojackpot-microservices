@@ -22,18 +22,6 @@ public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
             .MaximumLength(20).WithMessage("Phone must not exceed 20 characters")
             .Matches(@"^\+?[0-9\s\-\(\)]*$").When(x => !string.IsNullOrEmpty(x.Phone))
             .WithMessage("Phone must be a valid phone number");
-
-        RuleFor(x => x.Password)
-            .MinimumLength(8).When(x => !string.IsNullOrEmpty(x.Password))
-            .WithMessage("Password must be at least 8 characters")
-            .MaximumLength(100).When(x => !string.IsNullOrEmpty(x.Password))
-            .WithMessage("Password must not exceed 100 characters")
-            .Matches(@"[A-Z]").When(x => !string.IsNullOrEmpty(x.Password))
-            .WithMessage("Password must contain at least one uppercase letter")
-            .Matches(@"[a-z]").When(x => !string.IsNullOrEmpty(x.Password))
-            .WithMessage("Password must contain at least one lowercase letter")
-            .Matches(@"[0-9]").When(x => !string.IsNullOrEmpty(x.Password))
-            .WithMessage("Password must contain at least one number");
     }
 }
 
