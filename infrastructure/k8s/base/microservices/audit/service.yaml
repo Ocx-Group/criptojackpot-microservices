@@ -1,0 +1,15 @@
+# Audit API - Base Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: audit-api
+  namespace: cryptojackpot
+  labels:
+    app: audit-api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: audit-api

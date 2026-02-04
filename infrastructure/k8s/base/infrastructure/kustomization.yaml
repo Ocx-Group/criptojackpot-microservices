@@ -1,0 +1,13 @@
+# Kustomization for Infrastructure Base
+# Note: This is only used for local/dev environments
+# Production uses managed services (DigitalOcean, Upstash, etc.)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - postgres
+  - redis
+  - mongodb
+  - redpanda
+  - minio
+  - keycloak

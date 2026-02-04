@@ -1,0 +1,93 @@
+# Identity API - Base Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-api
+  namespace: cryptojackpot
+  labels:
+    app: identity-api
+    tier: api
+spec:
+  selector:
+    matchLabels:
+      app: identity-api
+  template:
+    metadata:
+      labels:
+        app: identity-api
+        tier: api
+    spec:
+      containers:
+        - name: identity-api
+          image: cryptojackpot/identity-api
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: IDENTITY_DB_CONNECTION
+            - name: JwtSettings__SecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_SECRET_KEY
+            - name: JwtSettings__Issuer
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_ISSUER
+            - name: JwtSettings__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_AUDIENCE
+            - name: JwtSettings__ExpirationInMinutes
+              value: "60"
+            - name: DigitalOcean__Endpoint
+              valueFrom:
+                secretKeyRef:
+                  name: digitalocean-spaces-secrets
+                  key: SPACES_ENDPOINT
+            - name: DigitalOcean__BucketName
+              valueFrom:
+                secretKeyRef:
+                  name: digitalocean-spaces-secrets
+                  key: SPACES_BUCKET
+            - name: DigitalOcean__AccessKey
+              valueFrom:
+                secretKeyRef:
+                  name: digitalocean-spaces-secrets
+                  key: SPACES_ACCESS_KEY
+            - name: DigitalOcean__SecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: digitalocean-spaces-secrets
+                  key: SPACES_SECRET_KEY
+            - name: Kafka__BootstrapServers
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-secrets
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: Keycloak__ClientSecret
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: KEYCLOAK_CLIENT_SECRET
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10

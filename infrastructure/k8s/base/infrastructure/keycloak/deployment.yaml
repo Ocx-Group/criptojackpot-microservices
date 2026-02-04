@@ -1,0 +1,131 @@
+# Keycloak Deployment - Base
+# Includes shared themes configuration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: cryptojackpot
+  labels:
+    app: keycloak
+    tier: infrastructure
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      # Init Container: Prepares theme directory structure (shared across all environments)
+      initContainers:
+        - name: setup-themes
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Setting up Keycloak themes..."
+              
+              # Create login theme directory structure
+              mkdir -p /themes/cryptojackpot/login/resources/css
+              mkdir -p /themes/cryptojackpot/login/messages
+              
+              # Copy login theme files
+              cp /login-theme-src/theme.properties /themes/cryptojackpot/login/
+              cp /login-theme-src/login.css /themes/cryptojackpot/login/resources/css/
+              cp /login-theme-src/messages_en.properties /themes/cryptojackpot/login/messages/
+              cp /login-theme-src/messages_es.properties /themes/cryptojackpot/login/messages/
+              cp /login-theme-src/login.ftl /themes/cryptojackpot/login/
+              cp /login-theme-src/register.ftl /themes/cryptojackpot/login/
+              cp /login-theme-src/login-reset-password.ftl /themes/cryptojackpot/login/
+              cp /login-theme-src/login-update-password.ftl /themes/cryptojackpot/login/
+              cp /login-theme-src/login-verify-email.ftl /themes/cryptojackpot/login/
+              cp /login-theme-src/template.ftl /themes/cryptojackpot/login/
+              
+              # Create email theme directory structure
+              mkdir -p /themes/cryptojackpot/email/html
+              mkdir -p /themes/cryptojackpot/email/text
+              mkdir -p /themes/cryptojackpot/email/messages
+              
+              # Copy email theme files
+              cp /email-theme-src/theme.properties /themes/cryptojackpot/email/
+              cp /email-theme-src/messages_en.properties /themes/cryptojackpot/email/messages/
+              cp /email-theme-src/messages_es.properties /themes/cryptojackpot/email/messages/
+              cp /email-theme-src/template.ftl /themes/cryptojackpot/email/html/
+              cp /email-theme-src/email-verification.ftl /themes/cryptojackpot/email/html/
+              cp /email-theme-src/password-reset.ftl /themes/cryptojackpot/email/html/
+              cp /email-theme-src/executeActions.ftl /themes/cryptojackpot/email/html/
+              cp /email-theme-src/email-verification-text.ftl /themes/cryptojackpot/email/text/email-verification.ftl
+              cp /email-theme-src/password-reset-text.ftl /themes/cryptojackpot/email/text/password-reset.ftl
+              cp /email-theme-src/executeActions-text.ftl /themes/cryptojackpot/email/text/executeActions.ftl
+              
+              echo "Theme setup complete!"
+          volumeMounts:
+            - name: login-theme-src
+              mountPath: /login-theme-src
+              readOnly: true
+            - name: email-theme-src
+              mountPath: /email-theme-src
+              readOnly: true
+            - name: themes-volume
+              mountPath: /themes
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.5.2
+          imagePullPolicy: Always
+          args:
+            - start-dev
+            - --import-realm
+          envFrom:
+            - configMapRef:
+                name: keycloak-config
+            - secretRef:
+                name: keycloak-secrets
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: realm-config
+              mountPath: /opt/keycloak/data/import
+              readOnly: true
+            - name: themes-volume
+              mountPath: /opt/keycloak/themes/cryptojackpot
+              subPath: cryptojackpot
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /health/started
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+      volumes:
+        - name: realm-config
+          configMap:
+            name: keycloak-realm-config
+        - name: login-theme-src
+          configMap:
+            name: keycloak-login-theme
+        - name: email-theme-src
+          configMap:
+            name: keycloak-email-themes
+        - name: themes-volume
+          emptyDir: {}

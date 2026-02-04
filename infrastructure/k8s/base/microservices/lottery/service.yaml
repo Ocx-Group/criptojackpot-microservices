@@ -1,0 +1,15 @@
+# Lottery API - Base Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: lottery-api
+  namespace: cryptojackpot
+  labels:
+    app: lottery-api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: lottery-api

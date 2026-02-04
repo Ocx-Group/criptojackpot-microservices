@@ -1,0 +1,41 @@
+# ConfigMap for MongoDB init scripts - LOCAL
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-init-scripts
+  namespace: cryptojackpot
+data:
+  01-init-audit-db.js: |
+    // Create audit database and collections
+    db = db.getSiblingDB('cryptojackpot_audit');
+    
+    // Create audit_logs collection with schema validation
+    db.createCollection('audit_logs', {
+      validator: {
+        $jsonSchema: {
+          bsonType: 'object',
+          required: ['timestamp', 'action', 'service'],
+          properties: {
+            timestamp: { bsonType: 'date' },
+            action: { bsonType: 'string' },
+            service: { bsonType: 'string' },
+            userId: { bsonType: 'string' },
+            details: { bsonType: 'object' }
+          }
+        }
+      }
+    });
+    
+    // Create indexes for common queries
+    db.audit_logs.createIndex({ timestamp: -1 });
+    db.audit_logs.createIndex({ service: 1, timestamp: -1 });
+    db.audit_logs.createIndex({ userId: 1, timestamp: -1 });
+    db.audit_logs.createIndex({ action: 1, timestamp: -1 });
+    
+    // Create TTL index for automatic cleanup (365 days)
+    db.audit_logs.createIndex(
+      { timestamp: 1 },
+      { expireAfterSeconds: 31536000 }
+    );
+    
+    print('Audit database initialized successfully');

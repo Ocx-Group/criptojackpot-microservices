@@ -1,0 +1,10 @@
+# Base ConfigMap - Common settings across all environments
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: cryptojackpot
+data:
+  ASPNETCORE_URLS: "http://+:80"
+  Logging__LogLevel__Default: "Information"
+  Logging__LogLevel__Microsoft.AspNetCore: "Warning"

@@ -1,151 +1,74 @@
 ﻿# Skaffold Configuration for CryptoJackpotDistributed
-# Permite desarrollo local con hot-reload simulando producción
+# Supports multiple environments using Kustomize overlays
+# 
+# Usage:
+#   skaffold dev                    # Local development with hot-reload
+#   skaffold debug                  # Debug with remote debugging
+#   skaffold run -p qa              # Deploy to QA
+#   skaffold run -p prod            # Deploy to Production
+#
 apiVersion: skaffold/v4beta6
 kind: Config
 metadata:
   name: cryptojackpot-distributed
 
-# Perfiles para diferentes entornos
-profiles:
-  # Perfil de DEBUG con remote debugging
-  - name: debug
-    activation:
-      - command: debug
-    build:
-      local:
-        push: false
-        useBuildkit: true
-      artifacts:
-        - image: cryptojackpot/identity-api
-          context: .
-          docker:
-            dockerfile: Microservices/Identity/Api/Dockerfile.debug
-        - image: cryptojackpot/lottery-api
-          context: .
-          docker:
-            dockerfile: Microservices/Lottery/Api/Dockerfile.debug
-        - image: cryptojackpot/order-api
-          context: .
-          docker:
-            dockerfile: Microservices/Order/Api/Dockerfile.debug
-        - image: cryptojackpot/wallet-api
-          context: .
-          docker:
-            dockerfile: Microservices/Wallet/Api/Dockerfile.debug
-        - image: cryptojackpot/winner-api
-          context: .
-          docker:
-            dockerfile: Microservices/Winner/Api/Dockerfile.debug
-        - image: cryptojackpot/notification-api
-          context: .
-          docker:
-            dockerfile: Microservices/Notification/Api/Dockerfile.debug
-        - image: cryptojackpot/audit-api
-          context: .
-          docker:
-            dockerfile: Microservices/Audit/Api/Dockerfile
-    manifests:
-      rawYaml:
-        - infrastructure/k8s/local/namespace.yaml
-        - infrastructure/k8s/local/configmap.yaml
-        - infrastructure/k8s/local/secrets/*.yaml
-        - infrastructure/k8s/local/postgres/*.yaml
-        - infrastructure/k8s/local/redis/*.yaml
-        - infrastructure/k8s/local/redpanda/*.yaml
-        - infrastructure/k8s/local/minio/*.yaml
-        - infrastructure/k8s/local/mongodb/*.yaml
-        - infrastructure/k8s/local/microservices/**/*.yaml
-        - infrastructure/k8s/local/ingress/*.yaml
-    deploy:
-      kubectl: {}
-    portForward:
-      - resourceType: service
-        resourceName: identity-api
-        namespace: cryptojackpot
-        port: 80
-        localPort: 5001
-      - resourceType: service
-        resourceName: lottery-api
-        namespace: cryptojackpot
-        port: 80
-        localPort: 5002
-      - resourceType: service
-        resourceName: order-api
-        namespace: cryptojackpot
-        port: 80
-        localPort: 5003
-      - resourceType: service
-        resourceName: wallet-api
-        namespace: cryptojackpot
-        port: 80
-        localPort: 5004
-      - resourceType: service
-        resourceName: winner-api
-        namespace: cryptojackpot
-        port: 80
-        localPort: 5005
-      - resourceType: service
-        resourceName: notification-api
-        namespace: cryptojackpot
-        port: 80
-        localPort: 5006
-      - resourceType: service
-        resourceName: audit-api
-        namespace: cryptojackpot
-        port: 80
-        localPort: 5007
+# Common build configuration
+build:
+  local:
+    push: false
+    useBuildkit: true
+  artifacts:
+    - image: cryptojackpot/identity-api
+      context: .
+      docker:
+        dockerfile: Microservices/Identity/Api/Dockerfile
+    - image: cryptojackpot/lottery-api
+      context: .
+      docker:
+        dockerfile: Microservices/Lottery/Api/Dockerfile
+    - image: cryptojackpot/order-api
+      context: .
+      docker:
+        dockerfile: Microservices/Order/Api/Dockerfile
+    - image: cryptojackpot/wallet-api
+      context: .
+      docker:
+        dockerfile: Microservices/Wallet/Api/Dockerfile
+    - image: cryptojackpot/winner-api
+      context: .
+      docker:
+        dockerfile: Microservices/Winner/Api/Dockerfile
+    - image: cryptojackpot/notification-api
+      context: .
+      docker:
+        dockerfile: Microservices/Notification/Api/Dockerfile
+    - image: cryptojackpot/audit-api
+      context: .
+      docker:
+        dockerfile: Microservices/Audit/Api/Dockerfile
 
-  # Perfil de desarrollo con hot-reload
+# Default manifests using Kustomize (local overlay)
+manifests:
+  kustomize:
+    paths:
+      - infrastructure/k8s/overlays/local
+
+# Default deploy
+deploy:
+  kubectl: {}
+
+# Profiles for different environments
+profiles:
+  # ============================================
+  # LOCAL DEVELOPMENT with hot-reload
+  # ============================================
   - name: dev
     activation:
       - command: dev
-    build:
-      local:
-        push: false
-        useBuildkit: true
-      artifacts:
-        - image: cryptojackpot/identity-api
-          context: .
-          docker:
-            dockerfile: Microservices/Identity/Api/Dockerfile
-        - image: cryptojackpot/lottery-api
-          context: .
-          docker:
-            dockerfile: Microservices/Lottery/Api/Dockerfile
-        - image: cryptojackpot/order-api
-          context: .
-          docker:
-            dockerfile: Microservices/Order/Api/Dockerfile
-        - image: cryptojackpot/wallet-api
-          context: .
-          docker:
-            dockerfile: Microservices/Wallet/Api/Dockerfile
-        - image: cryptojackpot/winner-api
-          context: .
-          docker:
-            dockerfile: Microservices/Winner/Api/Dockerfile
-        - image: cryptojackpot/notification-api
-          context: .
-          docker:
-            dockerfile: Microservices/Notification/Api/Dockerfile
-        - image: cryptojackpot/audit-api
-          context: .
-          docker:
-            dockerfile: Microservices/Audit/Api/Dockerfile
     manifests:
-      rawYaml:
-        - infrastructure/k8s/local/namespace.yaml
-        - infrastructure/k8s/local/configmap.yaml
-        - infrastructure/k8s/local/secrets/*.yaml
-        - infrastructure/k8s/local/postgres/*.yaml
-        - infrastructure/k8s/local/redis/*.yaml
-        - infrastructure/k8s/local/redpanda/*.yaml
-        - infrastructure/k8s/local/minio/*.yaml
-        - infrastructure/k8s/local/mongodb/*.yaml
-        - infrastructure/k8s/local/microservices/**/*.yaml
-        - infrastructure/k8s/local/ingress/*.yaml
-    deploy:
-      kubectl: {}
+      kustomize:
+        paths:
+          - infrastructure/k8s/overlays/local
     portForward:
       - resourceType: service
         resourceName: identity-api
@@ -203,11 +126,6 @@ profiles:
         port: 9092
         localPort: 9092
       - resourceType: service
-        resourceName: redpanda-console
-        namespace: cryptojackpot
-        port: 8080
-        localPort: 8080
-      - resourceType: service
         resourceName: minio
         namespace: cryptojackpot
         port: 9001
@@ -218,55 +136,116 @@ profiles:
         port: 27017
         localPort: 27017
 
-# Build por defecto
-build:
-  local:
-    push: false
-    useBuildkit: true
-  artifacts:
-    - image: cryptojackpot/identity-api
-      context: .
-      docker:
-        dockerfile: Microservices/Identity/Api/Dockerfile
-    - image: cryptojackpot/lottery-api
-      context: .
-      docker:
-        dockerfile: Microservices/Lottery/Api/Dockerfile
-    - image: cryptojackpot/order-api
-      context: .
-      docker:
-        dockerfile: Microservices/Order/Api/Dockerfile
-    - image: cryptojackpot/wallet-api
-      context: .
-      docker:
-        dockerfile: Microservices/Wallet/Api/Dockerfile
-    - image: cryptojackpot/winner-api
-      context: .
-      docker:
-        dockerfile: Microservices/Winner/Api/Dockerfile
-    - image: cryptojackpot/notification-api
-      context: .
-      docker:
-        dockerfile: Microservices/Notification/Api/Dockerfile
-    - image: cryptojackpot/audit-api
-      context: .
-      docker:
-        dockerfile: Microservices/Audit/Api/Dockerfile
+  # ============================================
+  # DEBUG with remote debugging
+  # ============================================
+  - name: debug
+    activation:
+      - command: debug
+    build:
+      local:
+        push: false
+        useBuildkit: true
+      artifacts:
+        - image: cryptojackpot/identity-api
+          context: .
+          docker:
+            dockerfile: Microservices/Identity/Api/Dockerfile.debug
+        - image: cryptojackpot/lottery-api
+          context: .
+          docker:
+            dockerfile: Microservices/Lottery/Api/Dockerfile.debug
+        - image: cryptojackpot/order-api
+          context: .
+          docker:
+            dockerfile: Microservices/Order/Api/Dockerfile.debug
+        - image: cryptojackpot/wallet-api
+          context: .
+          docker:
+            dockerfile: Microservices/Wallet/Api/Dockerfile.debug
+        - image: cryptojackpot/winner-api
+          context: .
+          docker:
+            dockerfile: Microservices/Winner/Api/Dockerfile.debug
+        - image: cryptojackpot/notification-api
+          context: .
+          docker:
+            dockerfile: Microservices/Notification/Api/Dockerfile.debug
+        - image: cryptojackpot/audit-api
+          context: .
+          docker:
+            dockerfile: Microservices/Audit/Api/Dockerfile
+    manifests:
+      kustomize:
+        paths:
+          - infrastructure/k8s/overlays/local
+    portForward:
+      - resourceType: service
+        resourceName: identity-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5001
+      - resourceType: service
+        resourceName: lottery-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5002
+      - resourceType: service
+        resourceName: order-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5003
+      - resourceType: service
+        resourceName: wallet-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5004
+      - resourceType: service
+        resourceName: winner-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5005
+      - resourceType: service
+        resourceName: notification-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5006
+      - resourceType: service
+        resourceName: audit-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5007
 
-# Manifests por defecto
-manifests:
-  rawYaml:
-    - infrastructure/k8s/local/namespace.yaml
-    - infrastructure/k8s/local/configmap.yaml
-    - infrastructure/k8s/local/secrets/*.yaml
-    - infrastructure/k8s/local/postgres/*.yaml
-    - infrastructure/k8s/local/redis/*.yaml
-    - infrastructure/k8s/local/redpanda/*.yaml
-    - infrastructure/k8s/local/minio/*.yaml
-    - infrastructure/k8s/local/mongodb/*.yaml
-    - infrastructure/k8s/local/microservices/**/*.yaml
-    - infrastructure/k8s/local/ingress/*.yaml
+  # ============================================
+  # QA Environment
+  # ============================================
+  - name: qa
+    build:
+      local:
+        push: true
+      tagPolicy:
+        envTemplate:
+          template: "{{.IMAGE_NAME}}:qa-{{.DIGEST_HEX}}"
+    manifests:
+      kustomize:
+        paths:
+          - infrastructure/k8s/overlays/qa
+    deploy:
+      kubectl: {}
 
-# Deploy por defecto
-deploy:
-  kubectl: {}
+  # ============================================
+  # PRODUCTION Environment
+  # ============================================
+  - name: prod
+    build:
+      local:
+        push: true
+      tagPolicy:
+        envTemplate:
+          template: "{{.IMAGE_NAME}}:v{{.VERSION}}"
+    manifests:
+      kustomize:
+        paths:
+          - infrastructure/k8s/overlays/prod
+    deploy:
+      kubectl: {}

@@ -1,0 +1,21 @@
+# Common patch for all API deployments in LOCAL
+# Sets replicas, resources, and imagePullPolicy
+# Note: This is a Strategic Merge Patch
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: placeholder
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: placeholder
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

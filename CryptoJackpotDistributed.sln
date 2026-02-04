@@ -147,174 +147,236 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "k8s", "k8s", "{A1B2C3D4-E5F6-4A5B-8C9D-1E2F3A4B5C6D}"
 	ProjectSection(SolutionItems) = preProject
 		Infrastructure\k8s\README.md = Infrastructure\k8s\README.md
+		infrastructure\k8s\README-KUSTOMIZE.md = infrastructure\k8s\README-KUSTOMIZE.md
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "local", "local", "{F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "base", "base", "{44444444-4444-4444-4444-444444444441}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\README.md = Infrastructure\k8s\local\README.md
-		Infrastructure\k8s\local\configmap.yaml = Infrastructure\k8s\local\configmap.yaml
-		Infrastructure\k8s\local\namespace.yaml = Infrastructure\k8s\local\namespace.yaml
-		Infrastructure\k8s\local\kind-config.yaml = Infrastructure\k8s\local\kind-config.yaml
-		Infrastructure\k8s\local\dev-k8s.ps1 = Infrastructure\k8s\local\dev-k8s.ps1
-		Infrastructure\k8s\local\setup-local-k8s.ps1 = Infrastructure\k8s\local\setup-local-k8s.ps1
+		infrastructure\k8s\base\kustomization.yaml = infrastructure\k8s\base\kustomization.yaml
+		infrastructure\k8s\base\namespace.yaml = infrastructure\k8s\base\namespace.yaml
+		infrastructure\k8s\base\configmap.yaml = infrastructure\k8s\base\configmap.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ingress", "ingress", "{11111111-1111-1111-1111-111111111111}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "microservices", "microservices", "{44444444-4444-4444-4444-444444444442}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\ingress\api-ingress.yaml = Infrastructure\k8s\local\ingress\api-ingress.yaml
-		Infrastructure\k8s\local\ingress\tools-ingress.yaml = Infrastructure\k8s\local\ingress\tools-ingress.yaml
+		infrastructure\k8s\base\microservices\kustomization.yaml = infrastructure\k8s\base\microservices\kustomization.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "microservices", "microservices", "{11111111-1111-1111-1111-111111111112}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "identity", "identity", "{11111111-1111-1111-1111-111111111113}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "identity", "identity", "{44444444-4444-4444-4444-444444444443}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\microservices\identity\deployment.yaml = Infrastructure\k8s\local\microservices\identity\deployment.yaml
+		infrastructure\k8s\base\microservices\identity\kustomization.yaml = infrastructure\k8s\base\microservices\identity\kustomization.yaml
+		infrastructure\k8s\base\microservices\identity\deployment.yaml = infrastructure\k8s\base\microservices\identity\deployment.yaml
+		infrastructure\k8s\base\microservices\identity\service.yaml = infrastructure\k8s\base\microservices\identity\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lottery", "lottery", "{11111111-1111-1111-1111-111111111114}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lottery", "lottery", "{44444444-4444-4444-4444-444444444444}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\microservices\lottery\deployment.yaml = Infrastructure\k8s\local\microservices\lottery\deployment.yaml
+		infrastructure\k8s\base\microservices\lottery\kustomization.yaml = infrastructure\k8s\base\microservices\lottery\kustomization.yaml
+		infrastructure\k8s\base\microservices\lottery\deployment.yaml = infrastructure\k8s\base\microservices\lottery\deployment.yaml
+		infrastructure\k8s\base\microservices\lottery\service.yaml = infrastructure\k8s\base\microservices\lottery\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "notification", "notification", "{11111111-1111-1111-1111-111111111115}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "order", "order", "{44444444-4444-4444-4444-444444444445}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\microservices\notification\deployment.yaml = Infrastructure\k8s\local\microservices\notification\deployment.yaml
+		infrastructure\k8s\base\microservices\order\kustomization.yaml = infrastructure\k8s\base\microservices\order\kustomization.yaml
+		infrastructure\k8s\base\microservices\order\deployment.yaml = infrastructure\k8s\base\microservices\order\deployment.yaml
+		infrastructure\k8s\base\microservices\order\service.yaml = infrastructure\k8s\base\microservices\order\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "order", "order", "{11111111-1111-1111-1111-111111111116}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wallet", "wallet", "{44444444-4444-4444-4444-444444444446}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\microservices\order\deployment.yaml = Infrastructure\k8s\local\microservices\order\deployment.yaml
+		infrastructure\k8s\base\microservices\wallet\kustomization.yaml = infrastructure\k8s\base\microservices\wallet\kustomization.yaml
+		infrastructure\k8s\base\microservices\wallet\deployment.yaml = infrastructure\k8s\base\microservices\wallet\deployment.yaml
+		infrastructure\k8s\base\microservices\wallet\service.yaml = infrastructure\k8s\base\microservices\wallet\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wallet", "wallet", "{11111111-1111-1111-1111-111111111117}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "winner", "winner", "{44444444-4444-4444-4444-444444444447}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\microservices\wallet\deployment.yaml = Infrastructure\k8s\local\microservices\wallet\deployment.yaml
+		infrastructure\k8s\base\microservices\winner\kustomization.yaml = infrastructure\k8s\base\microservices\winner\kustomization.yaml
+		infrastructure\k8s\base\microservices\winner\deployment.yaml = infrastructure\k8s\base\microservices\winner\deployment.yaml
+		infrastructure\k8s\base\microservices\winner\service.yaml = infrastructure\k8s\base\microservices\winner\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "winner", "winner", "{11111111-1111-1111-1111-111111111118}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "notification", "notification", "{44444444-4444-4444-4444-444444444448}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\microservices\winner\deployment.yaml = Infrastructure\k8s\local\microservices\winner\deployment.yaml
+		infrastructure\k8s\base\microservices\notification\kustomization.yaml = infrastructure\k8s\base\microservices\notification\kustomization.yaml
+		infrastructure\k8s\base\microservices\notification\deployment.yaml = infrastructure\k8s\base\microservices\notification\deployment.yaml
+		infrastructure\k8s\base\microservices\notification\service.yaml = infrastructure\k8s\base\microservices\notification\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "minio", "minio", "{11111111-1111-1111-1111-111111111119}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "audit", "audit", "{44444444-4444-4444-4444-444444444449}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\minio\minio-bucket-job.yaml = Infrastructure\k8s\local\minio\minio-bucket-job.yaml
-		Infrastructure\k8s\local\minio\minio-deployment.yaml = Infrastructure\k8s\local\minio\minio-deployment.yaml
-		Infrastructure\k8s\local\minio\minio-service.yaml = Infrastructure\k8s\local\minio\minio-service.yaml
+		infrastructure\k8s\base\microservices\audit\kustomization.yaml = infrastructure\k8s\base\microservices\audit\kustomization.yaml
+		infrastructure\k8s\base\microservices\audit\deployment.yaml = infrastructure\k8s\base\microservices\audit\deployment.yaml
+		infrastructure\k8s\base\microservices\audit\service.yaml = infrastructure\k8s\base\microservices\audit\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "postgres", "postgres", "{11111111-1111-1111-1111-11111111111A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infrastructure", "infrastructure", "{44444444-4444-4444-4444-44444444444A}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\postgres\postgres-configmap.yaml = Infrastructure\k8s\local\postgres\postgres-configmap.yaml
-		Infrastructure\k8s\local\postgres\postgres-service.yaml = Infrastructure\k8s\local\postgres\postgres-service.yaml
-		Infrastructure\k8s\local\postgres\postgres-statefulset.yaml = Infrastructure\k8s\local\postgres\postgres-statefulset.yaml
-		infrastructure\k8s\local\postgres\pgbouncer.yaml = infrastructure\k8s\local\postgres\pgbouncer.yaml
+		infrastructure\k8s\base\infrastructure\kustomization.yaml = infrastructure\k8s\base\infrastructure\kustomization.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "redpanda", "redpanda", "{11111111-1111-1111-1111-11111111111B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "postgres", "postgres", "{44444444-4444-4444-4444-44444444444B}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\redpanda\kafka-topics-job.yaml = Infrastructure\k8s\local\redpanda\kafka-topics-job.yaml
-		Infrastructure\k8s\local\redpanda\redpanda-console-deployment.yaml = Infrastructure\k8s\local\redpanda\redpanda-console-deployment.yaml
-		Infrastructure\k8s\local\redpanda\redpanda-console-service.yaml = Infrastructure\k8s\local\redpanda\redpanda-console-service.yaml
-		Infrastructure\k8s\local\redpanda\redpanda-service.yaml = Infrastructure\k8s\local\redpanda\redpanda-service.yaml
-		Infrastructure\k8s\local\redpanda\redpanda-statefulset.yaml = Infrastructure\k8s\local\redpanda\redpanda-statefulset.yaml
+		infrastructure\k8s\base\infrastructure\postgres\kustomization.yaml = infrastructure\k8s\base\infrastructure\postgres\kustomization.yaml
+		infrastructure\k8s\base\infrastructure\postgres\statefulset.yaml = infrastructure\k8s\base\infrastructure\postgres\statefulset.yaml
+		infrastructure\k8s\base\infrastructure\postgres\service.yaml = infrastructure\k8s\base\infrastructure\postgres\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "secrets", "secrets", "{11111111-1111-1111-1111-11111111111C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "redis", "redis", "{44444444-4444-4444-4444-44444444444C}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\local\secrets\brevo-secrets.yaml = Infrastructure\k8s\local\secrets\brevo-secrets.yaml
-		Infrastructure\k8s\local\secrets\brevo-secrets.yaml.example = Infrastructure\k8s\local\secrets\brevo-secrets.yaml.example
-		Infrastructure\k8s\local\secrets\jwt-secrets.yaml = Infrastructure\k8s\local\secrets\jwt-secrets.yaml
-		Infrastructure\k8s\local\secrets\kafka-secrets.yaml = Infrastructure\k8s\local\secrets\kafka-secrets.yaml
-		Infrastructure\k8s\local\secrets\postgres-secrets.yaml = Infrastructure\k8s\local\secrets\postgres-secrets.yaml
-		Infrastructure\k8s\local\secrets\redpanda-secrets.yaml = Infrastructure\k8s\local\secrets\redpanda-secrets.yaml
-		Infrastructure\k8s\local\secrets\spaces-secrets.yaml = Infrastructure\k8s\local\secrets\spaces-secrets.yaml
-		infrastructure\k8s\local\secrets\mongodb-secrets.yaml = infrastructure\k8s\local\secrets\mongodb-secrets.yaml
+		infrastructure\k8s\base\infrastructure\redis\kustomization.yaml = infrastructure\k8s\base\infrastructure\redis\kustomization.yaml
+		infrastructure\k8s\base\infrastructure\redis\deployment.yaml = infrastructure\k8s\base\infrastructure\redis\deployment.yaml
+		infrastructure\k8s\base\infrastructure\redis\service.yaml = infrastructure\k8s\base\infrastructure\redis\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{11111111-1111-1111-1111-11111111111D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mongodb", "mongodb", "{44444444-4444-4444-4444-44444444444D}"
 	ProjectSection(SolutionItems) = preProject
-		infrastructure\k8s\local\keycloak\keycloak-configmap.yaml = infrastructure\k8s\local\keycloak\keycloak-configmap.yaml
-		infrastructure\k8s\local\keycloak\keycloak-deployment.yaml = infrastructure\k8s\local\keycloak\keycloak-deployment.yaml
-		infrastructure\k8s\local\keycloak\keycloak-email-themes-configmap.yaml = infrastructure\k8s\local\keycloak\keycloak-email-themes-configmap.yaml
-		infrastructure\k8s\local\keycloak\keycloak-realm-configmap.yaml = infrastructure\k8s\local\keycloak\keycloak-realm-configmap.yaml
-		infrastructure\k8s\local\keycloak\keycloak-secrets.yaml = infrastructure\k8s\local\keycloak\keycloak-secrets.yaml
-		infrastructure\k8s\local\keycloak\keycloak-service.yaml = infrastructure\k8s\local\keycloak\keycloak-service.yaml
-		infrastructure\k8s\local\keycloak\keycloak-login-theme-configmap.yaml = infrastructure\k8s\local\keycloak\keycloak-login-theme-configmap.yaml
+		infrastructure\k8s\base\infrastructure\mongodb\kustomization.yaml = infrastructure\k8s\base\infrastructure\mongodb\kustomization.yaml
+		infrastructure\k8s\base\infrastructure\mongodb\deployment.yaml = infrastructure\k8s\base\infrastructure\mongodb\deployment.yaml
+		infrastructure\k8s\base\infrastructure\mongodb\service.yaml = infrastructure\k8s\base\infrastructure\mongodb\service.yaml
+		infrastructure\k8s\base\infrastructure\mongodb\pvc.yaml = infrastructure\k8s\base\infrastructure\mongodb\pvc.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "prod", "prod", "{A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "redpanda", "redpanda", "{44444444-4444-4444-4444-44444444444E}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\README.md = Infrastructure\k8s\prod\README.md
+		infrastructure\k8s\base\infrastructure\redpanda\kustomization.yaml = infrastructure\k8s\base\infrastructure\redpanda\kustomization.yaml
+		infrastructure\k8s\base\infrastructure\redpanda\statefulset.yaml = infrastructure\k8s\base\infrastructure\redpanda\statefulset.yaml
+		infrastructure\k8s\base\infrastructure\redpanda\service.yaml = infrastructure\k8s\base\infrastructure\redpanda\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "base", "base", "{22222222-2222-2222-2222-222222222221}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "minio", "minio", "{44444444-4444-4444-4444-44444444444F}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\base\configmap.yaml = Infrastructure\k8s\prod\base\configmap.yaml
-		Infrastructure\k8s\prod\base\namespace.yaml = Infrastructure\k8s\prod\base\namespace.yaml
-		Infrastructure\k8s\prod\base\secrets.yaml = Infrastructure\k8s\prod\base\secrets.yaml
+		infrastructure\k8s\base\infrastructure\minio\kustomization.yaml = infrastructure\k8s\base\infrastructure\minio\kustomization.yaml
+		infrastructure\k8s\base\infrastructure\minio\deployment.yaml = infrastructure\k8s\base\infrastructure\minio\deployment.yaml
+		infrastructure\k8s\base\infrastructure\minio\service.yaml = infrastructure\k8s\base\infrastructure\minio\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "databases", "databases", "{22222222-2222-2222-2222-222222222222}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{44444444-4444-4444-4444-444444444450}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\databases\init-databases.sql = Infrastructure\k8s\prod\databases\init-databases.sql
-		infrastructure\k8s\prod\databases\pgbouncer.yaml = infrastructure\k8s\prod\databases\pgbouncer.yaml
+		infrastructure\k8s\base\infrastructure\keycloak\kustomization.yaml = infrastructure\k8s\base\infrastructure\keycloak\kustomization.yaml
+		infrastructure\k8s\base\infrastructure\keycloak\deployment.yaml = infrastructure\k8s\base\infrastructure\keycloak\deployment.yaml
+		infrastructure\k8s\base\infrastructure\keycloak\service.yaml = infrastructure\k8s\base\infrastructure\keycloak\service.yaml
+		infrastructure\k8s\base\infrastructure\keycloak\keycloak-realm-configmap.yaml = infrastructure\k8s\base\infrastructure\keycloak\keycloak-realm-configmap.yaml
+		infrastructure\k8s\base\infrastructure\keycloak\keycloak-login-theme-configmap.yaml = infrastructure\k8s\base\infrastructure\keycloak\keycloak-login-theme-configmap.yaml
+		infrastructure\k8s\base\infrastructure\keycloak\keycloak-email-themes-configmap.yaml = infrastructure\k8s\base\infrastructure\keycloak\keycloak-email-themes-configmap.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ingress", "ingress", "{22222222-2222-2222-2222-222222222223}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "overlays", "overlays", "{55555555-5555-5555-5555-555555555551}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "local", "local", "{55555555-5555-5555-5555-555555555552}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\ingress\ingress.yaml = Infrastructure\k8s\prod\ingress\ingress.yaml
-		Infrastructure\k8s\prod\ingress\namespace.yaml = Infrastructure\k8s\prod\ingress\namespace.yaml
+		infrastructure\k8s\overlays\local\kustomization.yaml = infrastructure\k8s\overlays\local\kustomization.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kafka", "kafka", "{22222222-2222-2222-2222-222222222224}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "secrets", "secrets", "{55555555-5555-5555-5555-555555555553}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\kafka\redpanda.yaml = Infrastructure\k8s\prod\kafka\redpanda.yaml
+		infrastructure\k8s\overlays\local\secrets\kustomization.yaml = infrastructure\k8s\overlays\local\secrets\kustomization.yaml
+		infrastructure\k8s\overlays\local\secrets\jwt-secrets.yaml = infrastructure\k8s\overlays\local\secrets\jwt-secrets.yaml
+		infrastructure\k8s\overlays\local\secrets\postgres-secrets.yaml = infrastructure\k8s\overlays\local\secrets\postgres-secrets.yaml
+		infrastructure\k8s\overlays\local\secrets\kafka-secrets.yaml = infrastructure\k8s\overlays\local\secrets\kafka-secrets.yaml
+		infrastructure\k8s\overlays\local\secrets\mongodb-secrets.yaml = infrastructure\k8s\overlays\local\secrets\mongodb-secrets.yaml
+		infrastructure\k8s\overlays\local\secrets\spaces-secrets.yaml = infrastructure\k8s\overlays\local\secrets\spaces-secrets.yaml
+		infrastructure\k8s\overlays\local\secrets\brevo-secrets.yaml = infrastructure\k8s\overlays\local\secrets\brevo-secrets.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{22222222-2222-2222-2222-22222222222D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "configmaps", "configmaps", "{55555555-5555-5555-5555-555555555554}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\keycloak\deployment.yaml = Infrastructure\k8s\prod\keycloak\deployment.yaml
-		Infrastructure\k8s\prod\keycloak\ingress.yaml = Infrastructure\k8s\prod\keycloak\ingress.yaml
-		Infrastructure\k8s\prod\keycloak\keycloak-login-theme-configmap.yaml = Infrastructure\k8s\prod\keycloak\keycloak-login-theme-configmap.yaml
+		infrastructure\k8s\overlays\local\configmaps\kustomization.yaml = infrastructure\k8s\overlays\local\configmaps\kustomization.yaml
+		infrastructure\k8s\overlays\local\configmaps\postgres-init-scripts.yaml = infrastructure\k8s\overlays\local\configmaps\postgres-init-scripts.yaml
+		infrastructure\k8s\overlays\local\configmaps\mongodb-init-scripts.yaml = infrastructure\k8s\overlays\local\configmaps\mongodb-init-scripts.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "microservices", "microservices", "{22222222-2222-2222-2222-222222222225}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "identity", "identity", "{22222222-2222-2222-2222-222222222226}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ingress", "ingress", "{55555555-5555-5555-5555-555555555555}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\microservices\identity\deployment.yaml = Infrastructure\k8s\prod\microservices\identity\deployment.yaml
+		infrastructure\k8s\overlays\local\ingress\kustomization.yaml = infrastructure\k8s\overlays\local\ingress\kustomization.yaml
+		infrastructure\k8s\overlays\local\ingress\api-ingress.yaml = infrastructure\k8s\overlays\local\ingress\api-ingress.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lottery", "lottery", "{22222222-2222-2222-2222-222222222227}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "patches", "patches", "{55555555-5555-5555-5555-55555555555C}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\microservices\lottery\deployment.yaml = Infrastructure\k8s\prod\microservices\lottery\deployment.yaml
+		infrastructure\k8s\overlays\local\patches\deployments-common.yaml = infrastructure\k8s\overlays\local\patches\deployments-common.yaml
+		infrastructure\k8s\overlays\local\patches\init-containers-mongodb.yaml = infrastructure\k8s\overlays\local\patches\init-containers-mongodb.yaml
+		infrastructure\k8s\overlays\local\patches\init-containers-postgres.yaml = infrastructure\k8s\overlays\local\patches\init-containers-postgres.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "notification", "notification", "{22222222-2222-2222-2222-222222222228}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{55555555-5555-5555-5555-55555555555F}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\microservices\notification\deployment.yaml = Infrastructure\k8s\prod\microservices\notification\deployment.yaml
+		infrastructure\k8s\overlays\local\keycloak\kustomization.yaml = infrastructure\k8s\overlays\local\keycloak\kustomization.yaml
+		infrastructure\k8s\overlays\local\keycloak\keycloak-configmap.yaml = infrastructure\k8s\overlays\local\keycloak\keycloak-configmap.yaml
+		infrastructure\k8s\overlays\local\keycloak\keycloak-secrets.yaml = infrastructure\k8s\overlays\local\keycloak\keycloak-secrets.yaml
+		infrastructure\k8s\overlays\local\keycloak\keycloak-external-service.yaml = infrastructure\k8s\overlays\local\keycloak\keycloak-external-service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "order", "order", "{22222222-2222-2222-2222-222222222229}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "qa", "qa", "{55555555-5555-5555-5555-555555555556}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\microservices\order\deployment.yaml = Infrastructure\k8s\prod\microservices\order\deployment.yaml
+		infrastructure\k8s\overlays\qa\kustomization.yaml = infrastructure\k8s\overlays\qa\kustomization.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wallet", "wallet", "{22222222-2222-2222-2222-22222222222A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "secrets", "secrets", "{55555555-5555-5555-5555-555555555557}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\microservices\wallet\deployment.yaml = Infrastructure\k8s\prod\microservices\wallet\deployment.yaml
+		infrastructure\k8s\overlays\qa\secrets\kustomization.yaml = infrastructure\k8s\overlays\qa\secrets\kustomization.yaml
+		infrastructure\k8s\overlays\qa\secrets\jwt-secrets.yaml = infrastructure\k8s\overlays\qa\secrets\jwt-secrets.yaml
+		infrastructure\k8s\overlays\qa\secrets\postgres-secrets.yaml = infrastructure\k8s\overlays\qa\secrets\postgres-secrets.yaml
+		infrastructure\k8s\overlays\qa\secrets\kafka-secrets.yaml = infrastructure\k8s\overlays\qa\secrets\kafka-secrets.yaml
+		infrastructure\k8s\overlays\qa\secrets\mongodb-secrets.yaml = infrastructure\k8s\overlays\qa\secrets\mongodb-secrets.yaml
+		infrastructure\k8s\overlays\qa\secrets\spaces-secrets.yaml = infrastructure\k8s\overlays\qa\secrets\spaces-secrets.yaml
+		infrastructure\k8s\overlays\qa\secrets\brevo-secrets.yaml = infrastructure\k8s\overlays\qa\secrets\brevo-secrets.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "winner", "winner", "{22222222-2222-2222-2222-22222222222B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ingress", "ingress", "{55555555-5555-5555-5555-555555555558}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\microservices\winner\deployment.yaml = Infrastructure\k8s\prod\microservices\winner\deployment.yaml
+		infrastructure\k8s\overlays\qa\ingress\kustomization.yaml = infrastructure\k8s\overlays\qa\ingress\kustomization.yaml
+		infrastructure\k8s\overlays\qa\ingress\ingress.yaml = infrastructure\k8s\overlays\qa\ingress\ingress.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "network", "network", "{22222222-2222-2222-2222-22222222222C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "patches", "patches", "{55555555-5555-5555-5555-55555555555D}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\prod\network\network-policies.yaml = Infrastructure\k8s\prod\network\network-policies.yaml
+		infrastructure\k8s\overlays\qa\patches\deployments-replicas.yaml = infrastructure\k8s\overlays\qa\patches\deployments-replicas.yaml
+		infrastructure\k8s\overlays\qa\patches\security-context.yaml = infrastructure\k8s\overlays\qa\patches\security-context.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{55555555-5555-5555-5555-555555555560}"
+	ProjectSection(SolutionItems) = preProject
+		infrastructure\k8s\overlays\qa\keycloak\kustomization.yaml = infrastructure\k8s\overlays\qa\keycloak\kustomization.yaml
+		infrastructure\k8s\overlays\qa\keycloak\keycloak-configmap.yaml = infrastructure\k8s\overlays\qa\keycloak\keycloak-configmap.yaml
+		infrastructure\k8s\overlays\qa\keycloak\keycloak-secrets.yaml = infrastructure\k8s\overlays\qa\keycloak\keycloak-secrets.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "prod", "prod", "{55555555-5555-5555-5555-555555555559}"
+	ProjectSection(SolutionItems) = preProject
+		infrastructure\k8s\overlays\prod\kustomization.yaml = infrastructure\k8s\overlays\prod\kustomization.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "secrets", "secrets", "{55555555-5555-5555-5555-55555555555A}"
+	ProjectSection(SolutionItems) = preProject
+		infrastructure\k8s\overlays\prod\secrets\kustomization.yaml = infrastructure\k8s\overlays\prod\secrets\kustomization.yaml
+		infrastructure\k8s\overlays\prod\secrets\jwt-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\jwt-secrets.yaml
+		infrastructure\k8s\overlays\prod\secrets\postgres-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\postgres-secrets.yaml
+		infrastructure\k8s\overlays\prod\secrets\kafka-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\kafka-secrets.yaml
+		infrastructure\k8s\overlays\prod\secrets\mongodb-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\mongodb-secrets.yaml
+		infrastructure\k8s\overlays\prod\secrets\spaces-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\spaces-secrets.yaml
+		infrastructure\k8s\overlays\prod\secrets\brevo-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\brevo-secrets.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ingress", "ingress", "{55555555-5555-5555-5555-55555555555B}"
+	ProjectSection(SolutionItems) = preProject
+		infrastructure\k8s\overlays\prod\ingress\kustomization.yaml = infrastructure\k8s\overlays\prod\ingress\kustomization.yaml
+		infrastructure\k8s\overlays\prod\ingress\ingress.yaml = infrastructure\k8s\overlays\prod\ingress\ingress.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "patches", "patches", "{55555555-5555-5555-5555-55555555555E}"
+	ProjectSection(SolutionItems) = preProject
+		infrastructure\k8s\overlays\prod\patches\deployments-replicas.yaml = infrastructure\k8s\overlays\prod\patches\deployments-replicas.yaml
+		infrastructure\k8s\overlays\prod\patches\kafka-sasl-env.yaml = infrastructure\k8s\overlays\prod\patches\kafka-sasl-env.yaml
+		infrastructure\k8s\overlays\prod\patches\security-context.yaml = infrastructure\k8s\overlays\prod\patches\security-context.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{55555555-5555-5555-5555-555555555561}"
+	ProjectSection(SolutionItems) = preProject
+		infrastructure\k8s\overlays\prod\keycloak\kustomization.yaml = infrastructure\k8s\overlays\prod\keycloak\kustomization.yaml
+		infrastructure\k8s\overlays\prod\keycloak\keycloak-configmap.yaml = infrastructure\k8s\overlays\prod\keycloak\keycloak-configmap.yaml
+		infrastructure\k8s\overlays\prod\keycloak\keycloak-secrets.yaml = infrastructure\k8s\overlays\prod\keycloak\keycloak-secrets.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}"
@@ -925,6 +987,39 @@ Global
 		{751E2455-2180-418D-9BDF-8CF21862F48D} = {95DAFE83-B160-D07D-4CEC-BCA8EA9CDD50}
 		{F85A2E71-3946-865E-4D56-1644A9C6D788} = {0A5DD24C-022C-ED9C-5A32-26D44E9A4B1B}
 		{32256133-3770-4476-8947-F780DE6FCFB1} = {F85A2E71-3946-865E-4D56-1644A9C6D788}
+		{44444444-4444-4444-4444-444444444441} = {A1B2C3D4-E5F6-4A5B-8C9D-1E2F3A4B5C6D}
+		{44444444-4444-4444-4444-444444444442} = {44444444-4444-4444-4444-444444444441}
+		{44444444-4444-4444-4444-444444444443} = {44444444-4444-4444-4444-444444444442}
+		{44444444-4444-4444-4444-444444444444} = {44444444-4444-4444-4444-444444444442}
+		{44444444-4444-4444-4444-444444444445} = {44444444-4444-4444-4444-444444444442}
+		{44444444-4444-4444-4444-444444444446} = {44444444-4444-4444-4444-444444444442}
+		{44444444-4444-4444-4444-444444444447} = {44444444-4444-4444-4444-444444444442}
+		{44444444-4444-4444-4444-444444444448} = {44444444-4444-4444-4444-444444444442}
+		{44444444-4444-4444-4444-444444444449} = {44444444-4444-4444-4444-444444444442}
+		{44444444-4444-4444-4444-44444444444A} = {44444444-4444-4444-4444-444444444441}
+		{44444444-4444-4444-4444-44444444444B} = {44444444-4444-4444-4444-44444444444A}
+		{44444444-4444-4444-4444-44444444444C} = {44444444-4444-4444-4444-44444444444A}
+		{44444444-4444-4444-4444-44444444444D} = {44444444-4444-4444-4444-44444444444A}
+		{44444444-4444-4444-4444-44444444444E} = {44444444-4444-4444-4444-44444444444A}
+		{44444444-4444-4444-4444-44444444444F} = {44444444-4444-4444-4444-44444444444A}
+		{44444444-4444-4444-4444-444444444450} = {44444444-4444-4444-4444-44444444444A}
+		{55555555-5555-5555-5555-555555555551} = {A1B2C3D4-E5F6-4A5B-8C9D-1E2F3A4B5C6D}
+		{55555555-5555-5555-5555-555555555552} = {55555555-5555-5555-5555-555555555551}
+		{55555555-5555-5555-5555-555555555553} = {55555555-5555-5555-5555-555555555552}
+		{55555555-5555-5555-5555-555555555554} = {55555555-5555-5555-5555-555555555552}
+		{55555555-5555-5555-5555-555555555555} = {55555555-5555-5555-5555-555555555552}
+		{55555555-5555-5555-5555-55555555555C} = {55555555-5555-5555-5555-555555555552}
+		{55555555-5555-5555-5555-55555555555F} = {55555555-5555-5555-5555-555555555552}
+		{55555555-5555-5555-5555-555555555556} = {55555555-5555-5555-5555-555555555551}
+		{55555555-5555-5555-5555-555555555557} = {55555555-5555-5555-5555-555555555556}
+		{55555555-5555-5555-5555-555555555558} = {55555555-5555-5555-5555-555555555556}
+		{55555555-5555-5555-5555-55555555555D} = {55555555-5555-5555-5555-555555555556}
+		{55555555-5555-5555-5555-555555555560} = {55555555-5555-5555-5555-555555555556}
+		{55555555-5555-5555-5555-555555555559} = {55555555-5555-5555-5555-555555555551}
+		{55555555-5555-5555-5555-55555555555A} = {55555555-5555-5555-5555-555555555559}
+		{55555555-5555-5555-5555-55555555555B} = {55555555-5555-5555-5555-555555555559}
+		{55555555-5555-5555-5555-55555555555E} = {55555555-5555-5555-5555-555555555559}
+		{55555555-5555-5555-5555-555555555561} = {55555555-5555-5555-5555-555555555559}
 		{5BB1ECC5-EFB6-D0CF-10D8-BB775B49F401} = {8A367DDA-5161-A942-4F09-60E4726C9306}
 		{964D49E9-C328-DD2E-886F-C7F965276E0A} = {5BB1ECC5-EFB6-D0CF-10D8-BB775B49F401}
 		{78DC9D9B-4C84-4CDD-88CC-CD61FEF5BCB2} = {964D49E9-C328-DD2E-886F-C7F965276E0A}
@@ -972,34 +1067,6 @@ Global
 		{301A0E17-3BA5-40E0-81F2-841874257B09} = {0FBFBE9C-FD1F-0E9F-7F5D-58EBFFBBE36B}
 		{CAAB62B4-622B-4F30-8B86-C3C99627E066} = {301A0E17-3BA5-40E0-81F2-841874257B09}
 		{A1B2C3D4-E5F6-4A5B-8C9D-1E2F3A4B5C6D} = {AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}
-		{F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F} = {A1B2C3D4-E5F6-4A5B-8C9D-1E2F3A4B5C6D}
-		{11111111-1111-1111-1111-111111111111} = {F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}
-		{11111111-1111-1111-1111-111111111112} = {F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}
-		{11111111-1111-1111-1111-111111111113} = {11111111-1111-1111-1111-111111111112}
-		{11111111-1111-1111-1111-111111111114} = {11111111-1111-1111-1111-111111111112}
-		{11111111-1111-1111-1111-111111111115} = {11111111-1111-1111-1111-111111111112}
-		{11111111-1111-1111-1111-111111111116} = {11111111-1111-1111-1111-111111111112}
-		{11111111-1111-1111-1111-111111111117} = {11111111-1111-1111-1111-111111111112}
-		{11111111-1111-1111-1111-111111111118} = {11111111-1111-1111-1111-111111111112}
-		{11111111-1111-1111-1111-111111111119} = {F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}
-		{11111111-1111-1111-1111-11111111111A} = {F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}
-		{11111111-1111-1111-1111-11111111111B} = {F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}
-		{11111111-1111-1111-1111-11111111111C} = {F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}
-		{11111111-1111-1111-1111-11111111111D} = {F1E2D3C4-B5A6-4C5D-9E8F-1A2B3C4D5E6F}
-		{A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A} = {A1B2C3D4-E5F6-4A5B-8C9D-1E2F3A4B5C6D}
-		{22222222-2222-2222-2222-222222222221} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
-		{22222222-2222-2222-2222-222222222222} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
-		{22222222-2222-2222-2222-222222222223} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
-		{22222222-2222-2222-2222-222222222224} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
-		{22222222-2222-2222-2222-22222222222D} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
-		{22222222-2222-2222-2222-222222222225} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
-		{22222222-2222-2222-2222-222222222226} = {22222222-2222-2222-2222-222222222225}
-		{22222222-2222-2222-2222-222222222227} = {22222222-2222-2222-2222-222222222225}
-		{22222222-2222-2222-2222-222222222228} = {22222222-2222-2222-2222-222222222225}
-		{22222222-2222-2222-2222-222222222229} = {22222222-2222-2222-2222-222222222225}
-		{22222222-2222-2222-2222-22222222222A} = {22222222-2222-2222-2222-222222222225}
-		{22222222-2222-2222-2222-22222222222B} = {22222222-2222-2222-2222-222222222225}
-		{22222222-2222-2222-2222-22222222222C} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
 		{B2C3D4E5-F6A7-5B6C-9D0E-2F3A4B5C6D7E} = {AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}
 		{C3D4E5F6-A7B8-6C7D-0E1F-3A4B5C6D7E8F} = {AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}
 		{B3C4D5E6-F7A8-6D7E-1F2A-3B4C5D6E7F8A} = {C3D4E5F6-A7B8-6C7D-0E1F-3A4B5C6D7E8F}

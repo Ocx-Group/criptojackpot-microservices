@@ -1,0 +1,71 @@
+# Notification API - Base Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-api
+  namespace: cryptojackpot
+  labels:
+    app: notification-api
+    tier: api
+spec:
+  selector:
+    matchLabels:
+      app: notification-api
+  template:
+    metadata:
+      labels:
+        app: notification-api
+        tier: api
+    spec:
+      containers:
+        - name: notification-api
+          image: cryptojackpot/notification-api
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: NOTIFICATION_DB_CONNECTION
+            - name: Kafka__BootstrapServers
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-secrets
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: Brevo__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: brevo-secrets
+                  key: BREVO_API_KEY
+            - name: Brevo__SenderEmail
+              valueFrom:
+                secretKeyRef:
+                  name: brevo-secrets
+                  key: BREVO_SENDER_EMAIL
+            - name: Brevo__SenderName
+              valueFrom:
+                secretKeyRef:
+                  name: brevo-secrets
+                  key: BREVO_SENDER_NAME
+            - name: Brevo__BaseUrl
+              valueFrom:
+                secretKeyRef:
+                  name: brevo-secrets
+                  key: BREVO_BASE_URL
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10

@@ -1,0 +1,472 @@
+# Kustomization for PRODUCTION environment
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: cryptojackpot
+
+resources:
+  - ../../base
+  - ../../base/infrastructure/keycloak
+  - secrets
+  - ingress
+  - keycloak
+
+# PROD uses managed services:
+# - DigitalOcean Managed PostgreSQL
+# - Upstash Redis
+# - Upstash Kafka
+# - DigitalOcean Spaces
+# - MongoDB Atlas
+
+patches:
+  # Identity API - replicas, resources, security, Kafka SASL
+  - target:
+      kind: Deployment
+      name: identity-api
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 3
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslUsername
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_USERNAME
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslPassword
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_PASSWORD
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslMechanism
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_MECHANISM
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SecurityProtocol
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SECURITY_PROTOCOL
+
+  # Lottery API
+  - target:
+      kind: Deployment
+      name: lottery-api
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 3
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslUsername
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_USERNAME
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslPassword
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_PASSWORD
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslMechanism
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_MECHANISM
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SecurityProtocol
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SECURITY_PROTOCOL
+
+  # Order API
+  - target:
+      kind: Deployment
+      name: order-api
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 3
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslUsername
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_USERNAME
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslPassword
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_PASSWORD
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslMechanism
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_MECHANISM
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SecurityProtocol
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SECURITY_PROTOCOL
+
+  # Wallet API
+  - target:
+      kind: Deployment
+      name: wallet-api
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 3
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslUsername
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_USERNAME
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslPassword
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_PASSWORD
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslMechanism
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_MECHANISM
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SecurityProtocol
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SECURITY_PROTOCOL
+
+  # Winner API
+  - target:
+      kind: Deployment
+      name: winner-api
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 3
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslUsername
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_USERNAME
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslPassword
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_PASSWORD
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslMechanism
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_MECHANISM
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SecurityProtocol
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SECURITY_PROTOCOL
+
+  # Notification API
+  - target:
+      kind: Deployment
+      name: notification-api
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 3
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslUsername
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_USERNAME
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslPassword
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_PASSWORD
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslMechanism
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_MECHANISM
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SecurityProtocol
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SECURITY_PROTOCOL
+
+  # Audit API
+  - target:
+      kind: Deployment
+      name: audit-api
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 3
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslUsername
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_USERNAME
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslPassword
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_PASSWORD
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslMechanism
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_MECHANISM
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SecurityProtocol
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SECURITY_PROTOCOL
+
+# ConfigMap for Production environment
+configMapGenerator:
+  - name: app-config
+    literals:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - Logging__LogLevel__Default=Warning
+      - Logging__LogLevel__Microsoft.AspNetCore=Warning
+      - Cors__AllowedOrigins__0=https://cryptojackpot.com
+      - Cors__AllowedOrigins__1=https://www.cryptojackpot.com
+      - Keycloak__Authority=https://auth.cryptojackpot.com
+      - Keycloak__Realm=cryptojackpot
+      - Keycloak__ClientId=cryptojackpot-backend
+      - Keycloak__RequireHttpsMetadata=true
+      - Keycloak__ValidateAudience=true
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+images:
+  - name: cryptojackpot/identity-api
+    newName: registry.digitalocean.com/cryptojackpot/identity-api
+    newTag: v1.0.0
+  - name: cryptojackpot/lottery-api
+    newName: registry.digitalocean.com/cryptojackpot/lottery-api
+    newTag: v1.0.0
+  - name: cryptojackpot/order-api
+    newName: registry.digitalocean.com/cryptojackpot/order-api
+    newTag: v1.0.0
+  - name: cryptojackpot/wallet-api
+    newName: registry.digitalocean.com/cryptojackpot/wallet-api
+    newTag: v1.0.0
+  - name: cryptojackpot/winner-api
+    newName: registry.digitalocean.com/cryptojackpot/winner-api
+    newTag: v1.0.0
+  - name: cryptojackpot/notification-api
+    newName: registry.digitalocean.com/cryptojackpot/notification-api
+    newTag: v1.0.0
+  - name: cryptojackpot/audit-api
+    newName: registry.digitalocean.com/cryptojackpot/audit-api
+    newTag: v1.0.0
+
+labels:
+  - pairs:
+      environment: production
+    includeSelectors: false

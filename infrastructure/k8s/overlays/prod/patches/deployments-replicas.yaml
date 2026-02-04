@@ -1,0 +1,18 @@
+# Replicas and resources for Production deployments
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+            requests:
+          resources:
+        - name: "*"
+      containers:
+    spec:
+  template:
+  replicas: 3
+spec:
+  name: not-important
+metadata:
+kind: Deployment
+apiVersion: apps/v1

@@ -1,0 +1,8 @@
+# Base Namespace for CryptoJackpot
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cryptojackpot
+  labels:
+    app.kubernetes.io/name: cryptojackpot
+    app.kubernetes.io/part-of: cryptojackpot-distributed

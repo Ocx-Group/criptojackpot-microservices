@@ -1,0 +1,12 @@
+# Kustomization for Microservices Base
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - identity
+  - lottery
+  - order
+  - wallet
+  - winner
+  - notification
+  - audit

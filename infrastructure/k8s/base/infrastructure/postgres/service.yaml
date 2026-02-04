@@ -1,0 +1,16 @@
+# PostgreSQL - Base Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: cryptojackpot
+  labels:
+    app: postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      name: postgres
+  selector:
+    app: postgres

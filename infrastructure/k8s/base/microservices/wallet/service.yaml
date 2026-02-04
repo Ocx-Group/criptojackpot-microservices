@@ -1,0 +1,15 @@
+# Wallet API - Base Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: wallet-api
+  namespace: cryptojackpot
+  labels:
+    app: wallet-api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: wallet-api

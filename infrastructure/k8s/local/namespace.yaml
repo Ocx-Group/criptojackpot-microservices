@@ -1,8 +1,0 @@
-﻿# Namespace para desarrollo local
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: cryptojackpot
-  labels:
-    environment: local
-    app: cryptojackpot
