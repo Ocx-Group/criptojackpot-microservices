@@ -1,5 +1,9 @@
+# =============================================================================
 # Keycloak Deployment para desarrollo local
+# =============================================================================
+# Optimizado con initContainer para simplificar montaje de temas
 # Single replica con recursos limitados para desarrollo
+# =============================================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,6 +21,65 @@ spec:
       labels:
         app: keycloak
     spec:
+      # =========================================================================
+      # Init Container: Prepara la estructura de directorios de temas
+      # =========================================================================
+      initContainers:
+        - name: setup-themes
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Setting up Keycloak themes..."
+              
+              # Crear estructura de directorios para login theme
+              mkdir -p /themes/cryptojackpot/login/resources/css
+              mkdir -p /themes/cryptojackpot/login/messages
+              
+              # Copiar archivos de login theme
+              cp /login-theme-src/theme.properties /themes/cryptojackpot/login/
+              cp /login-theme-src/login.css /themes/cryptojackpot/login/resources/css/
+              cp /login-theme-src/messages_en.properties /themes/cryptojackpot/login/messages/
+              cp /login-theme-src/messages_es.properties /themes/cryptojackpot/login/messages/
+              cp /login-theme-src/login.ftl /themes/cryptojackpot/login/
+              cp /login-theme-src/register.ftl /themes/cryptojackpot/login/
+              cp /login-theme-src/login-reset-password.ftl /themes/cryptojackpot/login/
+              cp /login-theme-src/login-update-password.ftl /themes/cryptojackpot/login/
+              cp /login-theme-src/login-verify-email.ftl /themes/cryptojackpot/login/
+              cp /login-theme-src/template.ftl /themes/cryptojackpot/login/
+              
+              # Crear estructura de directorios para email theme
+              mkdir -p /themes/cryptojackpot/email/html
+              mkdir -p /themes/cryptojackpot/email/text
+              mkdir -p /themes/cryptojackpot/email/messages
+              
+              # Copiar archivos de email theme
+              cp /email-theme-src/theme.properties /themes/cryptojackpot/email/
+              cp /email-theme-src/messages_en.properties /themes/cryptojackpot/email/messages/
+              cp /email-theme-src/messages_es.properties /themes/cryptojackpot/email/messages/
+              cp /email-theme-src/template.ftl /themes/cryptojackpot/email/html/
+              cp /email-theme-src/email-verification.ftl /themes/cryptojackpot/email/html/
+              cp /email-theme-src/password-reset.ftl /themes/cryptojackpot/email/html/
+              cp /email-theme-src/executeActions.ftl /themes/cryptojackpot/email/html/
+              cp /email-theme-src/email-verification-text.ftl /themes/cryptojackpot/email/text/email-verification.ftl
+              cp /email-theme-src/password-reset-text.ftl /themes/cryptojackpot/email/text/password-reset.ftl
+              cp /email-theme-src/executeActions-text.ftl /themes/cryptojackpot/email/text/executeActions.ftl
+              
+              echo "Theme setup complete!"
+              ls -laR /themes/
+          volumeMounts:
+            - name: login-theme-src
+              mountPath: /login-theme-src
+              readOnly: true
+            - name: email-theme-src
+              mountPath: /email-theme-src
+              readOnly: true
+            - name: themes-volume
+              mountPath: /themes
+      # =========================================================================
+      # Main Container: Keycloak
+      # =========================================================================
       containers:
         - name: keycloak
           # Verificar últimas versiones: https://www.keycloak.org/downloads
@@ -35,71 +98,14 @@ spec:
             - name: http
               containerPort: 8080
           volumeMounts:
+            # Realm import
             - name: realm-config
               mountPath: /opt/keycloak/data/import
               readOnly: true
-            # Login theme templates
-            - name: login-theme-properties
-              mountPath: /opt/keycloak/themes/cryptojackpot/login/theme.properties
-              subPath: theme.properties
-            - name: login-theme-css
-              mountPath: /opt/keycloak/themes/cryptojackpot/login/resources/css/login.css
-              subPath: login.css
-            - name: login-theme-messages-en
-              mountPath: /opt/keycloak/themes/cryptojackpot/login/messages/messages_en.properties
-              subPath: messages_en.properties
-            - name: login-theme-messages-es
-              mountPath: /opt/keycloak/themes/cryptojackpot/login/messages/messages_es.properties
-              subPath: messages_es.properties
-            - name: login-theme-login
-              mountPath: /opt/keycloak/themes/cryptojackpot/login/login.ftl
-              subPath: login.ftl
-            - name: login-theme-register
-              mountPath: /opt/keycloak/themes/cryptojackpot/login/register.ftl
-              subPath: register.ftl
-            - name: login-theme-reset-password
-              mountPath: /opt/keycloak/themes/cryptojackpot/login/login-reset-password.ftl
-              subPath: login-reset-password.ftl
-            - name: login-theme-update-password
-              mountPath: /opt/keycloak/themes/cryptojackpot/login/login-update-password.ftl
-              subPath: login-update-password.ftl
-            - name: login-theme-verify-email
-              mountPath: /opt/keycloak/themes/cryptojackpot/login/login-verify-email.ftl
-              subPath: login-verify-email.ftl
-            - name: login-theme-template
-              mountPath: /opt/keycloak/themes/cryptojackpot/login/template.ftl
-              subPath: template.ftl
-            # Email theme templates
-            - name: email-theme-properties
-              mountPath: /opt/keycloak/themes/cryptojackpot/email/theme.properties
-              subPath: theme.properties
-            - name: email-theme-messages-en
-              mountPath: /opt/keycloak/themes/cryptojackpot/email/messages/messages_en.properties
-              subPath: messages_en.properties
-            - name: email-theme-messages-es
-              mountPath: /opt/keycloak/themes/cryptojackpot/email/messages/messages_es.properties
-              subPath: messages_es.properties
-            - name: email-theme-template
-              mountPath: /opt/keycloak/themes/cryptojackpot/email/html/template.ftl
-              subPath: template.ftl
-            - name: email-theme-verification
-              mountPath: /opt/keycloak/themes/cryptojackpot/email/html/email-verification.ftl
-              subPath: email-verification.ftl
-            - name: email-theme-password-reset
-              mountPath: /opt/keycloak/themes/cryptojackpot/email/html/password-reset.ftl
-              subPath: password-reset.ftl
-            - name: email-theme-execute-actions
-              mountPath: /opt/keycloak/themes/cryptojackpot/email/html/executeActions.ftl
-              subPath: executeActions.ftl
-            - name: email-theme-verification-text
-              mountPath: /opt/keycloak/themes/cryptojackpot/email/text/email-verification.ftl
-              subPath: email-verification-text.ftl
-            - name: email-theme-password-reset-text
-              mountPath: /opt/keycloak/themes/cryptojackpot/email/text/password-reset.ftl
-              subPath: password-reset-text.ftl
-            - name: email-theme-execute-actions-text
-              mountPath: /opt/keycloak/themes/cryptojackpot/email/text/executeActions.ftl
-              subPath: executeActions-text.ftl
+            # Temas (preparados por initContainer)
+            - name: themes-volume
+              mountPath: /opt/keycloak/themes/cryptojackpot
+              subPath: cryptojackpot
           resources:
             requests:
               memory: "512Mi"
@@ -140,129 +146,22 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 30
+      # =========================================================================
+      # Volumes - Simplificados: Solo 4 volúmenes en lugar de 20+
+      # =========================================================================
       volumes:
+        # Realm configuration
         - name: realm-config
           configMap:
             name: keycloak-realm-config
-        # Login theme volumes from ConfigMap
-        - name: login-theme-properties
+        # Login theme source (ConfigMap completo)
+        - name: login-theme-src
           configMap:
             name: keycloak-login-theme
-            items:
-              - key: theme.properties
-                path: theme.properties
-        - name: login-theme-css
-          configMap:
-            name: keycloak-login-theme
-            items:
-              - key: login.css
-                path: login.css
-        - name: login-theme-messages-en
-          configMap:
-            name: keycloak-login-theme
-            items:
-              - key: messages_en.properties
-                path: messages_en.properties
-        - name: login-theme-messages-es
-          configMap:
-            name: keycloak-login-theme
-            items:
-              - key: messages_es.properties
-                path: messages_es.properties
-        - name: login-theme-login
-          configMap:
-            name: keycloak-login-theme
-            items:
-              - key: login.ftl
-                path: login.ftl
-        - name: login-theme-register
-          configMap:
-            name: keycloak-login-theme
-            items:
-              - key: register.ftl
-                path: register.ftl
-        - name: login-theme-reset-password
-          configMap:
-            name: keycloak-login-theme
-            items:
-              - key: login-reset-password.ftl
-                path: login-reset-password.ftl
-        - name: login-theme-update-password
-          configMap:
-            name: keycloak-login-theme
-            items:
-              - key: login-update-password.ftl
-                path: login-update-password.ftl
-        - name: login-theme-verify-email
-          configMap:
-            name: keycloak-login-theme
-            items:
-              - key: login-verify-email.ftl
-                path: login-verify-email.ftl
-        - name: login-theme-template
-          configMap:
-            name: keycloak-login-theme
-            items:
-              - key: template.ftl
-                path: template.ftl
-        # Email theme volumes from ConfigMap
-        - name: email-theme-properties
+        # Email theme source (ConfigMap completo)
+        - name: email-theme-src
           configMap:
             name: keycloak-email-themes
-            items:
-              - key: theme.properties
-                path: theme.properties
-        - name: email-theme-messages-en
-          configMap:
-            name: keycloak-email-themes
-            items:
-              - key: messages_en.properties
-                path: messages_en.properties
-        - name: email-theme-messages-es
-          configMap:
-            name: keycloak-email-themes
-            items:
-              - key: messages_es.properties
-                path: messages_es.properties
-        - name: email-theme-template
-          configMap:
-            name: keycloak-email-themes
-            items:
-              - key: template.ftl
-                path: template.ftl
-        - name: email-theme-verification
-          configMap:
-            name: keycloak-email-themes
-            items:
-              - key: email-verification.ftl
-                path: email-verification.ftl
-        - name: email-theme-password-reset
-          configMap:
-            name: keycloak-email-themes
-            items:
-              - key: password-reset.ftl
-                path: password-reset.ftl
-        - name: email-theme-execute-actions
-          configMap:
-            name: keycloak-email-themes
-            items:
-              - key: executeActions.ftl
-                path: executeActions.ftl
-        - name: email-theme-verification-text
-          configMap:
-            name: keycloak-email-themes
-            items:
-              - key: email-verification-text.ftl
-                path: email-verification-text.ftl
-        - name: email-theme-password-reset-text
-          configMap:
-            name: keycloak-email-themes
-            items:
-              - key: password-reset-text.ftl
-                path: password-reset-text.ftl
-        - name: email-theme-execute-actions-text
-          configMap:
-            name: keycloak-email-themes
-            items:
-              - key: executeActions-text.ftl
-                path: executeActions-text.ftl
+        # Shared volume for themes (emptyDir compartido entre init y main container)
+        - name: themes-volume
+          emptyDir: {}
