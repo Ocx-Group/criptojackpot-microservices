@@ -42,9 +42,7 @@ infrastructure/k8s/
 │       ├── patches/
 │       ├── secrets/
 │       └── ingress/
-│
-└── local/                          # [DEPRECATED] Legacy configurations
-└── prod/                           # [DEPRECATED] Legacy configurations
+
 ```
 
 ## 🚀 Usage
@@ -83,17 +81,17 @@ kubectl apply -k infrastructure/k8s/overlays/prod
 
 ## 🔧 Environment Differences
 
-| Feature | Local | QA | Production |
-|---------|-------|-----|------------|
-| Replicas | 1 | 2 | 3 |
-| Resources | Low | Medium | High |
-| Database | Local PostgreSQL | DO Managed | DO Managed |
-| Kafka | Local Redpanda | Upstash | Upstash |
-| MongoDB | Local MongoDB | Atlas | Atlas |
-| Storage | Local MinIO | DO Spaces | DO Spaces |
-| TLS | None | Let's Encrypt | Let's Encrypt |
-| Security Context | None | Enabled | Enabled |
-| InitContainers | Yes | No | No |
+| Feature          | Local            | QA            | Production    |
+|------------------|------------------|---------------|---------------|
+| Replicas         | 1                | 2             | 3             |
+| Resources        | Low              | Medium        | High          |
+| Database         | Local PostgreSQL | DO Managed    | DO Managed    |
+| Kafka            | Local Redpanda   | Upstash       | Upstash       |
+| MongoDB          | Local MongoDB    | Atlas         | Atlas         |
+| Storage          | Local MinIO      | DO Spaces     | DO Spaces     |
+| TLS              | None             | Let's Encrypt | Let's Encrypt |
+| Security Context | None             | Enabled       | Enabled       |
+| InitContainers   | Yes              | No            | No            |
 
 ## 📝 How to Add a New Environment
 
@@ -138,10 +136,13 @@ kubectl apply -k infrastructure/k8s/overlays/prod
 ## 🔐 Secrets Management
 
 ### Local Development
+
 Secrets are stored in plain YAML files (OK for local dev only).
 
 ### QA/Production
+
 Use one of these approaches:
+
 - **Sealed Secrets**: Encrypt secrets that can be stored in Git
 - **External Secrets Operator**: Sync from AWS Secrets Manager, Vault, etc.
 - **Manual creation**: `kubectl create secret` (not recommended for GitOps)
@@ -166,16 +167,19 @@ The old `local/` and `prod/` folders are deprecated. To migrate:
 ## 🐛 Troubleshooting
 
 ### Preview rendered manifests
+
 ```bash
 kubectl kustomize infrastructure/k8s/overlays/local
 ```
 
 ### Dry-run deployment
+
 ```bash
 kubectl apply -k infrastructure/k8s/overlays/local --dry-run=client
 ```
 
 ### Check for errors
+
 ```bash
 kubectl kustomize infrastructure/k8s/overlays/local 2>&1 | head -50
 ```

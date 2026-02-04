@@ -146,7 +146,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoJackpot.Wallet.Infra.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "k8s", "k8s", "{A1B2C3D4-E5F6-4A5B-8C9D-1E2F3A4B5C6D}"
 	ProjectSection(SolutionItems) = preProject
-		Infrastructure\k8s\README.md = Infrastructure\k8s\README.md
 		infrastructure\k8s\README-KUSTOMIZE.md = infrastructure\k8s\README-KUSTOMIZE.md
 	EndProjectSection
 EndProject
