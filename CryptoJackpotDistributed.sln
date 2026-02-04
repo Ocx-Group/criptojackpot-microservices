@@ -273,6 +273,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "kafka", "kafka", "{22222222
 		Infrastructure\k8s\prod\kafka\redpanda.yaml = Infrastructure\k8s\prod\kafka\redpanda.yaml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{22222222-2222-2222-2222-22222222222D}"
+	ProjectSection(SolutionItems) = preProject
+		Infrastructure\k8s\prod\keycloak\deployment.yaml = Infrastructure\k8s\prod\keycloak\deployment.yaml
+		Infrastructure\k8s\prod\keycloak\ingress.yaml = Infrastructure\k8s\prod\keycloak\ingress.yaml
+		Infrastructure\k8s\prod\keycloak\keycloak-login-theme-configmap.yaml = Infrastructure\k8s\prod\keycloak\keycloak-login-theme-configmap.yaml
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "microservices", "microservices", "{22222222-2222-2222-2222-222222222225}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "identity", "identity", "{22222222-2222-2222-2222-222222222226}"
@@ -984,6 +991,7 @@ Global
 		{22222222-2222-2222-2222-222222222222} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
 		{22222222-2222-2222-2222-222222222223} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
 		{22222222-2222-2222-2222-222222222224} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
+		{22222222-2222-2222-2222-22222222222D} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
 		{22222222-2222-2222-2222-222222222225} = {A2B3C4D5-E6F7-5D6E-0F1A-2B3C4D5E6F7A}
 		{22222222-2222-2222-2222-222222222226} = {22222222-2222-2222-2222-222222222225}
 		{22222222-2222-2222-2222-222222222227} = {22222222-2222-2222-2222-222222222225}

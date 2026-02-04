@@ -133,6 +133,38 @@ spec:
               containerPort: 8443
             - name: jgroups
               containerPort: 7800
+          volumeMounts:
+            # Login theme templates
+            - name: login-theme-properties
+              mountPath: /opt/keycloak/themes/cryptojackpot/login/theme.properties
+              subPath: theme.properties
+            - name: login-theme-css
+              mountPath: /opt/keycloak/themes/cryptojackpot/login/resources/css/login.css
+              subPath: login.css
+            - name: login-theme-messages-en
+              mountPath: /opt/keycloak/themes/cryptojackpot/login/messages/messages_en.properties
+              subPath: messages_en.properties
+            - name: login-theme-messages-es
+              mountPath: /opt/keycloak/themes/cryptojackpot/login/messages/messages_es.properties
+              subPath: messages_es.properties
+            - name: login-theme-login
+              mountPath: /opt/keycloak/themes/cryptojackpot/login/login.ftl
+              subPath: login.ftl
+            - name: login-theme-register
+              mountPath: /opt/keycloak/themes/cryptojackpot/login/register.ftl
+              subPath: register.ftl
+            - name: login-theme-reset-password
+              mountPath: /opt/keycloak/themes/cryptojackpot/login/login-reset-password.ftl
+              subPath: login-reset-password.ftl
+            - name: login-theme-update-password
+              mountPath: /opt/keycloak/themes/cryptojackpot/login/login-update-password.ftl
+              subPath: login-update-password.ftl
+            - name: login-theme-verify-email
+              mountPath: /opt/keycloak/themes/cryptojackpot/login/login-verify-email.ftl
+              subPath: login-verify-email.ftl
+            - name: login-theme-template
+              mountPath: /opt/keycloak/themes/cryptojackpot/login/template.ftl
+              subPath: template.ftl
           resources:
             requests:
               memory: "512Mi"
@@ -170,6 +202,68 @@ spec:
             capabilities:
               drop:
                 - ALL
+      volumes:
+        # Login theme volumes from ConfigMap
+        - name: login-theme-properties
+          configMap:
+            name: keycloak-login-theme
+            items:
+              - key: theme.properties
+                path: theme.properties
+        - name: login-theme-css
+          configMap:
+            name: keycloak-login-theme
+            items:
+              - key: login.css
+                path: login.css
+        - name: login-theme-messages-en
+          configMap:
+            name: keycloak-login-theme
+            items:
+              - key: messages_en.properties
+                path: messages_en.properties
+        - name: login-theme-messages-es
+          configMap:
+            name: keycloak-login-theme
+            items:
+              - key: messages_es.properties
+                path: messages_es.properties
+        - name: login-theme-login
+          configMap:
+            name: keycloak-login-theme
+            items:
+              - key: login.ftl
+                path: login.ftl
+        - name: login-theme-register
+          configMap:
+            name: keycloak-login-theme
+            items:
+              - key: register.ftl
+                path: register.ftl
+        - name: login-theme-reset-password
+          configMap:
+            name: keycloak-login-theme
+            items:
+              - key: login-reset-password.ftl
+                path: login-reset-password.ftl
+        - name: login-theme-update-password
+          configMap:
+            name: keycloak-login-theme
+            items:
+              - key: login-update-password.ftl
+                path: login-update-password.ftl
+        - name: login-theme-verify-email
+          configMap:
+            name: keycloak-login-theme
+            items:
+              - key: login-verify-email.ftl
+                path: login-verify-email.ftl
+        - name: login-theme-template
+          configMap:
+            name: keycloak-login-theme
+            items:
+              - key: template.ftl
+                path: template.ftl
 ---
 # Pod Disruption Budget for HA
 apiVersion: policy/v1
