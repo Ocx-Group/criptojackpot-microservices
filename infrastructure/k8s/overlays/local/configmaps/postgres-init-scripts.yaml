@@ -20,6 +20,35 @@ data:
     -- Connect to order database and create Quartz tables
     \c cryptojackpot_order_db;
     
+    CREATE TABLE IF NOT EXISTS qrtz_simprop_triggers (
+                                                         sched_name VARCHAR(120) NOT NULL,
+        trigger_name VARCHAR(200) NOT NULL,
+        trigger_group VARCHAR(200) NOT NULL,
+        str_prop_1 VARCHAR(512) NULL,
+        str_prop_2 VARCHAR(512) NULL,
+        str_prop_3 VARCHAR(512) NULL,
+        int_prop_1 INTEGER NULL,
+        int_prop_2 INTEGER NULL,
+        long_prop_1 BIGINT NULL,
+        long_prop_2 BIGINT NULL,
+        dec_prop_1 NUMERIC(13,4) NULL,
+        dec_prop_2 NUMERIC(13,4) NULL,
+        bool_prop_1 BOOL NULL,
+        bool_prop_2 BOOL NULL,
+        timezone_id VARCHAR(80) NULL,
+        PRIMARY KEY (sched_name, trigger_name, trigger_group),
+        FOREIGN KEY (sched_name, trigger_name, trigger_group) REFERENCES qrtz_triggers(sched_name, trigger_name, trigger_group)
+        );
+
+    CREATE TABLE IF NOT EXISTS qrtz_blob_triggers (
+                                                      sched_name VARCHAR(120) NOT NULL,
+        trigger_name VARCHAR(200) NOT NULL,
+        trigger_group VARCHAR(200) NOT NULL,
+        blob_data BYTEA NULL,
+        PRIMARY KEY (sched_name, trigger_name, trigger_group),
+        FOREIGN KEY (sched_name, trigger_name, trigger_group) REFERENCES qrtz_triggers(sched_name, trigger_name, trigger_group)
+        );
+    
     -- Quartz.NET tables for PostgreSQL
     CREATE TABLE IF NOT EXISTS qrtz_job_details (
       sched_name VARCHAR(120) NOT NULL,
@@ -120,3 +149,4 @@ data:
       lock_name VARCHAR(40) NOT NULL,
       PRIMARY KEY (sched_name, lock_name)
     );
+        
