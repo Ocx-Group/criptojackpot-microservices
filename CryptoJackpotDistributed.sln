@@ -305,6 +305,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{55
 		infrastructure\k8s\overlays\local\keycloak\keycloak-configmap.yaml = infrastructure\k8s\overlays\local\keycloak\keycloak-configmap.yaml
 		infrastructure\k8s\overlays\local\keycloak\keycloak-secrets.yaml = infrastructure\k8s\overlays\local\keycloak\keycloak-secrets.yaml
 		infrastructure\k8s\overlays\local\keycloak\keycloak-external-service.yaml = infrastructure\k8s\overlays\local\keycloak\keycloak-external-service.yaml
+		infrastructure\k8s\overlays\local\keycloak\keycloak-realm-configmap-patch.yaml = infrastructure\k8s\overlays\local\keycloak\keycloak-realm-configmap-patch.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "qa", "qa", "{55555555-5555-5555-5555-555555555556}"

@@ -34,16 +34,16 @@ data:
       "loginTheme": "cryptojackpot",
       "emailTheme": "cryptojackpot",
       "smtpServer": {
-        "host": "${SMTP_HOST:smtp-relay.brevo.com}",
-        "port": "${SMTP_PORT:587}",
-        "from": "${SMTP_FROM:noreply@cryptojackpot.com}",
+        "host": "${SMTP_HOST}",
+        "port": "${SMTP_PORT}",
+        "from": "${SMTP_FROM}",
         "fromDisplayName": "CryptoJackpot",
         "replyTo": "${SMTP_REPLY_TO:support@cryptojackpot.com}",
         "ssl": "false",
         "starttls": "true",
         "auth": "true",
-        "user": "${SMTP_USER:}",
-        "password": "${SMTP_PASSWORD:}"
+        "user": "${SMTP_USER}",
+        "password": "${SMTP_PASSWORD}"
       },
       "roles": {
         "realm": [
