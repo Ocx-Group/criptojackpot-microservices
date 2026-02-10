@@ -34,9 +34,13 @@ patches:
           capabilities:
             drop: ["ALL"]
       # LOCAL: Add Java options to trust SMTP certificates (fixes Kaspersky/proxy SSL interception)
-      - op: add
+      - op: replace
         path: /spec/template/spec/containers/0/env
         value:
           - name: JAVA_TOOL_OPTIONS
             value: "-Dmail.smtp.ssl.trust=* -Dmail.smtp.ssl.checkserveridentity=false -Djavax.net.ssl.trustAll=true"
+          - name: KC_SPI_COOKIE_DEFAULT_SAME_SITE_ATTRIBUTE
+            value: "Lax"
+          - name: KC_SPI_COOKIE_DEFAULT_SECURE
+            value: "false"
 

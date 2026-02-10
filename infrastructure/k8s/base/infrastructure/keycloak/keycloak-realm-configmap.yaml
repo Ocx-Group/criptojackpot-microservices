@@ -220,12 +220,16 @@ data:
           "protocol": "openid-connect",
           "redirectUris": [
             "http://localhost:3000/*",
+            "http://cryptojackpot.local:3000/*",
+            "http://auth.cryptojackpot.local:30180/realms/cryptojackpot/account/*",
             "https://cryptojackpot.com/*",
             "https://www.cryptojackpot.com/*",
             "https://app.cryptojackpot.com/*"
           ],
           "webOrigins": [
             "http://localhost:3000",
+            "http://cryptojackpot.local:3000",
+            "http://auth.cryptojackpot.local:30180",
             "https://cryptojackpot.com",
             "https://www.cryptojackpot.com",
             "https://app.cryptojackpot.com"

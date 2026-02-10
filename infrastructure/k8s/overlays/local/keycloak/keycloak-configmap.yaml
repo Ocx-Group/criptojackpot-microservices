@@ -14,13 +14,24 @@ data:
   KC_HEALTH_ENABLED: "true"
   KC_METRICS_ENABLED: "true"
   KC_HTTP_ENABLED: "true"
-  # Hostname configuration for Ingress
+  # Hostname configuration - IMPORTANT for local dev
   KC_HOSTNAME: "auth.cryptojackpot.local"
+  KC_HOSTNAME_PORT: "30180"
   KC_HOSTNAME_STRICT: "false"
   KC_HOSTNAME_STRICT_HTTPS: "false"
-  KC_PROXY: "edge"
+  KC_PROXY_HEADERS: "xforwarded"
+  # Cookie settings for HTTP development - CRITICAL FOR LOCAL
+  KC_SPI_STICKY_SESSION_ENCODER_INFINISPAN_SHOULD_ATTACH_ROUTE: "false"
+  KC_HTTP_RELATIVE_PATH: "/"
+  # SameSite and Secure cookie settings - CRITICAL for HTTP local development
+  KC_SPI_LOGIN_PROTOCOL_OPENID_CONNECT_LEGACY_LOGOUT_REDIRECT_URI: "true"
+  KC_SPI_LOGIN_PROTOCOL_OPENID_CONNECT_SUPPRESS_LOGOUT_CONFIRMATION_SCREEN: "true"
+  # Cookie SameSite configuration for cross-origin flows
+  # Lax is required for HTTP (None requires Secure=true which needs HTTPS)
+  KC_SPI_COOKIE_DEFAULT_SAME_SITE_ATTRIBUTE: "Lax"
+  KC_SPI_COOKIE_DEFAULT_SECURE: "false"
   KC_FEATURES: "token-exchange,admin-fine-grained-authz"
   # Log level for development
   KC_LOG_LEVEL: "INFO"
-  # Java options for SMTP - disable strict SSL verification (DEV ONLY)
+  # Java options for SMTP
   JAVA_OPTS_APPEND: "-Dmail.smtp.ssl.trust=* -Dmail.smtp.starttls.enable=true -Dmail.smtp.ssl.checkserveridentity=false"
