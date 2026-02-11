@@ -394,7 +394,8 @@ data:
       "passwordPolicy": "length(8) and maxLength(128) and notUsername and notEmail",
       "eventsEnabled": true,
       "eventsListeners": [
-        "jboss-logging"],
+        "jboss-logging",
+        "kafka-event-listener"],
       "enabledEventTypes": [
         "LOGIN",
         "LOGIN_ERROR",

@@ -14,6 +14,9 @@ public static class KafkaTopics
     public const string GetUsersForMarketingRequest = "get-users-for-marketing-request";
     public const string GetUsersForMarketingResponse = "get-users-for-marketing-response";
     
+    // Keycloak Events (published by Keycloak SPI)
+    public const string KeycloakUserCreated = "keycloak-user-created";
+    
     // Lottery Events
     public const string LotteryCreated = "lottery-created";
     public const string NumbersReserved = "numbers-reserved";

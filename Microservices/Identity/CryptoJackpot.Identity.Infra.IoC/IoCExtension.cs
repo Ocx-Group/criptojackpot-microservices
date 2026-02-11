@@ -281,6 +281,7 @@ public static class IoCExtension
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<IIdentityEventPublisher, IdentityEventPublisher>();
         services.AddScoped<IStorageService, DigitalOceanStorageService>();
+        services.AddScoped<IUserProvisioningService, UserProvisioningService>();
         
         // Register the DelegatingHandler for Keycloak admin token management
         services.AddTransient<KeycloakAdminTokenHandler>();
@@ -312,8 +313,9 @@ public static class IoCExtension
                 rider.AddProducer<UserLoggedInEvent>(KafkaTopics.UserLoggedIn);
                 rider.AddProducer<GetUsersForMarketingResponseEvent>(KafkaTopics.GetUsersForMarketingResponse);
                 
-                // Register consumer for marketing users request (Saga pattern)
+                // Register consumers
                 rider.AddConsumer<GetUsersForMarketingConsumer>();
+                rider.AddConsumer<KeycloakUserCreatedConsumer>();
             },
             configureKafkaEndpoints: (context, kafka) =>
             {
@@ -324,6 +326,16 @@ public static class IoCExtension
                     e =>
                     {
                         e.ConfigureConsumer<GetUsersForMarketingConsumer>(context);
+                        e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+                    });
+                
+                // Keycloak user created - auto-provision users from Keycloak registration
+                kafka.TopicEndpoint<KeycloakUserCreatedEvent>(
+                    KafkaTopics.KeycloakUserCreated,
+                    KafkaTopics.IdentityGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<KeycloakUserCreatedConsumer>(context);
                         e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
                     });
             });

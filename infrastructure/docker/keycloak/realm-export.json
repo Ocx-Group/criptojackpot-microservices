@@ -405,7 +405,8 @@
   },
   "eventsEnabled": true,
   "eventsListeners": [
-    "jboss-logging"
+    "jboss-logging",
+    "kafka-event-listener"
   ],
   "enabledEventTypes": [
     "LOGIN",
