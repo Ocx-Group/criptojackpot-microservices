@@ -119,4 +119,26 @@ public class IdentityEventPublisher : IIdentityEventPublisher
             _logger.LogError(ex, "Failed to publish SecurityAlertEvent for user {UserId}", user.Id);
         }
     }
+
+    public async Task PublishSecurityAlertAsync(long userId, string email, SecurityAlertType alertType, string? ipAddress)
+    {
+        try
+        {
+            await _eventBus.Publish(new SecurityAlertEvent
+            {
+                UserGuid = Guid.Empty, // Not available in this context
+                Email = email,
+                Name = null,
+                AlertType = alertType,
+                Description = $"Security alert: {alertType}",
+                IpAddress = ipAddress,
+                UserAgent = null
+            });
+            _logger.LogInformation("SecurityAlertEvent ({AlertType}) published for userId {UserId}", alertType, userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to publish SecurityAlertEvent for userId {UserId}", userId);
+        }
+    }
 }

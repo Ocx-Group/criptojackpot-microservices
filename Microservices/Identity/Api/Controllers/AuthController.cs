@@ -109,4 +109,49 @@ public class AuthController : ControllerBase
         Response.ClearAuthCookies(_cookieConfig);
         return NoContent();
     }
+
+    /// <summary>
+    /// Refresh access token using a valid refresh token.
+    /// Implements token rotation: old token is revoked, new one issued.
+    /// If a revoked token is reused, entire token family is invalidated (security measure).
+    /// </summary>
+    [HttpPost("refresh")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RefreshToken()
+    {
+        var refreshToken = Request.GetRefreshToken(_cookieConfig);
+
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return Unauthorized(new { success = false, message = "Refresh token not found." });
+        }
+
+        var command = new RefreshTokenCommand
+        {
+            RefreshToken = refreshToken,
+            IpAddress = Request.GetClientIpAddress(),
+            DeviceInfo = Request.GetUserAgent()
+        };
+
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailed)
+        {
+            // Clear cookies on refresh failure - user must login again
+            Response.ClearAuthCookies(_cookieConfig);
+            return result.ToActionResult();
+        }
+
+        var rotationResult = result.Value;
+
+        // Set new HttpOnly cookies with rotated tokens
+        Response.SetAuthCookies(
+            rotationResult.AccessToken,
+            rotationResult.RefreshToken,
+            _cookieConfig,
+            rotationResult.ExpiresInMinutes,
+            rememberMe: false); // Preserve original expiration from token entity
+
+        return Ok(new { success = true });
+    }
 }

@@ -13,4 +13,9 @@ public interface IIdentityEventPublisher
     Task PublishUserRegisteredAsync(User user, string confirmationToken);
     Task PublishUserLockedOutAsync(User user, int lockoutMinutes, string? ipAddress, string? userAgent);
     Task PublishSecurityAlertAsync(User user, SecurityAlertType alertType, string description, string? ipAddress, string? userAgent);
+    
+    /// <summary>
+    /// Publishes a security alert when User object is not available (e.g., token reuse detection).
+    /// </summary>
+    Task PublishSecurityAlertAsync(long userId, string email, SecurityAlertType alertType, string? ipAddress);
 }
