@@ -154,4 +154,59 @@ public class AuthController : ControllerBase
 
         return Ok(new { success = true });
     }
+
+    /// <summary>
+    /// Verify 2FA code to complete login.
+    /// Challenge token is obtained from HttpOnly cookie set during initial login.
+    /// Accepts TOTP code from authenticator app or recovery code.
+    /// </summary>
+    [HttpPost("2fa/verify")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Verify2Fa([FromBody] Verify2FaRequest request)
+    {
+        var challengeToken = Request.GetAccessToken(_cookieConfig);
+
+        if (string.IsNullOrWhiteSpace(challengeToken))
+        {
+            return Unauthorized(new { success = false, message = "Challenge token not found. Please login again." });
+        }
+
+        var command = new Verify2FaChallengeCommand
+        {
+            ChallengeToken = challengeToken,
+            Code = request.Code,
+            RecoveryCode = request.RecoveryCode,
+            IpAddress = Request.GetClientIpAddress(),
+            DeviceInfo = Request.GetUserAgent(),
+            RememberMe = request.RememberMe
+        };
+
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailed)
+        {
+            var error = result.Errors.FirstOrDefault();
+            if (error is LockedError lockedError)
+            {
+                Response.Headers.Append("Retry-After", lockedError.RetryAfterSeconds.ToString());
+            }
+            return result.ToActionResult();
+        }
+
+        var loginResult = result.Value;
+
+        // 2FA verified successfully - set full auth cookies
+        Response.SetAuthCookies(
+            loginResult.AccessToken,
+            loginResult.RefreshToken,
+            _cookieConfig,
+            _jwtConfig.ExpirationInMinutes,
+            request.RememberMe);
+
+        return Ok(new
+        {
+            success = true,
+            data = loginResult.User
+        });
+    }
 }

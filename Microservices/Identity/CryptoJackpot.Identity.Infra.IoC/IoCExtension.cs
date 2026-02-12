@@ -281,6 +281,8 @@ public static class IoCExtension
         services.AddScoped<IGoogleAuthService, GoogleAuthService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<ITokenRotationService, TokenRotationService>();
+        services.AddScoped<ICodeVerificationService, CodeVerificationService>();
+        services.AddScoped<ITwoFactorVerificationService, TwoFactorVerificationService>();
     }
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)

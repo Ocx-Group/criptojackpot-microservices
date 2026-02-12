@@ -28,6 +28,14 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.UserGuid == userGuid);
     }
 
+    public async Task<User?> GetByGuidWithRecoveryCodesAsync(Guid userGuid)
+    {
+        return await _context.Users
+            .Include(u => u.Role)
+            .Include(u => u.RecoveryCodes.Where(rc => !rc.IsUsed))
+            .FirstOrDefaultAsync(u => u.UserGuid == userGuid);
+    }
+
     public async Task<User?> GetByEmailAsync(string email)
     {
         return await _context.Users
