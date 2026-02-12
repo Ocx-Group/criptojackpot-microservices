@@ -11,7 +11,6 @@ using CryptoJackpot.Domain.Core.Bus;
 using CryptoJackpot.Domain.Core.Constants;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Audit;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
-using CryptoJackpot.Infra.IoC;
 using FluentValidation;
 using MassTransit;
 using MediatR;
@@ -65,42 +64,31 @@ public static class IoCExtension
 
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
     {
-        var keycloakSection = configuration.GetSection("Keycloak");
-        var useKeycloak = keycloakSection.Exists() && !string.IsNullOrEmpty(keycloakSection["Authority"]);
+        // JWT authentication
+        var jwtSettings = configuration.GetSection("JwtSettings");
+        var secretKey = jwtSettings["SecretKey"];
 
-        if (useKeycloak)
-        {
-            // Use Keycloak OIDC authentication
-            services.AddKeycloakAuthentication(configuration);
-        }
-        else
-        {
-            // Fallback to legacy JWT authentication
-            var jwtSettings = configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"];
+        if (string.IsNullOrEmpty(secretKey))
+            throw new InvalidOperationException("JWT SecretKey is not configured");
 
-            if (string.IsNullOrEmpty(secretKey))
-                throw new InvalidOperationException("JWT SecretKey is not configured");
-
-            services.AddAuthentication(options =>
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtSettings["Issuer"],
-                        ValidAudience = jwtSettings["Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
-                    };
-                });
-        }
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings["Issuer"],
+                    ValidAudience = jwtSettings["Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+                };
+            });
     }
 
     private static void AddMongoDb(IServiceCollection services, IConfiguration configuration)

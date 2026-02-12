@@ -73,31 +73,21 @@ public static class IoCExtension
 
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
     {
-        var keycloakSection = configuration.GetSection("Keycloak");
-        var useKeycloak = keycloakSection.Exists() && !string.IsNullOrEmpty(keycloakSection["Authority"]);
+        // JWT authentication
+        var jwtSettings = configuration.GetSection("JwtSettings");
+        var secretKey = jwtSettings["SecretKey"];
 
-        if (useKeycloak)
-        {
-            // Use Keycloak OIDC authentication
-            services.AddKeycloakAuthentication(configuration);
-        }
-        else
-        {
-            // Fallback to legacy JWT authentication
-            var jwtSettings = configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"];
+        if (string.IsNullOrEmpty(secretKey))
+            throw new InvalidOperationException("JWT SecretKey is not configured");
 
-            if (string.IsNullOrEmpty(secretKey))
-                throw new InvalidOperationException("JWT SecretKey is not configured");
-
-            services.AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
@@ -108,7 +98,6 @@ public static class IoCExtension
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
                     };
                 });
-        }
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration configuration)

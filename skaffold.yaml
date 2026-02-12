@@ -135,11 +135,6 @@ profiles:
         namespace: cryptojackpot
         port: 27017
         localPort: 27017
-      - resourceType: service
-        resourceName: keycloak
-        namespace: cryptojackpot
-        port: 8080
-        localPort: 8080
 
   # ============================================
   # DEBUG with remote debugging

@@ -35,12 +35,6 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
-    public async Task<User?> GetByKeycloakIdAsync(string keycloakId)
-    {
-        return await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.KeycloakId == keycloakId);
-    }
 
     public async Task<User?> GetByReferralCodeAsync(string referralCode)
     {

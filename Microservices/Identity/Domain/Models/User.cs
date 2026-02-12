@@ -9,12 +9,6 @@ public class User : BaseEntity
     /// </summary>
     public Guid UserGuid { get; set; } = Guid.NewGuid();
     
-    /// <summary>
-    /// Keycloak user ID for authentication integration.
-    /// All auth operations (login, password reset, email verification) are handled by Keycloak.
-    /// </summary>
-    public string? KeycloakId { get; set; }
-    
     public string Name { get; set; } = null!;
     public string LastName { get; set; } = null!;
     public string Email { get; set; } = null!;
@@ -26,7 +20,7 @@ public class User : BaseEntity
     public string? Address { get; set; }
     
     /// <summary>
-    /// User status synchronized with Keycloak's email verified status
+    /// User status
     /// </summary>
     public bool Status { get; set; }
     public string? ImagePath { get; set; }

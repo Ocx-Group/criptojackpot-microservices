@@ -7,7 +7,6 @@ public interface IUserRepository
     Task<User?> GetByIdAsync(long id);
     Task<User?> GetByGuidAsync(Guid userGuid);
     Task<User?> GetByEmailAsync(string email);
-    Task<User?> GetByKeycloakIdAsync(string keycloakId);
     Task<User?> GetByReferralCodeAsync(string referralCode);
     Task<bool> ExistsByEmailAsync(string email);
     Task<User> CreateAsync(User user);

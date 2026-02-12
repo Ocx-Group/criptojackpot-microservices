@@ -18,12 +18,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasDefaultValueSql("gen_random_uuid()");
         builder.HasIndex(e => e.UserGuid).IsUnique();
         
-        // KeycloakId for authentication integration
-        builder.Property(e => e.KeycloakId)
-            .HasColumnType(ColumnTypes.Text)
-            .HasMaxLength(100);
-        builder.HasIndex(e => e.KeycloakId).IsUnique();
-        
         builder.Property(e => e.Name).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(100);
         builder.Property(e => e.LastName).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(100);
         builder.Property(e => e.Email).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(100);

@@ -6,7 +6,6 @@ using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Identity.Application;
 using CryptoJackpot.Identity.Application.Configuration;
 using CryptoJackpot.Identity.Application.Consumers;
-using CryptoJackpot.Identity.Application.Http;
 using CryptoJackpot.Identity.Application.Interfaces;
 using CryptoJackpot.Identity.Application.Services;
 using CryptoJackpot.Identity.Data;
@@ -103,47 +102,35 @@ public static class IoCExtension
     {
         services.Configure<JwtConfig>(configuration.GetSection("JwtSettings"));
         services.Configure<DigitalOceanSettings>(configuration.GetSection("DigitalOcean"));
-        services.Configure<KeycloakSettings>(configuration.GetSection("Keycloak"));
     }
 
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
     {
-        var keycloakSection = configuration.GetSection("Keycloak");
-        var useKeycloak = keycloakSection.Exists() && !string.IsNullOrEmpty(keycloakSection["Authority"]);
+        // JWT authentication (for backward compatibility)
+        var jwtSettings = configuration.GetSection("JwtSettings");
+        var secretKey = jwtSettings["SecretKey"];
 
-        if (useKeycloak)
-        {
-            // Use Keycloak OIDC authentication
-            services.AddKeycloakAuthentication(configuration);
-        }
-        else
-        {
-            // Fallback to legacy JWT authentication (for backward compatibility)
-            var jwtSettings = configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"];
+        if (string.IsNullOrEmpty(secretKey))
+            throw new InvalidOperationException("JWT SecretKey is not configured");
 
-            if (string.IsNullOrEmpty(secretKey))
-                throw new InvalidOperationException("JWT SecretKey is not configured");
-
-            services.AddAuthentication(options =>
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtSettings["Issuer"],
-                        ValidAudience = jwtSettings["Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
-                    };
-                });
-        }
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings["Issuer"],
+                    ValidAudience = jwtSettings["Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+                };
+            });
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration configuration)
@@ -281,21 +268,6 @@ public static class IoCExtension
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<IIdentityEventPublisher, IdentityEventPublisher>();
         services.AddScoped<IStorageService, DigitalOceanStorageService>();
-        services.AddScoped<IUserProvisioningService, UserProvisioningService>();
-        
-        // Register the DelegatingHandler for Keycloak admin token management
-        services.AddTransient<KeycloakAdminTokenHandler>();
-        
-        // Keycloak User Service (requires admin token)
-        services.AddHttpClient<IKeycloakUserService, KeycloakUserService>()
-            .AddHttpMessageHandler<KeycloakAdminTokenHandler>();
-        
-        // Keycloak Role Service (requires admin token)
-        services.AddHttpClient<IKeycloakRoleService, KeycloakRoleService>()
-            .AddHttpMessageHandler<KeycloakAdminTokenHandler>();
-        
-        // Keycloak Token Service (does NOT require admin token - uses ROPC flow)
-        services.AddHttpClient<IKeycloakTokenService, KeycloakTokenService>();
     }
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)
@@ -315,7 +287,6 @@ public static class IoCExtension
                 
                 // Register consumers
                 rider.AddConsumer<GetUsersForMarketingConsumer>();
-                rider.AddConsumer<KeycloakUserCreatedConsumer>();
             },
             configureKafkaEndpoints: (context, kafka) =>
             {
@@ -326,17 +297,6 @@ public static class IoCExtension
                     e =>
                     {
                         e.ConfigureConsumer<GetUsersForMarketingConsumer>(context);
-                        e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
-                    });
-                
-                // Keycloak user created - auto-provision users from Keycloak registration
-                // Keycloak SPI publishes messages in MassTransit envelope format
-                kafka.TopicEndpoint<KeycloakUserCreatedEvent>(
-                    KafkaTopics.KeycloakUserCreated,
-                    KafkaTopics.IdentityGroup,
-                    e =>
-                    {
-                        e.ConfigureConsumer<KeycloakUserCreatedConsumer>(context);
                         e.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
                     });
             });
