@@ -150,7 +150,7 @@ public class AuthController : ControllerBase
             rotationResult.RefreshToken,
             _cookieConfig,
             rotationResult.ExpiresInMinutes,
-            rememberMe: false); // Preserve original expiration from token entity
+            rotationResult.IsRememberMe);
 
         return Ok(new { success = true });
     }

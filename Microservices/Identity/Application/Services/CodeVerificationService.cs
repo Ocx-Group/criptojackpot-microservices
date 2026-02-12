@@ -8,20 +8,24 @@ namespace CryptoJackpot.Identity.Application.Services;
 
 /// <summary>
 /// Service for verifying 2FA codes (TOTP or recovery).
+/// Handles decryption of TwoFactorSecret before validation.
 /// </summary>
 public class CodeVerificationService : ICodeVerificationService
 {
     private readonly ITotpService _totpService;
     private readonly IRecoveryCodeService _recoveryCodeService;
+    private readonly IDataEncryptionService _encryptionService;
     private readonly ILogger<CodeVerificationService> _logger;
 
     public CodeVerificationService(
         ITotpService totpService,
         IRecoveryCodeService recoveryCodeService,
+        IDataEncryptionService encryptionService,
         ILogger<CodeVerificationService> logger)
     {
         _totpService = totpService;
         _recoveryCodeService = recoveryCodeService;
+        _encryptionService = encryptionService;
         _logger = logger;
     }
 
@@ -50,7 +54,15 @@ public class CodeVerificationService : ICodeVerificationService
             return Result.Fail(new UnauthorizedError("2FA is not properly configured."));
         }
 
-        if (_totpService.ValidateCode(user.TwoFactorSecret, totpCode))
+        // Decrypt the secret before validation
+        var decryptedSecret = _encryptionService.Decrypt(user.TwoFactorSecret);
+        if (string.IsNullOrWhiteSpace(decryptedSecret))
+        {
+            _logger.LogError("Failed to decrypt TwoFactorSecret for user {UserId}", user.Id);
+            return Result.Fail(new UnauthorizedError("2FA configuration error. Please contact support."));
+        }
+
+        if (_totpService.ValidateCode(decryptedSecret, totpCode))
         {
             _logger.LogInformation("2FA TOTP verification successful for user {UserId}", user.Id);
             return Result.Ok<string?>(null);
@@ -66,7 +78,8 @@ public class CodeVerificationService : ICodeVerificationService
         if (matchingCode is not null)
         {
             matchingCode.MarkAsUsed();
-            var remainingCount = user.RecoveryCodes.Count(c => !c.IsUsed) - 1;
+            // sets IsUsed = true, so Count already excludes this code
+            var remainingCount = user.RecoveryCodes.Count(c => !c.IsUsed);
             _logger.LogInformation(
                 "2FA recovery code used for user {UserId}. Remaining codes: {RemainingCount}",
                 user.Id,

@@ -19,5 +19,11 @@ public class TokenRotationResultDto
     /// Access token expiration in minutes.
     /// </summary>
     public int ExpiresInMinutes { get; set; }
+
+    /// <summary>
+    /// Whether the original login was with "remember me" enabled.
+    /// Used to set correct cookie expiration.
+    /// </summary>
+    public bool IsRememberMe { get; set; }
 }
 

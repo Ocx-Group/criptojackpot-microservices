@@ -12,7 +12,11 @@ public class SecurityAlertEvent : Event
 {
     public Guid UserGuid { get; set; }
     public string Email { get; set; } = null!;
-    public string Name { get; set; } = null!;
+    
+    /// <summary>
+    /// User's name. May be null for events triggered without full User context.
+    /// </summary>
+    public string? Name { get; set; }
     
     /// <summary>
     /// Type of security alert.

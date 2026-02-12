@@ -20,6 +20,7 @@ using MassTransit;
 using MediatR;
 using Npgsql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +39,7 @@ public static class IoCExtension
     {
         AddConfiguration(services, configuration);
         AddAuthentication(services, configuration);
+        AddDataProtection(services, configuration);
         AddDatabase(services, configuration);
         AddSwagger(services);
         AddControllers(services, configuration);
@@ -134,6 +136,25 @@ public static class IoCExtension
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
                 };
             });
+    }
+
+    private static void AddDataProtection(IServiceCollection services, IConfiguration configuration)
+    {
+        var config = configuration.GetSection(DataProtectionConfig.SectionName).Get<DataProtectionConfig>() 
+                     ?? new DataProtectionConfig();
+
+        var dataProtectionBuilder = services.AddDataProtection()
+            .SetApplicationName(config.ApplicationName)
+            .SetDefaultKeyLifetime(TimeSpan.FromDays(config.KeyLifetimeDays));
+
+        // In production with multiple instances, persist keys to Redis
+        if (!string.IsNullOrWhiteSpace(config.RedisConnectionString))
+        {
+            var redis = StackExchange.Redis.ConnectionMultiplexer.Connect(config.RedisConnectionString);
+            dataProtectionBuilder.PersistKeysToStackExchangeRedis(redis, config.RedisKeyName);
+        }
+        // In development, keys are stored in the default location (file system)
+        // This is fine for single-instance scenarios
     }
 
     private static void AddDatabase(IServiceCollection services, IConfiguration configuration)
@@ -273,6 +294,7 @@ public static class IoCExtension
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
         services.AddScoped<IIdentityEventPublisher, IdentityEventPublisher>();
         services.AddScoped<IStorageService, DigitalOceanStorageService>();
+        services.AddScoped<IDataEncryptionService, DataEncryptionService>();
         
         // Authentication Services 
         services.AddScoped<ITotpService, TotpService>();

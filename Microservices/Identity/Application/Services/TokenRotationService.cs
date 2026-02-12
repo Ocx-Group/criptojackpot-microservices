@@ -76,12 +76,13 @@ public class TokenRotationService : ITokenRotationService
         }
 
         // Create new token pair (rotation)
+        var isRememberMe = IsRememberMeToken(existingToken);
         var (newRawToken, newTokenEntity) = _refreshTokenService.CreateRefreshToken(
             existingToken.UserId,
             familyId: existingToken.FamilyId, // Keep same family
             deviceInfo: deviceInfo ?? existingToken.DeviceInfo,
             ipAddress: ipAddress ?? existingToken.IpAddress,
-            rememberMe: IsRememberMeToken(existingToken));
+            rememberMe: isRememberMe);
 
         // Revoke old token and link to new one
         existingToken.Revoke("rotated", newTokenEntity.TokenHash);
@@ -100,7 +101,8 @@ public class TokenRotationService : ITokenRotationService
         {
             AccessToken = accessToken,
             RefreshToken = newRawToken,
-            ExpiresInMinutes = _jwtConfig.ExpirationInMinutes
+            ExpiresInMinutes = _jwtConfig.ExpirationInMinutes,
+            IsRememberMe = isRememberMe
         });
     }
 
