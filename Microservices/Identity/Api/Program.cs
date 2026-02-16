@@ -1,5 +1,7 @@
 using CryptoJackpot.Domain.Core.Middleware;
+using CryptoJackpot.Identity.Data.Context;
 using CryptoJackpot.Identity.Infra.IoC;
+using CryptoJackpot.Infra.IoC.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +33,6 @@ app.MapHealthChecks("/health");
 app.MapControllers();
 
 // Apply migrations in development
-await app.ApplyMigrationsAsync();
+await app.ApplyMigrationsAsync<IdentityDbContext>();
 
 await app.RunAsync();

@@ -10,7 +10,7 @@ resources:
   - secrets
   - configmaps
   - ingress
-  - keycloak
+  - jobs
 
 # Environment-specific patches using JSON Patch
 patches:
@@ -28,6 +28,9 @@ patches:
           - name: wait-for-postgres
             image: busybox:1.36
             command: ["sh", "-c", "echo 'Waiting for DNS and PostgreSQL...'; sleep 5; until nslookup postgres.cryptojackpot.svc.cluster.local > /dev/null 2>&1 && nc -z postgres.cryptojackpot.svc.cluster.local 5432; do echo 'Waiting for PostgreSQL...'; sleep 3; done; echo 'PostgreSQL is ready!'"]
+          - name: wait-for-migrations
+            image: bitnami/kubectl:latest
+            command: ["sh", "-c", "echo 'Waiting for migrations...'; kubectl wait --for=condition=complete job/db-migrations -n cryptojackpot --timeout=120s 2>/dev/null || echo 'Migration job not found or already completed'; echo 'Proceeding with startup.'"]
       - op: add
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
@@ -55,6 +58,9 @@ patches:
           - name: wait-for-postgres
             image: busybox:1.36
             command: ["sh", "-c", "echo 'Waiting for DNS and PostgreSQL...'; sleep 5; until nslookup postgres.cryptojackpot.svc.cluster.local > /dev/null 2>&1 && nc -z postgres.cryptojackpot.svc.cluster.local 5432; do echo 'Waiting for PostgreSQL...'; sleep 3; done; echo 'PostgreSQL is ready!'"]
+          - name: wait-for-migrations
+            image: bitnami/kubectl:latest
+            command: ["sh", "-c", "echo 'Waiting for migrations...'; kubectl wait --for=condition=complete job/db-migrations -n cryptojackpot --timeout=120s 2>/dev/null || echo 'Migration job not found or already completed'; echo 'Proceeding with startup.'"]
       - op: add
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
@@ -82,6 +88,9 @@ patches:
           - name: wait-for-postgres
             image: busybox:1.36
             command: ["sh", "-c", "echo 'Waiting for DNS and PostgreSQL...'; sleep 5; until nslookup postgres.cryptojackpot.svc.cluster.local > /dev/null 2>&1 && nc -z postgres.cryptojackpot.svc.cluster.local 5432; do echo 'Waiting for PostgreSQL...'; sleep 3; done; echo 'PostgreSQL is ready!'"]
+          - name: wait-for-migrations
+            image: bitnami/kubectl:latest
+            command: ["sh", "-c", "echo 'Waiting for migrations...'; kubectl wait --for=condition=complete job/db-migrations -n cryptojackpot --timeout=120s 2>/dev/null || echo 'Migration job not found or already completed'; echo 'Proceeding with startup.'"]
       - op: add
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
@@ -109,6 +118,9 @@ patches:
           - name: wait-for-postgres
             image: busybox:1.36
             command: ["sh", "-c", "echo 'Waiting for DNS and PostgreSQL...'; sleep 5; until nslookup postgres.cryptojackpot.svc.cluster.local > /dev/null 2>&1 && nc -z postgres.cryptojackpot.svc.cluster.local 5432; do echo 'Waiting for PostgreSQL...'; sleep 3; done; echo 'PostgreSQL is ready!'"]
+          - name: wait-for-migrations
+            image: bitnami/kubectl:latest
+            command: ["sh", "-c", "echo 'Waiting for migrations...'; kubectl wait --for=condition=complete job/db-migrations -n cryptojackpot --timeout=120s 2>/dev/null || echo 'Migration job not found or already completed'; echo 'Proceeding with startup.'"]
       - op: add
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
@@ -136,6 +148,9 @@ patches:
           - name: wait-for-postgres
             image: busybox:1.36
             command: ["sh", "-c", "echo 'Waiting for DNS and PostgreSQL...'; sleep 5; until nslookup postgres.cryptojackpot.svc.cluster.local > /dev/null 2>&1 && nc -z postgres.cryptojackpot.svc.cluster.local 5432; do echo 'Waiting for PostgreSQL...'; sleep 3; done; echo 'PostgreSQL is ready!'"]
+          - name: wait-for-migrations
+            image: bitnami/kubectl:latest
+            command: ["sh", "-c", "echo 'Waiting for migrations...'; kubectl wait --for=condition=complete job/db-migrations -n cryptojackpot --timeout=120s 2>/dev/null || echo 'Migration job not found or already completed'; echo 'Proceeding with startup.'"]
       - op: add
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent
@@ -163,6 +178,9 @@ patches:
           - name: wait-for-postgres
             image: busybox:1.36
             command: ["sh", "-c", "echo 'Waiting for DNS and PostgreSQL...'; sleep 5; until nslookup postgres.cryptojackpot.svc.cluster.local > /dev/null 2>&1 && nc -z postgres.cryptojackpot.svc.cluster.local 5432; do echo 'Waiting for PostgreSQL...'; sleep 3; done; echo 'PostgreSQL is ready!'"]
+          - name: wait-for-migrations
+            image: bitnami/kubectl:latest
+            command: ["sh", "-c", "echo 'Waiting for migrations...'; kubectl wait --for=condition=complete job/db-migrations -n cryptojackpot --timeout=120s 2>/dev/null || echo 'Migration job not found or already completed'; echo 'Proceeding with startup.'"]
       - op: add
         path: /spec/template/spec/containers/0/imagePullPolicy
         value: IfNotPresent

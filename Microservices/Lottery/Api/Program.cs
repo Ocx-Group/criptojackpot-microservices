@@ -1,7 +1,9 @@
 using CryptoJackpot.Domain.Core.Middleware;
+using CryptoJackpot.Infra.IoC.Extensions;
 using CryptoJackpot.Lottery.Api.Hubs;
 using CryptoJackpot.Lottery.Api.Services;
 using CryptoJackpot.Lottery.Application.Interfaces;
+using CryptoJackpot.Lottery.Data.Context;
 using CryptoJackpot.Lottery.Infra.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +44,6 @@ app.MapControllers();
 app.MapHub<LotteryHub>("/hubs/lottery");
 
 // Apply migrations in development
-await app.ApplyMigrationsAsync();
+await app.ApplyMigrationsAsync<LotteryDbContext>();
 
 await app.RunAsync();

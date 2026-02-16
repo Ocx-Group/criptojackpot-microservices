@@ -1,3 +1,5 @@
+using CryptoJackpot.Infra.IoC.Extensions;
+using CryptoJackpot.Wallet.Data.Context;
 using CryptoJackpot.Wallet.Infra.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,7 +28,7 @@ app.MapHealthChecks("/health");
 app.MapControllers();
 
 // Apply migrations in development
-await app.ApplyMigrationsAsync();
+await app.ApplyMigrationsAsync<WalletDbContext>();
 
 await app.RunAsync();
 

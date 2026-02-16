@@ -1,3 +1,5 @@
+using CryptoJackpot.Infra.IoC.Extensions;
+using CryptoJackpot.Notification.Data.Context;
 using CryptoJackpot.Notification.Infra.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +27,6 @@ app.MapHealthChecks("/health");
 app.MapControllers();
 
 // Apply migrations in development
-await app.ApplyMigrationsAsync();
+await app.ApplyMigrationsAsync<NotificationDbContext>();
 
 await app.RunAsync();

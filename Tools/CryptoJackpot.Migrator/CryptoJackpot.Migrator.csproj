@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
+  </ItemGroup>
+
+  <!-- Reference all microservice Data projects to access DbContexts -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microservices\Identity\Data\CryptoJackpot.Identity.Data.csproj" />
+    <ProjectReference Include="..\..\Microservices\Lottery\Data\CryptoJackpot.Lottery.Data.csproj" />
+    <ProjectReference Include="..\..\Microservices\Order\Data\CryptoJackpot.Order.Data.csproj" />
+    <ProjectReference Include="..\..\Microservices\Wallet\Data\CryptoJackpot.Wallet.Data.csproj" />
+    <ProjectReference Include="..\..\Microservices\Winner\Data\CryptoJackpot.Winner.Data.csproj" />
+    <ProjectReference Include="..\..\Microservices\Notification\Data\CryptoJackpot.Notification.Data.csproj" />
+  </ItemGroup>
+
+</Project>
+

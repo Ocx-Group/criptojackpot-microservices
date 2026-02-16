@@ -18,6 +18,10 @@ build:
     push: false
     useBuildkit: true
   artifacts:
+    - image: cryptojackpot/migrator
+      context: .
+      docker:
+        dockerfile: Tools/CryptoJackpot.Migrator/Dockerfile
     - image: cryptojackpot/identity-api
       context: .
       docker:

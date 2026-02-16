@@ -1,0 +1,64 @@
+# Database Migration Job for LOCAL environment
+# This job runs before all microservice deployments to ensure
+# database schemas are up-to-date without race conditions.
+#
+# Usage with Skaffold:
+#   skaffold dev --cleanup=false
+#   
+# The job will complete before microservices start via init containers.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrations
+  namespace: cryptojackpot
+  labels:
+    app: db-migrations
+    component: infrastructure
+spec:
+  # Retry up to 3 times on failure
+  backoffLimit: 3
+  # Clean up completed job after 5 minutes
+  ttlSecondsAfterFinished: 300
+  # Only allow one migration job at a time
+  parallelism: 1
+  completions: 1
+  template:
+    metadata:
+      labels:
+        app: db-migrations
+    spec:
+      restartPolicy: OnFailure
+      # Wait for PostgreSQL to be ready before starting migrations
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for PostgreSQL to be ready..."
+              until nc -z postgres.cryptojackpot.svc.cluster.local 5432; do
+                echo "PostgreSQL not ready, waiting..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+              # Extra delay to ensure PostgreSQL is fully initialized
+              sleep 3
+      containers:
+        - name: migrator
+          image: cryptojackpot/migrator:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DOTNET_ENVIRONMENT
+              value: "Development"
+          envFrom:
+            - secretRef:
+                name: postgres-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+

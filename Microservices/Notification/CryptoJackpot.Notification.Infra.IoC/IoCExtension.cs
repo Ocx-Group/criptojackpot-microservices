@@ -17,8 +17,6 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 namespace CryptoJackpot.Notification.Infra.IoC;
@@ -39,57 +37,6 @@ public static class IoCExtension
         AddInfrastructure(services, configuration);
     }
 
-    /// <summary>
-    /// Applies pending database migrations only in development environment.
-    /// </summary>
-    public static async Task ApplyMigrationsAsync(this IHost host)
-    {
-        using var scope = host.Services.CreateScope();
-        var services = scope.ServiceProvider;
-        var logger = services.GetRequiredService<ILogger<NotificationDbContext>>();
-
-        try
-        {
-            var context = services.GetRequiredService<NotificationDbContext>();
-            var env = services.GetRequiredService<IHostEnvironment>();
-
-            if (env.IsDevelopment())
-            {
-                // Check if database exists and can connect
-                if (await context.Database.CanConnectAsync())
-                {
-                    var pendingMigrations = (await context.Database.GetPendingMigrationsAsync()).ToList();
-                    if (pendingMigrations.Count > 0)
-                    {
-                        logger.LogInformation("Applying {Count} pending migrations for NotificationDbContext...", pendingMigrations.Count);
-                        try
-                        {
-                            await context.Database.MigrateAsync();
-                            logger.LogInformation("Migrations applied successfully.");
-                        }
-                        catch (Npgsql.PostgresException ex) when (ex.SqlState == "42P07") // relation already exists
-                        {
-                            logger.LogWarning(ex, "Some tables already exist, skipping migration. Consider updating __EFMigrationsHistory table manually.");
-                        }
-                    }
-                }
-                else
-                {
-                    logger.LogInformation("Database does not exist, creating...");
-                    await context.Database.MigrateAsync();
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An error occurred while applying database migrations.");
-            // Don't throw in development - allow app to start even if migrations fail
-            if (!host.Services.GetRequiredService<IHostEnvironment>().IsDevelopment())
-            {
-                throw new InvalidOperationException("Failed to apply migrations for NotificationDbContext.", ex);
-            }
-        }
-    }
 
     private static void AddConfiguration(IServiceCollection services, IConfiguration configuration)
     {
