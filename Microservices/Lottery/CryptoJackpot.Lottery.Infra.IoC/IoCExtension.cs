@@ -84,6 +84,10 @@ public static class IoCExtension
         if (string.IsNullOrEmpty(secretKey))
             throw new InvalidOperationException("JWT SecretKey is not configured");
 
+        // Cookie settings for extracting token from HTTP-only cookies
+        var cookieSettings = configuration.GetSection("CookieSettings");
+        var accessTokenCookieName = cookieSettings["AccessTokenCookieName"] ?? "access_token";
+
         services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -102,19 +106,33 @@ public static class IoCExtension
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
                     };
                     
-                    // SignalR sends the access token in the query string
+                    // Only accept JWT from HTTP-only cookie or SignalR query string (no Authorization header)
                     options.Events = new JwtBearerEvents
                     {
                         OnMessageReceived = context =>
                         {
-                            var accessToken = context.Request.Query["access_token"];
-                            var path = context.HttpContext.Request.Path;
-                            
-                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/lottery"))
+                            // 1. Try to get token from HTTP-only cookie
+                            if (context.Request.Cookies.TryGetValue(accessTokenCookieName, out var cookieToken) 
+                                && !string.IsNullOrEmpty(cookieToken))
                             {
-                                context.Token = accessToken;
+                                context.Token = cookieToken;
+                                return Task.CompletedTask;
                             }
                             
+                            // 2. SignalR sends the access token in the query string (WebSocket can't send cookies)
+                            var path = context.HttpContext.Request.Path;
+                            if (path.StartsWithSegments("/hubs/lottery"))
+                            {
+                                var accessToken = context.Request.Query["access_token"];
+                                if (!string.IsNullOrEmpty(accessToken))
+                                {
+                                    context.Token = accessToken;
+                                    return Task.CompletedTask;
+                                }
+                            }
+                            
+                            // No valid token source - prevent fallback to Authorization header
+                            context.NoResult();
                             return Task.CompletedTask;
                         }
                     };

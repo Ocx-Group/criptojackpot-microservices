@@ -111,12 +111,16 @@ public static class IoCExtension
 
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
     {
-        // JWT authentication (for backward compatibility)
+        // JWT authentication
         var jwtSettings = configuration.GetSection("JwtSettings");
         var secretKey = jwtSettings["SecretKey"];
 
         if (string.IsNullOrEmpty(secretKey))
             throw new InvalidOperationException("JWT SecretKey is not configured");
+
+        // Cookie settings for extracting token from HTTP-only cookies
+        var cookieSettings = configuration.GetSection("CookieSettings");
+        var accessTokenCookieName = cookieSettings["AccessTokenCookieName"] ?? "access_token";
 
         services.AddAuthentication(options =>
             {
@@ -134,6 +138,26 @@ public static class IoCExtension
                     ValidIssuer = jwtSettings["Issuer"],
                     ValidAudience = jwtSettings["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+                };
+
+                // Only accept JWT from HTTP-only cookie (no Authorization header)
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        // Only extract token from cookie - ignore Authorization header
+                        if (context.Request.Cookies.TryGetValue(accessTokenCookieName, out var cookieToken) 
+                            && !string.IsNullOrEmpty(cookieToken))
+                        {
+                            context.Token = cookieToken;
+                        }
+                        else
+                        {
+                            // Explicitly set empty to prevent fallback to Authorization header
+                            context.NoResult();
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
     }

@@ -71,6 +71,10 @@ public static class IoCExtension
         if (string.IsNullOrEmpty(secretKey))
             throw new InvalidOperationException("JWT SecretKey is not configured");
 
+        // Cookie settings for extracting token from HTTP-only cookies
+        var cookieSettings = configuration.GetSection("CookieSettings");
+        var accessTokenCookieName = cookieSettings["AccessTokenCookieName"] ?? "access_token";
+
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -87,6 +91,24 @@ public static class IoCExtension
                     ValidIssuer = jwtSettings["Issuer"],
                     ValidAudience = jwtSettings["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+                };
+
+                // Only accept JWT from HTTP-only cookie (no Authorization header)
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        if (context.Request.Cookies.TryGetValue(accessTokenCookieName, out var cookieToken) 
+                            && !string.IsNullOrEmpty(cookieToken))
+                        {
+                            context.Token = cookieToken;
+                        }
+                        else
+                        {
+                            context.NoResult();
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
     }
