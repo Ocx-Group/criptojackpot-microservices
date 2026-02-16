@@ -1,5 +1,6 @@
 using System.Text;
 using Asp.Versioning;
+using Confluent.Kafka;
 using CryptoJackpot.Audit.Application;
 using CryptoJackpot.Audit.Application.Consumers;
 using CryptoJackpot.Audit.Data.Configuration;
@@ -7,10 +8,10 @@ using CryptoJackpot.Audit.Data.Context;
 using CryptoJackpot.Audit.Data.Repositories;
 using CryptoJackpot.Audit.Domain.Interfaces;
 using CryptoJackpot.Domain.Core.Behaviors;
-using CryptoJackpot.Domain.Core.Bus;
 using CryptoJackpot.Domain.Core.Constants;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Audit;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
+using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
 using FluentValidation;
 using MassTransit;
@@ -225,56 +226,37 @@ public static class IoCExtension
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)
     {
-        // Domain Bus
-        services.AddTransient<IEventBus, CryptoJackpot.Infra.Bus.MassTransitBus>();
-
-        var kafkaHost = configuration["Kafka:BootstrapServers"] ?? "localhost:9092";
-
-        // MassTransit with Kafka for consuming audit events
-        services.AddMassTransit(x =>
-        {
-            // Register the audit log consumer
-            x.AddConsumer<AuditLogEventConsumer>();
-            x.AddConsumer<UserLoggedInEventConsumer>();
-
-            // In-memory for internal messaging
-            x.UsingInMemory((context, cfg) =>
+        // Use shared infrastructure with Kafka (no DbContext/Outbox - Audit uses MongoDB)
+        DependencyContainer.RegisterServicesWithKafka(
+            services,
+            configuration,
+            configureRider: rider =>
             {
-                cfg.ConfigureEndpoints(context);
-            });
-
-            // Kafka Rider for consuming audit events
-            x.AddRider(rider =>
-            {
+                // Register consumers for audit events
                 rider.AddConsumer<AuditLogEventConsumer>();
                 rider.AddConsumer<UserLoggedInEventConsumer>();
+            },
+            configureKafkaEndpoints: (context, kafka) =>
+            {
+                // Subscribe to audit log topic
+                kafka.TopicEndpoint<Ignore, AuditLogEvent>(
+                    KafkaTopics.AuditLog,
+                    KafkaTopics.AuditGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<AuditLogEventConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
 
-                rider.UsingKafka((context, kafka) =>
-                {
-                    kafka.Host(kafkaHost);
-                    kafka.ClientId = "cryptojackpot-audit";
-
-                    // Subscribe to audit log topic
-                    kafka.TopicEndpoint<AuditLogEvent>(
-                        KafkaTopics.AuditLog,
-                        KafkaTopics.AuditGroup,
-                        e =>
-                        {
-                            e.ConfigureConsumer<AuditLogEventConsumer>(context);
-                            e.ConfigureTopicDefaults(configuration);
-                        });
-
-                    // Subscribe to user login events for auditing
-                    kafka.TopicEndpoint<UserLoggedInEvent>(
-                        KafkaTopics.UserLoggedIn,
-                        KafkaTopics.AuditGroup,
-                        e =>
-                        {
-                            e.ConfigureConsumer<UserLoggedInEventConsumer>(context);
-                            e.ConfigureTopicDefaults(configuration);
-                        });
-                });
+                // Subscribe to user login events for auditing
+                kafka.TopicEndpoint<Ignore, UserLoggedInEvent>(
+                    KafkaTopics.UserLoggedIn,
+                    KafkaTopics.AuditGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<UserLoggedInEventConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
             });
-        });
     }
 }
