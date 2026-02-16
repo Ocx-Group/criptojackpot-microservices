@@ -252,16 +252,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "minio", "minio", "{44444444
 		infrastructure\k8s\base\infrastructure\minio\service.yaml = infrastructure\k8s\base\infrastructure\minio\service.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{44444444-4444-4444-4444-444444444450}"
-	ProjectSection(SolutionItems) = preProject
-		infrastructure\k8s\base\infrastructure\keycloak\kustomization.yaml = infrastructure\k8s\base\infrastructure\keycloak\kustomization.yaml
-		infrastructure\k8s\base\infrastructure\keycloak\deployment.yaml = infrastructure\k8s\base\infrastructure\keycloak\deployment.yaml
-		infrastructure\k8s\base\infrastructure\keycloak\service.yaml = infrastructure\k8s\base\infrastructure\keycloak\service.yaml
-		infrastructure\k8s\base\infrastructure\keycloak\keycloak-realm-configmap.yaml = infrastructure\k8s\base\infrastructure\keycloak\keycloak-realm-configmap.yaml
-		infrastructure\k8s\base\infrastructure\keycloak\keycloak-login-theme-configmap.yaml = infrastructure\k8s\base\infrastructure\keycloak\keycloak-login-theme-configmap.yaml
-		infrastructure\k8s\base\infrastructure\keycloak\keycloak-email-themes-configmap.yaml = infrastructure\k8s\base\infrastructure\keycloak\keycloak-email-themes-configmap.yaml
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "overlays", "overlays", "{55555555-5555-5555-5555-555555555551}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "local", "local", "{55555555-5555-5555-5555-555555555552}"
@@ -380,10 +370,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{B2C3D4E5-F
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker", "docker", "{C3D4E5F6-A7B8-6C7D-0E1F-3A4B5C6D7E8F}"
-	ProjectSection(SolutionItems) = preProject
-		docker-compose.yaml = docker-compose.yaml
-		docker-compose.infra.yaml = docker-compose.infra.yaml
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nginx", "nginx", "{B3C4D5E6-F7A8-6D7E-1F2A-3B4C5D6E7F8A}"
 	ProjectSection(SolutionItems) = preProject
@@ -1057,7 +1043,6 @@ Global
 		{44444444-4444-4444-4444-44444444444D} = {44444444-4444-4444-4444-44444444444A}
 		{44444444-4444-4444-4444-44444444444E} = {44444444-4444-4444-4444-44444444444A}
 		{44444444-4444-4444-4444-44444444444F} = {44444444-4444-4444-4444-44444444444A}
-		{44444444-4444-4444-4444-444444444450} = {44444444-4444-4444-4444-44444444444A}
 		{55555555-5555-5555-5555-555555555551} = {A1B2C3D4-E5F6-4A5B-8C9D-1E2F3A4B5C6D}
 		{55555555-5555-5555-5555-555555555552} = {55555555-5555-5555-5555-555555555551}
 		{55555555-5555-5555-5555-555555555553} = {55555555-5555-5555-5555-555555555552}
