@@ -305,6 +305,38 @@ portForward:
 
 ---
 # ===========================================
+# MÓDULO: BFF Gateway
+# ===========================================
+apiVersion: skaffold/v4beta6
+kind: Config
+metadata:
+  name: bff
+requires:
+  - configs: [infra]
+build:
+  local:
+    push: false
+    useBuildkit: true
+  artifacts:
+    - image: cryptojackpot/bff-gateway
+      context: .
+      docker:
+        dockerfile: Microservices/BFF/Dockerfile
+      sync:
+        manual:
+          - src: 'Microservices/BFF/**/*.cs'
+            dest: /src
+          - src: 'Microservices/BFF/**/*.json'
+            dest: /src
+portForward:
+  - resourceType: service
+    resourceName: bff-gateway
+    namespace: cryptojackpot
+    port: 80
+    localPort: 8080
+
+---
+# ===========================================
 # MÓDULO: Todos los servicios
 # ===========================================
 apiVersion: skaffold/v4beta6
@@ -312,7 +344,7 @@ kind: Config
 metadata:
   name: all
 requires:
-  - configs: [migrator, identity, lottery, order, wallet, winner, notification, audit]
+  - configs: [migrator, bff, identity, lottery, order, wallet, winner, notification, audit]
 build:
   local:
     push: false

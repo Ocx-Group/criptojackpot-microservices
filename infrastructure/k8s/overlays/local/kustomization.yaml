@@ -241,18 +241,38 @@ patches:
             memory: "256Mi"
             cpu: "250m"
 
-  # BFF Ingress - Add host for local
+  # BFF Ingress - Add host for local (JSON patch for complete rule replacement)
   - target:
       kind: Ingress
       name: bff-ingress
     patch: |-
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        name: bff-ingress
-      spec:
-        rules:
+      - op: replace
+        path: /spec/rules
+        value:
           - host: localhost
+            http:
+              paths:
+                - path: /api
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: bff-gateway
+                      port:
+                        number: 80
+                - path: /lottery-hub
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: bff-gateway
+                      port:
+                        number: 80
+                - path: /health
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: bff-gateway
+                      port:
+                        number: 80
 
 # ConfigMap for local environment
 configMapGenerator:

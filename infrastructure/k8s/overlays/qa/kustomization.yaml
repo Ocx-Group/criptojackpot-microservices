@@ -229,24 +229,47 @@ patches:
             memory: "128Mi"
             cpu: "125m"
 
-  # BFF Ingress - Add TLS and host for QA
+  # BFF Ingress - Add TLS and host for QA (JSON patch for complete rule replacement)
   - target:
       kind: Ingress
       name: bff-ingress
     patch: |-
-      apiVersion: networking.k8s.io/v1
-      kind: Ingress
-      metadata:
-        name: bff-ingress
-        annotations:
-          cert-manager.io/cluster-issuer: letsencrypt-prod
-      spec:
-        tls:
+      - op: add
+        path: /metadata/annotations/cert-manager.io~1cluster-issuer
+        value: letsencrypt-prod
+      - op: add
+        path: /spec/tls
+        value:
           - hosts:
               - api-qa.cryptojackpot.com
             secretName: cryptojackpot-qa-tls
-        rules:
+      - op: replace
+        path: /spec/rules
+        value:
           - host: api-qa.cryptojackpot.com
+            http:
+              paths:
+                - path: /api
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: bff-gateway
+                      port:
+                        number: 80
+                - path: /lottery-hub
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: bff-gateway
+                      port:
+                        number: 80
+                - path: /health
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: bff-gateway
+                      port:
+                        number: 80
 
 # ConfigMap for QA environment
 configMapGenerator:

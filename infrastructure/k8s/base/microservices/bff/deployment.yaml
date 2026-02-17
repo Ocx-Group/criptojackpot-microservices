@@ -32,10 +32,21 @@ spec:
                   optional: true
             - name: ASPNETCORE_URLS
               value: "http://+:80"
-          envFrom:
-            - secretRef:
-                name: bff-secrets
-                optional: true
+            - name: JwtSettings__SecretKey
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_SECRET_KEY
+            - name: JwtSettings__Issuer
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_ISSUER
+            - name: JwtSettings__Audience
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secrets
+                  key: JWT_AUDIENCE
           livenessProbe:
             httpGet:
               path: /health
