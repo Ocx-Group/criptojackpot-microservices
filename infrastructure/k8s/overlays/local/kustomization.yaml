@@ -9,7 +9,6 @@ resources:
   - ../../base/infrastructure
   - secrets
   - configmaps
-  - ingress
   - jobs
 
 # Environment-specific patches using JSON Patch
@@ -241,6 +240,19 @@ patches:
           limits:
             memory: "256Mi"
             cpu: "250m"
+
+  # BFF Ingress - Add host for local
+  - target:
+      kind: Ingress
+      name: bff-ingress
+    patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: bff-ingress
+      spec:
+        rules:
+          - host: localhost
 
 # ConfigMap for local environment
 configMapGenerator:

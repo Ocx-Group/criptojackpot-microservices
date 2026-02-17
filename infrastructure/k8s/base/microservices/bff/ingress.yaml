@@ -11,7 +11,17 @@ metadata:
   annotations:
     # WebSocket support for SignalR
     nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
-    nginx.ingress.kubernetes.io/upstream-hash-by: "$request_uri"
+    nginx.ingress.kubernetes.io/proxy-set-headers: "ingress-nginx/custom-headers"
+    # Session affinity for SignalR (sticky sessions)
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "BFF_AFFINITY"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
+    nginx.ingress.kubernetes.io/session-cookie-path: "/"
+    # Proxy settings
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
 spec:
   ingressClassName: nginx
   rules:
@@ -41,4 +51,3 @@ spec:
                 name: bff-gateway
                 port:
                   number: 80
-

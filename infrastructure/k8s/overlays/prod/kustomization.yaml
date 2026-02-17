@@ -7,7 +7,6 @@ namespace: cryptojackpot
 resources:
   - ../../base
   - secrets
-  - ingress
   - pgbouncer
 
 # PROD uses managed services:
@@ -453,6 +452,27 @@ patches:
           limits:
             memory: "256Mi"
             cpu: "250m"
+
+  # BFF Ingress - Add TLS, host, and rate limiting for production
+  - target:
+      kind: Ingress
+      name: bff-ingress
+    patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: bff-ingress
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+          nginx.ingress.kubernetes.io/limit-rps: "100"
+          nginx.ingress.kubernetes.io/limit-connections: "50"
+      spec:
+        tls:
+          - hosts:
+              - api.cryptojackpot.com
+            secretName: cryptojackpot-prod-tls
+        rules:
+          - host: api.cryptojackpot.com
 
 # ConfigMap for Production environment
 configMapGenerator:

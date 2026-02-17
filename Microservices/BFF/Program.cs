@@ -63,22 +63,7 @@ builder.Services.AddAuthorization();
 // ==============================================
 // Health Checks for downstream services
 // ==============================================
-var healthChecksBuilder = builder.Services.AddHealthChecks();
-
-// Add health checks for each downstream service
-var clusters = builder.Configuration.GetSection("ReverseProxy:Clusters").GetChildren();
-foreach (var cluster in clusters)
-{
-    var address = cluster.GetSection("Destinations:default:Address").Value;
-    if (!string.IsNullOrEmpty(address))
-    {
-        var serviceName = cluster.Key.Replace("-cluster", "");
-        healthChecksBuilder.AddUrlGroup(
-            new Uri($"{address}/health"),
-            name: $"{serviceName}-health",
-            tags: new[] { "downstream" });
-    }
-}
+builder.Services.AddHealthChecks();
 
 // ==============================================
 // CORS Configuration
@@ -115,10 +100,9 @@ app.UseCors("AllowFrontend");
 
 // Health check endpoint
 app.MapHealthChecks("/health");
-app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
-{
-    Predicate = check => check.Tags.Contains("downstream")
-});
+
+// WebSockets must be enabled before MapReverseProxy for SignalR support
+app.UseWebSockets();
 
 // Authentication & Authorization
 app.UseAuthentication();
@@ -135,5 +119,4 @@ app.MapGet("/", () => Results.Ok(new
     timestamp = DateTime.UtcNow
 }));
 
-app.Run();
-
+await app.RunAsync();

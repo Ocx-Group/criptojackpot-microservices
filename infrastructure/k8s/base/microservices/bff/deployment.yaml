@@ -27,8 +27,9 @@ spec:
             - name: ASPNETCORE_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
-                  name: cryptojackpot-config
+                  name: app-config
                   key: ASPNETCORE_ENVIRONMENT
+                  optional: true
             - name: ASPNETCORE_URLS
               value: "http://+:80"
           envFrom:

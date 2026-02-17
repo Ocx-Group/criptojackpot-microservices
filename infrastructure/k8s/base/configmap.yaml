@@ -5,6 +5,7 @@ metadata:
   name: app-config
   namespace: cryptojackpot
 data:
+  ASPNETCORE_ENVIRONMENT: "Development"
   ASPNETCORE_URLS: "http://+:80"
   Logging__LogLevel__Default: "Information"
   Logging__LogLevel__Microsoft.AspNetCore: "Warning"

@@ -7,7 +7,6 @@ namespace: cryptojackpot
 resources:
   - ../../base
   - secrets
-  - ingress
   - pgbouncer
 
 # QA uses managed services (no local infrastructure)
@@ -229,6 +228,25 @@ patches:
           limits:
             memory: "128Mi"
             cpu: "125m"
+
+  # BFF Ingress - Add TLS and host for QA
+  - target:
+      kind: Ingress
+      name: bff-ingress
+    patch: |-
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: bff-ingress
+        annotations:
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+      spec:
+        tls:
+          - hosts:
+              - api-qa.cryptojackpot.com
+            secretName: cryptojackpot-qa-tls
+        rules:
+          - host: api-qa.cryptojackpot.com
 
 # ConfigMap for QA environment
 configMapGenerator:
