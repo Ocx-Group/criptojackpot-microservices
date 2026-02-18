@@ -20,6 +20,7 @@ public interface IIdentityEventPublisher
     /// Publishes user registered event for external registration (Google OAuth - email pre-verified).
     /// </summary>
     Task PublishExternalUserRegisteredAsync(User user);
+    Task PublishPasswordResetRequestedAsync(User user, string securityCode);
     
     Task PublishUserLockedOutAsync(User user, int lockoutMinutes, string? ipAddress, string? userAgent);
     Task PublishSecurityAlertAsync(User user, SecurityAlertType alertType, string description, string? ipAddress, string? userAgent);

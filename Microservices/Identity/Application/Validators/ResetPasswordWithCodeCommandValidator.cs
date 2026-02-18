@@ -1,0 +1,28 @@
+using CryptoJackpot.Identity.Application.Commands;
+using FluentValidation;
+
+namespace CryptoJackpot.Identity.Application.Validators;
+
+public class ResetPasswordWithCodeCommandValidator : AbstractValidator<ResetPasswordWithCodeCommand>
+{
+    public ResetPasswordWithCodeCommandValidator()
+    {
+        RuleFor(x => x.Email)
+            .NotEmpty().WithMessage("Email is required")
+            .MaximumLength(150).WithMessage("Email must not exceed 150 characters")
+            .EmailAddress().WithMessage("Invalid email format");
+
+        RuleFor(x => x.SecurityCode)
+            .NotEmpty().WithMessage("Security code is required")
+            .Matches(@"^\d{6}$").WithMessage("Security code must be 6 digits");
+
+        RuleFor(x => x.Password)
+            .NotEmpty().WithMessage("Password is required")
+            .MinimumLength(8).WithMessage("Password must be at least 8 characters")
+            .MaximumLength(128).WithMessage("Password must not exceed 128 characters");
+
+        RuleFor(x => x.ConfirmPassword)
+            .NotEmpty().WithMessage("Confirm password is required")
+            .Equal(x => x.Password).WithMessage("Password and confirm password do not match");
+    }
+}

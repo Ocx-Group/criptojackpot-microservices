@@ -101,6 +101,25 @@ public class IdentityEventPublisher : IIdentityEventPublisher
         }
     }
 
+    public async Task PublishPasswordResetRequestedAsync(User user, string securityCode)
+    {
+        try
+        {
+            await _eventBus.Publish(new PasswordResetRequestedEvent
+            {
+                Email = user.Email,
+                Name = user.Name,
+                LastName = user.LastName,
+                SecurityCode = securityCode
+            });
+            _logger.LogInformation("PasswordResetRequestedEvent published for user {UserId}", user.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to publish PasswordResetRequestedEvent for user {UserId}", user.Id);
+        }
+    }
+
     public async Task PublishUserLockedOutAsync(User user, int lockoutMinutes, string? ipAddress, string? userAgent)
     {
         try

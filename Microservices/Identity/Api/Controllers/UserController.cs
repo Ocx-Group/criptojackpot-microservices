@@ -77,4 +77,22 @@ public class UserController : ControllerBase
         var result = await _mediator.Send(command);
         return result.ToActionResult();
     }
+
+    [AllowAnonymous]
+    [HttpPost("request-password-reset")]
+    public async Task<IActionResult> RequestPasswordReset([FromBody] RequestPasswordResetRequest request)
+    {
+        var command = _mapper.Map<RequestPasswordResetCommand>(request);
+        var result = await _mediator.Send(command);
+        return result.ToActionResult();
+    }
+
+    [AllowAnonymous]
+    [HttpPost("reset-password-with-code")]
+    public async Task<IActionResult> ResetPasswordWithCode([FromBody] ResetPasswordWithCodeRequest request)
+    {
+        var command = _mapper.Map<ResetPasswordWithCodeCommand>(request);
+        var result = await _mediator.Send(command);
+        return result.ToActionResult();
+    }
 }

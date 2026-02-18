@@ -43,6 +43,13 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
+    public async Task<User?> GetByEmailCaseInsensitiveAsync(string email)
+    {
+        return await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => EF.Functions.ILike(u.Email, email));
+    }
+
     public async Task<User?> GetByGoogleIdAsync(string googleId)
     {
         return await _context.Users

@@ -15,6 +15,8 @@ public class IdentityMappingProfile : Profile
         CreateMap<UpdateUserRequest, UpdateUserCommand>();
         CreateMap<GenerateUploadUrlRequest, GenerateUploadUrlCommand>();
         CreateMap<UpdateUserImageRequest, UpdateUserImageCommand>();
+        CreateMap<RequestPasswordResetRequest, RequestPasswordResetCommand>();
+        CreateMap<ResetPasswordWithCodeRequest, ResetPasswordWithCodeCommand>();
         
         // User mappings
         CreateMap<User, UserDto>();
