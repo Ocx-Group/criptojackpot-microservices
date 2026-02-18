@@ -10,20 +10,20 @@ namespace CryptoJackpot.Identity.Application.Handlers.Events;
 /// <summary>
 /// Handles referral creation when a user is created with a referral code.
 /// Decoupled from CreateUserCommandHandler via domain events.
-/// Note: This handler executes within the transaction context of the parent command handler.
+/// Executes as fire-and-forget.
 /// </summary>
 public class ProcessReferralHandler : INotificationHandler<UserCreatedDomainEvent>
 {
-    private readonly IUserRepository _userRepository;
+    private readonly IUserReferralRepository _userReferralRepository;
     private readonly IIdentityEventPublisher _eventPublisher;
     private readonly ILogger<ProcessReferralHandler> _logger;
 
     public ProcessReferralHandler(
-        IUserRepository userRepository,
+        IUserReferralRepository userReferralRepository,
         IIdentityEventPublisher eventPublisher,
         ILogger<ProcessReferralHandler> logger)
     {
-        _userRepository = userRepository;
+        _userReferralRepository = userReferralRepository;
         _eventPublisher = eventPublisher;
         _logger = logger;
     }
@@ -45,11 +45,10 @@ public class ProcessReferralHandler : INotificationHandler<UserCreatedDomainEven
                 UsedSecurityCode = notification.ReferralCode
             };
 
-            notification.User.ReferredBy = userReferral;
-            await _userRepository.UpdateAsync(notification.User);
+            await _userReferralRepository.CreateUserReferralAsync(userReferral);
 
-            // Publish event to Kafka for Notification service
-            await _eventPublisher.PublishReferralCreatedAsync(
+            // Publish event to Kafka for Notification service (fire-and-forget)
+            _ = _eventPublisher.PublishReferralCreatedAsync(
                 notification.Referrer, 
                 notification.User, 
                 notification.ReferralCode);
@@ -61,10 +60,12 @@ public class ProcessReferralHandler : INotificationHandler<UserCreatedDomainEven
         }
         catch (Exception ex)
         {
+            // Log error but don't throw - this is fire-and-forget
+            // The user creation should not fail due to referral processing errors
             _logger.LogError(ex, 
-                "Failed to process referral for user {UserId}", 
-                notification.User.Id);
-            throw;
+                "Failed to process referral for user {UserId}. Referrer: {ReferrerId}", 
+                notification.User.Id,
+                notification.Referrer.Id);
         }
     }
 }

@@ -3,6 +3,7 @@ using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Identity.Application.Commands;
 using CryptoJackpot.Identity.Application.DTOs;
+using CryptoJackpot.Identity.Application.Events;
 using CryptoJackpot.Identity.Application.Interfaces;
 using CryptoJackpot.Identity.Domain.Interfaces;
 using CryptoJackpot.Identity.Domain.Models;
@@ -15,28 +16,25 @@ namespace CryptoJackpot.Identity.Application.Handlers.Commands;
 public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Result<UserDto>>
 {
     private readonly IUserRepository _userRepository;
-    private readonly IUserReferralRepository _userReferralRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IIdentityEventPublisher _eventPublisher;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IPublisher _publisher;
     private readonly ILogger<CreateUserCommandHandler> _logger;
 
     public CreateUserCommandHandler(
         IUserRepository userRepository,
-        IUserReferralRepository userReferralRepository,
         IPasswordHasher passwordHasher,
         IIdentityEventPublisher eventPublisher,
-        IUnitOfWork unitOfWork,
         IMapper mapper,
+        IPublisher publisher,
         ILogger<CreateUserCommandHandler> logger)
     {
         _userRepository = userRepository;
-        _userReferralRepository = userReferralRepository;
         _passwordHasher = passwordHasher;
         _eventPublisher = eventPublisher;
-        _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _publisher = publisher;
         _logger = logger;
     }
 
@@ -68,42 +66,28 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
             var user = _mapper.Map<User>(request);
             user.PasswordHash = _passwordHasher.Hash(request.Password);
             user.EmailVerified = false;
-
-            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+            
+            // Generate email verification token
+            var verificationToken = Guid.NewGuid().ToString("N");
+            user.EmailVerificationToken = verificationToken;
+            user.EmailVerificationTokenExpiresAt = DateTime.UtcNow.AddHours(24);
 
             var createdUser = await _userRepository.CreateAsync(user);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            // Create referral relationship if referrer exists
+            // Fire-and-forget: Publish domain event for referral processing
             if (referrer is not null)
             {
-                var userReferral = new UserReferral
-                {
-                    ReferrerId = referrer.Id,
-                    ReferredId = createdUser.Id,
-                    UsedSecurityCode = request.ReferralCode!
-                };
-
-                await _userReferralRepository.CreateUserReferralAsync(userReferral);
-                await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-                _logger.LogInformation(
-                    "User {UserId} registered with referral code from {ReferrerId}",
+                _ = _publisher.Publish(
+                    new UserCreatedDomainEvent(createdUser, referrer, request.ReferralCode), 
+                    CancellationToken.None);
+                
+                _logger.LogDebug(
+                    "UserCreatedDomainEvent published for user {UserId} with referrer {ReferrerId}",
                     createdUser.Id, referrer.Id);
-
-                await _eventPublisher.PublishReferralCreatedAsync(referrer, createdUser, request.ReferralCode!);
             }
 
-            await _unitOfWork.CommitTransactionAsync(cancellationToken);
-
-            // Generate email verification token and publish event
-            var verificationToken = Guid.NewGuid().ToString("N");
-            createdUser.EmailVerificationToken = verificationToken;
-            createdUser.EmailVerificationTokenExpiresAt = DateTime.UtcNow.AddHours(24);
-            await _userRepository.UpdateAsync(createdUser);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            await _eventPublisher.PublishUserRegisteredAsync(createdUser, verificationToken);
+            // Fire-and-forget: Publish user registered event for email notification
+            _ = _eventPublisher.PublishUserRegisteredAsync(createdUser, verificationToken);
 
             _logger.LogInformation("User {UserId} created successfully with email {Email}", createdUser.Id, createdUser.Email);
 
@@ -111,7 +95,6 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Resul
         }
         catch (Exception ex)
         {
-            await _unitOfWork.RollbackTransactionAsync(cancellationToken);
             _logger.LogError(ex, "Failed to create user with email {Email}", request.Email);
             return Result.Fail<UserDto>(new InternalServerError("Failed to create user"));
         }
