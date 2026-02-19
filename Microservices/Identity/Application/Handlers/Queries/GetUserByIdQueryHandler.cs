@@ -33,9 +33,7 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, Result<
 
         var userDto = _mapper.Map<UserDto>(user);
         
-        // Generate presigned URL for image if exists
-        if (!string.IsNullOrEmpty(userDto.ImagePath))
-            userDto.ImagePath = _storageService.GetPresignedUrl(userDto.ImagePath);
+        userDto.ImagePath = _storageService.GetImageUrl(userDto.ImagePath);
 
         return Result.Ok(userDto);
     }

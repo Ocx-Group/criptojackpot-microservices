@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using AutoMapper;
 using CryptoJackpot.Domain.Core.Extensions;
+using CryptoJackpot.Identity.Api.Extensions;
 using CryptoJackpot.Identity.Application.Commands;
 using CryptoJackpot.Identity.Application.Queries;
 using CryptoJackpot.Identity.Application.Requests;
@@ -24,7 +25,22 @@ public class UserController : ControllerBase
         _mediator = mediator;
         _mapper = mapper;
     }
-    
+
+    /// <summary>
+    /// Get the current authenticated user's profile.
+    /// </summary>
+    [HttpGet("me")]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var userGuid = User.GetUserGuid();
+        if (userGuid is null)
+            return Unauthorized();
+
+        var query = new GetCurrentUserQuery { UserGuid = userGuid.Value };
+        var result = await _mediator.Send(query);
+        return result.ToActionResult();
+    }
+
     [AllowAnonymous]
     [HttpPost()]
     public async Task<IActionResult> Register([FromBody] CreateUserRequest request)

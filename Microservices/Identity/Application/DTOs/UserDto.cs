@@ -2,6 +2,7 @@ namespace CryptoJackpot.Identity.Application.DTOs;
 
 public class UserDto
 {
+    public long Id { get; set; }
     public Guid UserGuid { get; set; }
     public string Name { get; set; } = null!;
     public string LastName { get; set; } = null!;

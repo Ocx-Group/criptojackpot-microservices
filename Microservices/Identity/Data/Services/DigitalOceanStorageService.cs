@@ -70,6 +70,22 @@ public class DigitalOceanStorageService : IStorageService
         return _s3Client.GetPreSignedURL(request);
     }
 
+    public string? GetImageUrl(string? imagePath, int expirationMinutes = 60)
+    {
+        if (string.IsNullOrEmpty(imagePath))
+            return null;
+
+        // If it's already a full URL (external providers like Google, Facebook, etc.), return as-is
+        if (imagePath.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            imagePath.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return imagePath;
+        }
+
+        // Otherwise, it's an internal storage key - generate presigned URL
+        return GetPresignedUrl(imagePath, expirationMinutes);
+    }
+
     public bool IsValidFileExtension(string fileName)
     {
         var extension = Path.GetExtension(fileName);

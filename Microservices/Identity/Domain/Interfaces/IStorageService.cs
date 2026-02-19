@@ -20,6 +20,11 @@ public interface IStorageService
     string GetPresignedUrl(string key, int expirationMinutes = 60);
 
     /// <summary>
+    /// Gets the image URL - returns presigned URL for internal paths, or the original URL for external URLs (Google, etc.)
+    /// </summary>
+    string? GetImageUrl(string? imagePath, int expirationMinutes = 60);
+
+    /// <summary>
     /// Validates if a file extension is allowed
     /// </summary>
     bool IsValidFileExtension(string fileName);

@@ -44,8 +44,8 @@ public class UpdateUserImageCommandHandler : IRequestHandler<UpdateUserImageComm
 
         var userDto = _mapper.Map<UserDto>(user);
         
-        // Return the presigned URL for immediate use
-        userDto.ImagePath = _storageService.GetPresignedUrl(request.StorageKey);
+        // Return the presigned URL for immediate use (always internal path here)
+        userDto.ImagePath = _storageService.GetImageUrl(request.StorageKey);
 
         return Result.Ok(userDto);
     }

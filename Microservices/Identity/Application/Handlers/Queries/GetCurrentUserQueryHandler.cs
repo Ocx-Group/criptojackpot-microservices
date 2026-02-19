@@ -1,4 +1,5 @@
 using AutoMapper;
+using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Identity.Application.DTOs;
 using CryptoJackpot.Identity.Application.Queries;
 using CryptoJackpot.Identity.Domain.Interfaces;
@@ -7,13 +8,13 @@ using MediatR;
 
 namespace CryptoJackpot.Identity.Application.Handlers.Queries;
 
-public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, Result<IEnumerable<UserDto>>>
+public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, Result<UserDto>>
 {
     private readonly IUserRepository _userRepository;
     private readonly IStorageService _storageService;
     private readonly IMapper _mapper;
 
-    public GetAllUsersQueryHandler(
+    public GetCurrentUserQueryHandler(
         IUserRepository userRepository,
         IStorageService storageService,
         IMapper mapper)
@@ -23,16 +24,17 @@ public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, Result<
         _mapper = mapper;
     }
 
-    public async Task<Result<IEnumerable<UserDto>>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<UserDto>> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
     {
-        var users = await _userRepository.GetAllAsync(request.ExcludeUserId);
-        var userDtos = users.Select(u =>
-        {
-            var dto = _mapper.Map<UserDto>(u);
-            dto.ImagePath = _storageService.GetImageUrl(dto.ImagePath);
-            return dto;
-        });
+        var user = await _userRepository.GetByGuidAsync(request.UserGuid);
 
-        return Result.Ok(userDtos);
+        if (user is null)
+            return Result.Fail<UserDto>(new NotFoundError("User not found"));
+
+        var userDto = _mapper.Map<UserDto>(user);
+
+        userDto.ImagePath = _storageService.GetImageUrl(userDto.ImagePath);
+
+        return Result.Ok(userDto);
     }
 }
