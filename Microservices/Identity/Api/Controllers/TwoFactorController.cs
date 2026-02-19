@@ -2,6 +2,7 @@ using Asp.Versioning;
 using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Identity.Api.Extensions;
 using CryptoJackpot.Identity.Application.Commands;
+using CryptoJackpot.Identity.Application.Queries;
 using CryptoJackpot.Identity.Application.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -24,6 +25,23 @@ public class TwoFactorController : ControllerBase
     public TwoFactorController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    /// <summary>
+    /// Get 2FA status for the authenticated user.
+    /// Returns whether 2FA is enabled and remaining recovery codes.
+    /// </summary>
+    [HttpGet("status")]
+    public async Task<IActionResult> GetStatus()
+    {
+        var userGuid = User.GetUserGuid();
+        if (userGuid is null)
+            return Unauthorized();
+
+        var query = new Get2FaStatusQuery { UserGuid = userGuid.Value };
+        var result = await _mediator.Send(query);
+
+        return result.ToActionResult();
     }
 
     /// <summary>
@@ -107,6 +125,37 @@ public class TwoFactorController : ControllerBase
         {
             success = true,
             message = "2FA has been disabled."
+        });
+    }
+
+    /// <summary>
+    /// Regenerate 2FA recovery codes.
+    /// Invalidates all existing codes and generates new ones.
+    /// Requires current TOTP code for verification.
+    /// </summary>
+    [HttpPost("recovery-codes/regenerate")]
+    public async Task<IActionResult> RegenerateRecoveryCodes([FromBody] Regenerate2FaRecoveryCodesRequest request)
+    {
+        var userGuid = User.GetUserGuid();
+        if (userGuid is null)
+            return Unauthorized();
+
+        var command = new Regenerate2FaRecoveryCodesCommand
+        {
+            UserGuid = userGuid.Value,
+            Code = request.Code
+        };
+
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailed)
+            return result.ToActionResult();
+
+        return Ok(new
+        {
+            success = true,
+            message = "Recovery codes regenerated. Save your new codes in a safe place. Previous codes are no longer valid.",
+            data = result.Value
         });
     }
 }

@@ -209,5 +209,61 @@ public class TwoFactorSetupService : ITwoFactorSetupService
 
         return Result.Ok();
     }
+
+    public async Task<Result<Confirm2FaResultDto>> RegenerateRecoveryCodesAsync(
+        Guid userGuid,
+        string code,
+        CancellationToken cancellationToken)
+    {
+        var user = await _userRepository.GetByGuidAsync(userGuid);
+        if (user is null)
+        {
+            return Result.Fail(new NotFoundError("User not found."));
+        }
+
+        if (!user.TwoFactorEnabled)
+        {
+            return Result.Fail(new BadRequestError("2FA is not enabled. Enable 2FA first."));
+        }
+
+        if (string.IsNullOrWhiteSpace(user.TwoFactorSecret))
+        {
+            _logger.LogError("User {UserId} has 2FA enabled but no secret", user.Id);
+            return Result.Fail(new InternalServerError("2FA configuration error. Please contact support."));
+        }
+
+        // Verify TOTP code
+        var decryptedSecret = _encryptionService.Decrypt(user.TwoFactorSecret);
+        if (string.IsNullOrWhiteSpace(decryptedSecret) || !_totpService.ValidateCode(decryptedSecret, code))
+        {
+            _logger.LogWarning("Invalid TOTP code during recovery codes regeneration for user {UserId}", user.Id);
+            return Result.Fail(new UnauthorizedError("Invalid verification code."));
+        }
+
+        // Delete existing recovery codes
+        await _recoveryCodeRepository.DeleteAllByUserIdAsync(user.Id);
+
+        // Generate new recovery codes
+        var (plainCodes, codeEntities) = _recoveryCodeService.GenerateCodes(user.Id, _config.RecoveryCodeCount);
+        await _recoveryCodeRepository.AddRangeAsync(codeEntities);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Recovery codes regenerated for user {UserId}. Generated {CodeCount} new codes.",
+            user.Id, plainCodes.Count);
+
+        // Publish security event
+        await _eventPublisher.PublishSecurityAlertAsync(
+            user,
+            SecurityAlertType.RecoveryCodesRegenerated,
+            "Your two-factor authentication recovery codes have been regenerated. Previous codes are no longer valid.",
+            null,
+            null);
+
+        return Result.Ok(new Confirm2FaResultDto
+        {
+            RecoveryCodes = plainCodes
+        });
+    }
 }
 

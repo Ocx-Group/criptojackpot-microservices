@@ -25,5 +25,16 @@ public interface ITwoFactorSetupService
     /// Removes secret and all recovery codes.
     /// </summary>
     Task<Result> DisableAsync(Guid userGuid, string? code, string? recoveryCode, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Regenerates recovery codes for a user with 2FA enabled.
+    /// Invalidates all existing codes and generates new ones.
+    /// Requires TOTP code verification.
+    /// </summary>
+    /// <param name="userGuid">User GUID</param>
+    /// <param name="code">Current TOTP code for verification</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>New recovery codes (shown only once)</returns>
+    Task<Result<Confirm2FaResultDto>> RegenerateRecoveryCodesAsync(Guid userGuid, string code, CancellationToken cancellationToken);
 }
 

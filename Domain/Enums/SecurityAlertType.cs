@@ -43,6 +43,11 @@ public enum SecurityAlertType
     /// <summary>
     /// All sessions were revoked (logout from all devices).
     /// </summary>
-    AllSessionsRevoked = 8
+    AllSessionsRevoked = 8,
+    
+    /// <summary>
+    /// 2FA recovery codes were regenerated.
+    /// </summary>
+    RecoveryCodesRegenerated = 9
 }
 
