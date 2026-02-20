@@ -3,4 +3,7 @@ using Xunit;
 namespace CryptoJackpot.Identity.IntegrationTests;
 
 [CollectionDefinition(nameof(IdentityApiCollection))]
-public class IdentityApiCollection : ICollectionFixture<IdentityApiFactory>;
+public class IdentityApiCollection : ICollectionFixture<IdentityApiFactory>
+{
+    protected IdentityApiCollection() { }
+}

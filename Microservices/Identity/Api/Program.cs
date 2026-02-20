@@ -38,4 +38,7 @@ await app.ApplyMigrationsAsync<IdentityDbContext>();
 await app.RunAsync();
 
 // Necesario para WebApplicationFactory en tests de integración
-public partial class Program;
+public partial class Program
+{
+    protected Program() { }
+}
