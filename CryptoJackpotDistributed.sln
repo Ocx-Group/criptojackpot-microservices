@@ -512,6 +512,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{35
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoJackpot.Identity.Test", "Tests\Unit\Identity\CryptoJackpot.Identity.Test\CryptoJackpot.Identity.Test.csproj", "{05BEB996-9149-4A1A-A361-731DB53695C6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{ED0BA128-3C85-406D-8785-223923AA7DBE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoJackpot.Identity.IntegrationTests", "Tests\Integration\Identity\CryptoJackpot.Identity.IntegrationTests\CryptoJackpot.Identity.IntegrationTests.csproj", "{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1002,6 +1006,18 @@ Global
 		{05BEB996-9149-4A1A-A361-731DB53695C6}.Release|x64.Build.0 = Release|Any CPU
 		{05BEB996-9149-4A1A-A361-731DB53695C6}.Release|x86.ActiveCfg = Release|Any CPU
 		{05BEB996-9149-4A1A-A361-731DB53695C6}.Release|x86.Build.0 = Release|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Debug|x64.Build.0 = Debug|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Debug|x86.Build.0 = Debug|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Release|x64.ActiveCfg = Release|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Release|x64.Build.0 = Release|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Release|x86.ActiveCfg = Release|Any CPU
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1140,5 +1156,7 @@ Global
 		{48B3A1B5-A675-4E42-B75C-4DC09BB021C0} = {C8B83FEE-AD56-41AF-9395-88700ED6D83C}
 		{354202F7-EC10-462E-8BEA-847FDD284422} = {5FF3528F-CEC2-47EC-A08F-5583996C8EE7}
 		{05BEB996-9149-4A1A-A361-731DB53695C6} = {354202F7-EC10-462E-8BEA-847FDD284422}
+		{ED0BA128-3C85-406D-8785-223923AA7DBE} = {49DCCEB6-3553-4C87-B985-FD4C68CC839B}
+		{0E891ABF-EC3C-4B13-870B-6A37785EF5D4} = {ED0BA128-3C85-406D-8785-223923AA7DBE}
 	EndGlobalSection
 EndGlobal
