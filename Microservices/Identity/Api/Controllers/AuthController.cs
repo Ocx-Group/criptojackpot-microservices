@@ -96,12 +96,15 @@ public class AuthController : ControllerBase
 
     /// <summary>
     /// Logout user by revoking refresh token and clearing cookies.
+    /// Requires a refresh token cookie; otherwise returns 401.
     /// </summary>
     [HttpPost("logout")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<IActionResult> Logout()
     {
         var refreshToken = Request.GetRefreshToken(_cookieConfig);
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            return Unauthorized(new { success = false, message = "Refresh token not found." });
         
         var command = new LogoutCommand { RefreshToken = refreshToken };
         await _mediator.Send(command);

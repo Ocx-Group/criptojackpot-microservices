@@ -1,21 +1,25 @@
 using CryptoJackpot.Identity.Data.Context;
 using CryptoJackpot.Identity.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
 namespace CryptoJackpot.Identity.IntegrationTests.Infrastructure;
 
+/// <summary>
+/// Utilidades para poblar y limpiar la base de datos de test.
+/// </summary>
 public static class DatabaseSeeder
 {
     /// <summary>
-    /// Seed mínimo: crea el rol "User" y el país por defecto.
-    /// Necesario porque el Identity service depende de estos registros base.
+    /// Seed mínimo: Role "User" + Country por defecto.
+    /// Idempotente — se llama UNA vez desde IdentityApiFactory.InitializeAsync().
     /// </summary>
     public static async Task SeedBaseDataAsync(IServiceProvider services)
     {
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
-        // Seed Role if not exists
-        if (!db.Roles.Any(r => r.Name == "User"))
+        if (!await db.Roles.AnyAsync(r => r.Name == "User"))
         {
             db.Roles.Add(new Role
             {
@@ -26,8 +30,7 @@ public static class DatabaseSeeder
             });
         }
 
-        // Seed Country if not exists
-        if (!db.Countries.Any())
+        if (!await db.Countries.AnyAsync())
         {
             db.Countries.Add(new Country
             {
@@ -42,8 +45,8 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Crea un usuario con password hasheado via BCrypt.
-    /// Retorna el password en texto plano para usarlo en los tests de login.
+    /// Crea un usuario con BCrypt hash real.
+    /// Retorna el password en texto plano para los tests.
     /// </summary>
     public static async Task<(User User, string PlainPassword)> CreateVerifiedUserAsync(
         IServiceProvider services,
@@ -55,10 +58,9 @@ public static class DatabaseSeeder
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
-        var role = db.Roles.First(r => r.Name == "User");
-        var country = db.Countries.First();
+        var role = await db.Roles.FirstAsync(r => r.Name == "User");
+        var country = await db.Countries.FirstAsync();
 
-        // BCrypt hash — mismo algoritmo que usa BcryptPasswordHasher en producción
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
         var user = new User
@@ -86,9 +88,6 @@ public static class DatabaseSeeder
         return (user, password);
     }
 
-    /// <summary>
-    /// Crea un usuario exclusivamente Google (sin password local).
-    /// </summary>
     public static async Task<User> CreateGoogleOnlyUserAsync(
         IServiceProvider services,
         string email = "google@cryptojackpot.com")
@@ -96,8 +95,8 @@ public static class DatabaseSeeder
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
-        var role = db.Roles.First(r => r.Name == "User");
-        var country = db.Countries.First();
+        var role = await db.Roles.FirstAsync(r => r.Name == "User");
+        var country = await db.Countries.FirstAsync();
 
         var user = new User
         {
@@ -107,7 +106,7 @@ public static class DatabaseSeeder
             Email = email,
             EmailVerified = true,
             PasswordHash = null,
-            GoogleId = "google_subject_id_12345",
+            GoogleId = $"google_{Guid.NewGuid():N}", // Único por test
             RoleId = role.Id,
             CountryId = country.Id,
             StatePlace = "Test",
@@ -124,17 +123,18 @@ public static class DatabaseSeeder
     }
 
     /// <summary>
-    /// Limpia todos los datos de usuario (para usar con Respawn o entre tests).
+    /// Limpia datos de usuario entre tests.
     /// </summary>
     public static async Task CleanUsersAsync(IServiceProvider services)
     {
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
 
-        db.UserRefreshTokens.RemoveRange(db.UserRefreshTokens);
-        db.UserRecoveryCodes.RemoveRange(db.UserRecoveryCodes);
-        db.UserReferrals.RemoveRange(db.UserReferrals);
-        db.Users.RemoveRange(db.Users);
-        await db.SaveChangesAsync();
+        // Orden: FK dependencias primero → tabla principal última
+        // ExecuteDeleteAsync genera un solo DELETE FROM por tabla (sin SELECT previo)
+        await db.UserRefreshTokens.ExecuteDeleteAsync();
+        await db.UserRecoveryCodes.ExecuteDeleteAsync();
+        await db.UserReferrals.ExecuteDeleteAsync();
+        await db.Users.ExecuteDeleteAsync();
     }
 }
