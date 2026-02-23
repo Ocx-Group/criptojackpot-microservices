@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using CryptoJackpot.Domain.Core.Responses;
 using CryptoJackpot.Wallet.Application.DTOs.CoinPayments;
+using CryptoJackpot.Wallet.Domain.Constants;
 using CryptoJackpot.Wallet.Domain.Interfaces;
 
 namespace CryptoJackpot.Wallet.Application.Providers;
@@ -30,8 +31,8 @@ public class CoinPaymentProvider : ICoinPaymentProvider
         string clientId,
         IHttpClientFactory httpClientFactory)
     {
-        _clientSecret      = clientSecret      ?? throw new ArgumentNullException(nameof(clientSecret));
-        _clientId          = clientId          ?? throw new ArgumentNullException(nameof(clientId));
+        _clientSecret = clientSecret ?? throw new ArgumentNullException(nameof(clientSecret));
+        _clientId = clientId ?? throw new ArgumentNullException(nameof(clientId));
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
     }
 
@@ -45,33 +46,57 @@ public class CoinPaymentProvider : ICoinPaymentProvider
         string? notificationsUrl = null,
         CancellationToken cancellationToken = default)
     {
+        // API v2 uses "items" array with amount as string, and currency as numeric ID.
+        // NOTE: currencyFrom/currencyTo should be numeric currency IDs (e.g., "5057", "1002")
+        // not ticker symbols. If your application still passes symbols like "USD"/"BTC",
+        // you'll need a mapping layer (CurrencyId resolver) or use the /currencies endpoint.
         var body = new CreateInvoiceRequest
         {
             ClientId = _clientId,
-            Amount = new InvoiceAmount
-            {
-                CurrencyId   = currencyFrom,
-                DisplayValue = amount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
-                Value        = amount.ToString("F8", System.Globalization.CultureInfo.InvariantCulture)
-            },
-            Currency   = currencyTo,
-            Notes      = notes,
+            Currency = currencyFrom, // Invoice denomination currency (numeric ID)
+            Items =
+            [
+                new InvoiceItem
+                {
+                    Name = notes ?? "Payment",
+                    Quantity = new InvoiceItemQuantity
+                    {
+                        Value = 1,
+                        Type = 2
+                    },
+                    Amount = amount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
+                    OriginalAmount = new InvoiceOriginalAmount
+                    {
+                        CurrencyId = currencyFrom,
+                        DisplayValue = amount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
+                        Value = amount.ToString("F8", System.Globalization.CultureInfo.InvariantCulture)
+                    }
+                }
+            ],
+            Notes = notes,
             WebhookData = !string.IsNullOrEmpty(notificationsUrl)
-                ? new InvoiceWebhookData { NotificationsUrl = notificationsUrl }
+                ? new InvoiceWebhookData
+                {
+                    NotificationsUrl = notificationsUrl
+                }
                 : null
         };
 
-        return SendAsync(HttpMethod.Post, "merchant/invoices", body, cancellationToken);
+        return SendAsync(HttpMethod.Post, CoinPaymentsEndpoints.CreateInvoice, body, cancellationToken);
     }
 
     public Task<RestResponse> GetInvoiceAsync(string invoiceId, CancellationToken cancellationToken = default) =>
-        SendAsync(HttpMethod.Get, $"merchant/invoices/{invoiceId}", null, cancellationToken);
+        SendAsync(
+            HttpMethod.Get,
+            string.Format(CoinPaymentsEndpoints.GetInvoiceById, invoiceId),
+            null,
+            cancellationToken);
 
     public Task<RestResponse> GetBalancesAsync(CancellationToken cancellationToken = default) =>
-        SendAsync(HttpMethod.Get, "merchant/balance", null, cancellationToken);
+        SendAsync(HttpMethod.Get, CoinPaymentsEndpoints.GetBalances, null, cancellationToken);
 
     public Task<RestResponse> GetCurrenciesAsync(CancellationToken cancellationToken = default) =>
-        SendAsync(HttpMethod.Get, "currencies", null, cancellationToken);
+        SendAsync(HttpMethod.Get, CoinPaymentsEndpoints.GetCurrencies, null, cancellationToken);
 
     public Task<RestResponse> CreateWithdrawalAsync(
         decimal amount,
@@ -83,15 +108,15 @@ public class CoinPaymentProvider : ICoinPaymentProvider
     {
         var body = new CreateWithdrawalRequest
         {
-            ClientId         = _clientId,
-            Amount           = amount.ToString("F8", System.Globalization.CultureInfo.InvariantCulture),
-            Currency         = currency,
-            Address          = address,
-            AutoConfirm      = autoConfirm,
+            ClientId = _clientId,
+            Amount = amount.ToString("F8", System.Globalization.CultureInfo.InvariantCulture),
+            Currency = currency,
+            Address = address,
+            AutoConfirm = autoConfirm,
             NotificationsUrl = notificationsUrl
         };
 
-        return SendAsync(HttpMethod.Post, "merchant/withdrawals", body, cancellationToken);
+        return SendAsync(HttpMethod.Post, CoinPaymentsEndpoints.CreateWithdrawal, body, cancellationToken);
     }
 
     // ── Core HTTP logic ───────────────────────────────────────────────────
@@ -106,15 +131,14 @@ public class CoinPaymentProvider : ICoinPaymentProvider
 
         try
         {
-            using var httpClient = _httpClientFactory.CreateClient("CoinPayments");
+            using var httpClient = _httpClientFactory.CreateClient(ServiceDefaults.CoinPaymentsHttpClient);
 
-            var baseAddress = httpClient.BaseAddress
-                ?? throw new InvalidOperationException("CoinPayments HttpClient BaseAddress is not configured");
+            var baseAddress = httpClient.BaseAddress ?? throw new InvalidOperationException("CoinPayments HttpClient BaseAddress is not configured");
 
             var requestUri = new Uri(baseAddress, relativeEndpoint);
-            var timestamp  = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-            var bodyJson   = body is not null ? JsonSerializer.Serialize(body, JsonOptions) : string.Empty;
-            var signature  = BuildSignature(timestamp, bodyJson);
+            var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+            var bodyJson = body is not null ? JsonSerializer.Serialize(body, JsonOptions) : string.Empty;
+            var signature = BuildSignature(timestamp, bodyJson);
 
             using var request = new HttpRequestMessage(method, requestUri);
             request.Headers.Add("X-CoinPayments-Client-Id", _clientId);
@@ -126,25 +150,25 @@ public class CoinPaymentProvider : ICoinPaymentProvider
 
             using var response = await httpClient.SendAsync(request, cancellationToken);
 
-            restResponse.Content           = await response.Content.ReadAsStringAsync(cancellationToken);
-            restResponse.StatusCode        = response.StatusCode;
+            restResponse.Content = await response.Content.ReadAsStringAsync(cancellationToken);
+            restResponse.StatusCode = response.StatusCode;
             restResponse.StatusDescription = response.ReasonPhrase;
         }
         catch (OperationCanceledException)
         {
             restResponse.StatusCode = HttpStatusCode.RequestTimeout;
-            restResponse.Content    = "Request was cancelled";
+            restResponse.Content = "Request was cancelled";
             throw;
         }
         catch (HttpRequestException ex)
         {
             restResponse.StatusCode = HttpStatusCode.ServiceUnavailable;
-            restResponse.Content    = $"Error contacting CoinPayments API: {ex.Message}";
+            restResponse.Content = $"Error contacting CoinPayments API: {ex.Message}";
         }
         catch (Exception ex)
         {
             restResponse.StatusCode = HttpStatusCode.InternalServerError;
-            restResponse.Content    = $"Unexpected error: {ex.Message}";
+            restResponse.Content = $"Unexpected error: {ex.Message}";
             throw;
         }
 
@@ -158,7 +182,7 @@ public class CoinPaymentProvider : ICoinPaymentProvider
     /// </summary>
     private string BuildSignature(string timestamp, string body)
     {
-        var message  = _clientId + timestamp + body;
+        var message = _clientId + timestamp + body;
         var keyBytes = Encoding.UTF8.GetBytes(_clientSecret);
         var msgBytes = Encoding.UTF8.GetBytes(message);
 

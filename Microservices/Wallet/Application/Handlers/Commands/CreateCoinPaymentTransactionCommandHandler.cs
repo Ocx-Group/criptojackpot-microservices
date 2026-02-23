@@ -60,11 +60,19 @@ public class CreateCoinPaymentTransactionCommandHandler
                 return Result.Fail(new ExternalServiceError("CoinPayments", response.Error));
             }
 
-            _logger.LogInformation(
-                "CoinPayment transaction created successfully. TxId: {TransactionId}, Address: {Address}",
-                response.Result!.TransactionId, response.Result.Address);
+            // API v2 returns "invoices" array — use FirstResult to get the created invoice
+            var invoice = response.FirstResult;
+            if (invoice is null)
+            {
+                _logger.LogError("CoinPayments API returned success but no invoice in response");
+                return Result.Fail(new ExternalServiceError("CoinPayments", "No invoice returned in response"));
+            }
 
-            return ResultExtensions.Created(_mapper.Map<CreateCoinPaymentTransactionResponse>(response.Result));
+            _logger.LogInformation(
+                "CoinPayment transaction created successfully. TxId: {TransactionId}",
+                invoice.TransactionId);
+
+            return ResultExtensions.Created(_mapper.Map<CreateCoinPaymentTransactionResponse>(invoice));
         }
         catch (OperationCanceledException)
         {
