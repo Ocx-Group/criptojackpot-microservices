@@ -8,8 +8,8 @@ namespace CryptoJackpot.Wallet.Domain.Constants;
 public static class ConfigurationKeys
 {
     public const string CoinPaymentsSection = "CoinPayments";
-    public const string CoinPaymentsPrivateKey = "CoinPayments:PrivateKey";
-    public const string CoinPaymentsPublicKey = "CoinPayments:PublicKey";
+    public const string CoinPaymentsClientSecret = "CoinPayments:ClientSecret";
+    public const string CoinPaymentsClientId = "CoinPayments:ClientId";
     public const string CoinPaymentsBaseUrl = "CoinPayments:BaseUrl";
 
     public const string JwtSettingsSection = "JwtSettings";
@@ -31,7 +31,7 @@ public static class ServiceDefaults
     /// <summary>
     /// Default CoinPayments API endpoint URL
     /// </summary>
-    public const string CoinPaymentsBaseUrl = "https://a-api.coinpayments.net/api/v2";
+    public const string CoinPaymentsBaseUrl = "https://a-api.coinpayments.net/api/";
 
     /// <summary>
     /// Default HTTP client timeout in seconds

@@ -219,10 +219,12 @@ public static class IoCExtension
     private static void AddCoinPayments(IServiceCollection services, IConfiguration configuration)
     {
         var coinPaymentsSettings = configuration.GetSection(ConfigurationKeys.CoinPaymentsSection);
-        var clientSecret = coinPaymentsSettings["PrivateKey"] 
-            ?? throw new InvalidOperationException("CoinPayments PrivateKey (ClientSecret) is not configured");
-        var clientId = coinPaymentsSettings["PublicKey"] 
-            ?? throw new InvalidOperationException("CoinPayments PublicKey (ClientId) is not configured");
+        var clientSecret = coinPaymentsSettings["ClientSecret"] 
+            ?? coinPaymentsSettings["PrivateKey"] // backward compat
+            ?? throw new InvalidOperationException("CoinPayments ClientSecret is not configured");
+        var clientId = coinPaymentsSettings["ClientId"] 
+            ?? coinPaymentsSettings["PublicKey"] // backward compat
+            ?? throw new InvalidOperationException("CoinPayments ClientId is not configured");
         var baseUrl = coinPaymentsSettings["BaseUrl"] ?? ServiceDefaults.CoinPaymentsBaseUrl;
         
         // Ensure BaseUrl ends with '/' so relative paths resolve correctly
