@@ -1,3 +1,4 @@
+using CryptoJackpot.Wallet.Domain.Models;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,9 +10,13 @@ public class WalletDbContext : DbContext
     {
     }
 
+    public DbSet<UserCryptoWallet> UserCryptoWallets { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(WalletDbContext).Assembly);
 
         // MassTransit Outbox configuration with snake_case naming
         modelBuilder.AddInboxStateEntity(x => x.ToTable("inbox_state"));

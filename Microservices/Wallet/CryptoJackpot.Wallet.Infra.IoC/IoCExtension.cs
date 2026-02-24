@@ -216,7 +216,8 @@ public static class IoCExtension
 
     private static void AddRepositories(IServiceCollection services)
     {
-        _ = services; // reserved for future repository registrations
+        services.AddScoped<IUserCryptoWalletRepository, CryptoJackpot.Wallet.Data.Repositories.UserCryptoWalletRepository>();
+        services.AddScoped<IUnitOfWork, CryptoJackpot.Wallet.Data.UnitOfWork>();
     }
 
     private static void AddApplicationServices(IServiceCollection services)
