@@ -1,6 +1,5 @@
 using Asp.Versioning;
 using CryptoJackpot.Domain.Core.Extensions;
-using CryptoJackpot.Identity.Api.Extensions;
 using CryptoJackpot.Identity.Application.Commands;
 using CryptoJackpot.Identity.Application.Queries;
 using CryptoJackpot.Identity.Application.Requests;

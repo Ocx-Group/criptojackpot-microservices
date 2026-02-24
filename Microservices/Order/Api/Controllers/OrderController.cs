@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Asp.Versioning;
 using AutoMapper;
 using CryptoJackpot.Domain.Core.Extensions;
@@ -32,7 +31,7 @@ public class OrderController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         if (userId is null)
             return Unauthorized();
 
@@ -51,7 +50,7 @@ public class OrderController : ControllerBase
     [HttpPost("{orderId:guid}/complete")]
     public async Task<IActionResult> CompleteOrder([FromRoute] Guid orderId, [FromBody] CompleteOrderRequest request)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         if (userId is null)
             return Unauthorized();
 
@@ -69,7 +68,7 @@ public class OrderController : ControllerBase
     [HttpPost("{orderId:guid}/cancel")]
     public async Task<IActionResult> CancelOrder([FromRoute] Guid orderId)
     {
-        var userId = GetUserId();
+        var userId = User.GetUserId();
         if (userId is null)
             return Unauthorized();
 
@@ -82,11 +81,5 @@ public class OrderController : ControllerBase
 
         var result = await _mediator.Send(command);
         return result.ToActionResult();
-    }
-
-    private long? GetUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return long.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 }

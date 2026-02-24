@@ -1,9 +1,10 @@
 using System.Security.Claims;
 
-namespace CryptoJackpot.Identity.Api.Extensions;
+namespace CryptoJackpot.Domain.Core.Extensions;
 
 /// <summary>
-/// Extension methods for ClaimsPrincipal to extract user information.
+/// Extension methods for ClaimsPrincipal to extract user information from JWT claims.
+/// Shared across all microservices to avoid duplication.
 /// </summary>
 public static class ClaimsPrincipalExtensions
 {
@@ -14,9 +15,9 @@ public static class ClaimsPrincipalExtensions
     /// <returns>UserGuid if found and valid, null otherwise</returns>
     public static Guid? GetUserGuid(this ClaimsPrincipal principal)
     {
-        var userGuidClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+        var userGuidClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
                            ?? principal.FindFirst("sub")?.Value;
-        
+
         return Guid.TryParse(userGuidClaim, out var guid) ? guid : null;
     }
 
@@ -29,8 +30,21 @@ public static class ClaimsPrincipalExtensions
     /// <exception cref="UnauthorizedAccessException">If UserGuid claim is not found</exception>
     public static Guid GetRequiredUserGuid(this ClaimsPrincipal principal)
     {
-        return principal.GetUserGuid() 
+        return principal.GetUserGuid()
                ?? throw new UnauthorizedAccessException("User identifier not found in token.");
+    }
+
+    /// <summary>
+    /// Gets the user ID as long from JWT claims (sub or NameIdentifier).
+    /// </summary>
+    /// <param name="principal">The claims principal from User property</param>
+    /// <returns>User ID if found and valid, null otherwise</returns>
+    public static long? GetUserId(this ClaimsPrincipal principal)
+    {
+        var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                         ?? principal.FindFirst("sub")?.Value;
+
+        return long.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 
     /// <summary>
@@ -38,7 +52,7 @@ public static class ClaimsPrincipalExtensions
     /// </summary>
     public static string? GetEmail(this ClaimsPrincipal principal)
     {
-        return principal.FindFirst(ClaimTypes.Email)?.Value 
+        return principal.FindFirst(ClaimTypes.Email)?.Value
                ?? principal.FindFirst("email")?.Value;
     }
 
@@ -47,7 +61,7 @@ public static class ClaimsPrincipalExtensions
     /// </summary>
     public static string? GetRole(this ClaimsPrincipal principal)
     {
-        return principal.FindFirst(ClaimTypes.Role)?.Value 
+        return principal.FindFirst(ClaimTypes.Role)?.Value
                ?? principal.FindFirst("role")?.Value;
     }
 

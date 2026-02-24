@@ -1,7 +1,6 @@
 using Asp.Versioning;
 using AutoMapper;
 using CryptoJackpot.Domain.Core.Extensions;
-using CryptoJackpot.Wallet.Api.Extensions;
 using CryptoJackpot.Wallet.Application.Commands;
 using CryptoJackpot.Wallet.Application.Queries;
 using CryptoJackpot.Wallet.Application.Requests;

@@ -1,3 +1,4 @@
+using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Lottery.Application.DTOs;
 using CryptoJackpot.Lottery.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -112,7 +113,7 @@ public class LotteryHub : Hub<ILotteryHubClient>
                 "ReserveNumbersWithOrder called - LotteryId: {LotteryId}, Items: {ItemCount}, ExistingOrderId: {ExistingOrderId}",
                 lotteryId, items.Count, existingOrderId);
 
-            var userId = GetUserId();
+            var userId = Context.User?.GetUserId();
 
             if (userId == null)
             {
@@ -179,24 +180,4 @@ public class LotteryHub : Hub<ILotteryHubClient>
     /// Get the group name for a lottery.
     /// </summary>
     private static string GetLotteryGroupName(Guid lotteryId) => $"lottery-{lotteryId}";
-
-    /// <summary>
-    /// Get the current user ID from the connection context.
-    /// </summary>
-    private long? GetUserId()
-    {
-        // Try NameIdentifier first (standard .NET claim)
-        var userIdClaim = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-        // Fallback to 'sub' claim (standard JWT claim)
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            userIdClaim = Context.User?.FindFirst("sub")?.Value;
-        }
-
-        _logger.LogDebug("GetUserId - Claims: {Claims}",
-            string.Join(", ", Context.User?.Claims.Select(c => $"{c.Type}={c.Value}") ?? Array.Empty<string>()));
-
-        return long.TryParse(userIdClaim, out var userId) ? userId : null;
-    }
 }
