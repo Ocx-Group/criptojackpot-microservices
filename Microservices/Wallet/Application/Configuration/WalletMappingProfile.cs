@@ -18,5 +18,6 @@ public class WalletMappingProfile : Profile
         
         // Result to Response mappings
         CreateMap<CreateTransactionResult, CreateCoinPaymentTransactionResponse>();
+        CreateMap<RateResult, CoinPaymentCurrencyResponse>();
     }
 }

@@ -28,6 +28,12 @@ public class CoinPaymentsApiResponse<T> where T : class
     [JsonPropertyName("items")]
     public List<T>? Items { get; init; }
 
+    /// <summary>
+    /// Used by the currencies endpoint → { "currencies": [ ... ] }.
+    /// </summary>
+    [JsonPropertyName("currencies")]
+    public List<T>? Currencies { get; init; }
+
     /// <summary>HTTP-level success; set by the provider after reading the HTTP status code.</summary>
     [JsonIgnore]
     public bool IsSuccess { get; set; }
@@ -40,7 +46,7 @@ public class CoinPaymentsApiResponse<T> where T : class
     /// Convenience accessor: returns the first invoice or default from the response.
     /// </summary>
     [JsonIgnore]
-    public T? FirstResult => Invoices?.FirstOrDefault() ?? Items?.FirstOrDefault();
+    public T? FirstResult => Invoices?.FirstOrDefault() ?? Items?.FirstOrDefault() ?? Currencies?.FirstOrDefault();
 }
 
 // ─────────────────────────────────────────────

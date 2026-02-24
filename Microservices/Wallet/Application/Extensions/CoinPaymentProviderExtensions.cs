@@ -67,6 +67,18 @@ public static class CoinPaymentProviderExtensions
         return Deserialize<CoinPaymentsApiResponse<List<RateResult>>>(response);
     }
 
+    /// <summary>
+    /// Gets all supported cryptocurrencies from the CoinPayments API v2 (v1/currencies endpoint).
+    /// Returns the flat list of <see cref="RateResult"/> items from the "currencies" key.
+    /// </summary>
+    public static async Task<CoinPaymentsApiResponse<RateResult>?> GetCurrenciesTypedAsync(
+        this ICoinPaymentProvider provider,
+        CancellationToken cancellationToken = default)
+    {
+        var response = await provider.GetCurrenciesAsync(cancellationToken);
+        return Deserialize<CoinPaymentsApiResponse<RateResult>>(response);
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────
 
     private static T? Deserialize<T>(RestResponse response) where T : class

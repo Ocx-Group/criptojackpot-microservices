@@ -2,6 +2,7 @@ using Asp.Versioning;
 using AutoMapper;
 using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Wallet.Application.Commands;
+using CryptoJackpot.Wallet.Application.Queries;
 using CryptoJackpot.Wallet.Application.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +29,16 @@ public class CoinPaymentController : ControllerBase
     {
         var command = _mapper.Map<CreateCoinPaymentTransactionCommand>(request);
         var result = await _mediator.Send(command);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Retrieves all supported cryptocurrencies from the CoinPayments API v2.
+    /// </summary>
+    [HttpGet("currencies")]
+    public async Task<IActionResult> GetAllCurrencies(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetCoinPaymentCurrenciesQuery(), cancellationToken);
         return result.ToActionResult();
     }
 }
