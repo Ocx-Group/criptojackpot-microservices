@@ -4,6 +4,7 @@ using CryptoJackpot.Domain.Core.Behaviors;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Wallet.Application;
 using CryptoJackpot.Wallet.Application.Providers;
+using CryptoJackpot.Wallet.Application.Services;
 using CryptoJackpot.Wallet.Data.Context;
 using CryptoJackpot.Wallet.Domain.Constants;
 using CryptoJackpot.Wallet.Domain.Interfaces;
@@ -216,8 +217,8 @@ public static class IoCExtension
 
     private static void AddRepositories(IServiceCollection services)
     {
-        services.AddScoped<IUserCryptoWalletRepository, CryptoJackpot.Wallet.Data.Repositories.UserCryptoWalletRepository>();
-        services.AddScoped<IUnitOfWork, CryptoJackpot.Wallet.Data.UnitOfWork>();
+        services.AddScoped<IUserCryptoWalletRepository, Data.Repositories.UserCryptoWalletRepository>();
+        services.AddScoped<IUnitOfWork, Data.UnitOfWork>();
     }
 
     private static void AddApplicationServices(IServiceCollection services)
@@ -235,6 +236,7 @@ public static class IoCExtension
         
         // AutoMapper
         services.AddAutoMapper(assembly);
+        services.AddScoped<IWalletService, WalletService>();
     }
 
     private static void AddCoinPayments(IServiceCollection services, IConfiguration configuration)

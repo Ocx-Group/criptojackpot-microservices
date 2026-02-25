@@ -11,6 +11,8 @@ public class WalletDbContext : DbContext
     }
 
     public DbSet<UserCryptoWallet> UserCryptoWallets { get; set; } = null!;
+    public DbSet<WalletTransaction> WalletTransactions { get; set; } = null!;
+    public DbSet<WalletBalance> WalletBalances { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,4 +26,3 @@ public class WalletDbContext : DbContext
         modelBuilder.AddOutboxStateEntity(x => x.ToTable("outbox_state"));
     }
 }
-
