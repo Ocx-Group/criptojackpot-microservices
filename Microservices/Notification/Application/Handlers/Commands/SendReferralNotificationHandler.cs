@@ -55,7 +55,7 @@ public class SendReferralNotificationHandler : IRequestHandler<SendReferralNotif
             .Replace("{4}", referralsUrl);
 
         var subject = "New Referral - CryptoJackpot";
-        var success = await _emailProvider.SendEmailAsync(request.ReferrerEmail, subject, body);
+        var emailResult = await _emailProvider.SendEmailAsync(request.ReferrerEmail, subject, body);
 
         await _logRepository.AddAsync(new NotificationLog
         {
@@ -63,14 +63,15 @@ public class SendReferralNotificationHandler : IRequestHandler<SendReferralNotif
             Recipient = request.ReferrerEmail,
             Subject = subject,
             TemplateName = TemplateNames.ReferralNotification,
-            Success = success,
-            ErrorMessage = success ? null : "Failed to send email",
+            Success = emailResult.Success,
+            ErrorMessage = emailResult.ErrorMessage,
             SentAt = DateTime.UtcNow
         });
 
-        if (!success)
+        if (!emailResult.Success)
         {
-            _logger.LogWarning("Failed to send referral notification to {Email}", request.ReferrerEmail);
+            _logger.LogWarning("Failed to send referral notification to {Email}. Error: {Error}",
+                request.ReferrerEmail, emailResult.ErrorMessage);
             return Result.Fail<bool>(new InternalServerError("Failed to send referral notification"));
         }
 

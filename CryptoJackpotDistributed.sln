@@ -166,7 +166,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "identity", "identity", "{44
 		infrastructure\k8s\base\microservices\identity\kustomization.yaml = infrastructure\k8s\base\microservices\identity\kustomization.yaml
 		infrastructure\k8s\base\microservices\identity\deployment.yaml = infrastructure\k8s\base\microservices\identity\deployment.yaml
 		infrastructure\k8s\base\microservices\identity\service.yaml = infrastructure\k8s\base\microservices\identity\service.yaml
-		infrastructure\k8s\base\microservices\identity\ingress.yaml = infrastructure\k8s\base\microservices\identity\ingress.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lottery", "lottery", "{44444444-4444-4444-4444-444444444444}"
@@ -174,7 +173,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lottery", "lottery", "{4444
 		infrastructure\k8s\base\microservices\lottery\kustomization.yaml = infrastructure\k8s\base\microservices\lottery\kustomization.yaml
 		infrastructure\k8s\base\microservices\lottery\deployment.yaml = infrastructure\k8s\base\microservices\lottery\deployment.yaml
 		infrastructure\k8s\base\microservices\lottery\service.yaml = infrastructure\k8s\base\microservices\lottery\service.yaml
-		infrastructure\k8s\base\microservices\lottery\ingress.yaml = infrastructure\k8s\base\microservices\lottery\ingress.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "order", "order", "{44444444-4444-4444-4444-444444444445}"
@@ -182,7 +180,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "order", "order", "{44444444
 		infrastructure\k8s\base\microservices\order\kustomization.yaml = infrastructure\k8s\base\microservices\order\kustomization.yaml
 		infrastructure\k8s\base\microservices\order\deployment.yaml = infrastructure\k8s\base\microservices\order\deployment.yaml
 		infrastructure\k8s\base\microservices\order\service.yaml = infrastructure\k8s\base\microservices\order\service.yaml
-		infrastructure\k8s\base\microservices\order\ingress.yaml = infrastructure\k8s\base\microservices\order\ingress.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wallet", "wallet", "{44444444-4444-4444-4444-444444444446}"
@@ -190,7 +187,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wallet", "wallet", "{444444
 		infrastructure\k8s\base\microservices\wallet\kustomization.yaml = infrastructure\k8s\base\microservices\wallet\kustomization.yaml
 		infrastructure\k8s\base\microservices\wallet\deployment.yaml = infrastructure\k8s\base\microservices\wallet\deployment.yaml
 		infrastructure\k8s\base\microservices\wallet\service.yaml = infrastructure\k8s\base\microservices\wallet\service.yaml
-		infrastructure\k8s\base\microservices\wallet\ingress.yaml = infrastructure\k8s\base\microservices\wallet\ingress.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "winner", "winner", "{44444444-4444-4444-4444-444444444447}"
@@ -198,7 +194,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "winner", "winner", "{444444
 		infrastructure\k8s\base\microservices\winner\kustomization.yaml = infrastructure\k8s\base\microservices\winner\kustomization.yaml
 		infrastructure\k8s\base\microservices\winner\deployment.yaml = infrastructure\k8s\base\microservices\winner\deployment.yaml
 		infrastructure\k8s\base\microservices\winner\service.yaml = infrastructure\k8s\base\microservices\winner\service.yaml
-		infrastructure\k8s\base\microservices\winner\ingress.yaml = infrastructure\k8s\base\microservices\winner\ingress.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "notification", "notification", "{44444444-4444-4444-4444-444444444448}"
@@ -206,7 +201,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "notification", "notificatio
 		infrastructure\k8s\base\microservices\notification\kustomization.yaml = infrastructure\k8s\base\microservices\notification\kustomization.yaml
 		infrastructure\k8s\base\microservices\notification\deployment.yaml = infrastructure\k8s\base\microservices\notification\deployment.yaml
 		infrastructure\k8s\base\microservices\notification\service.yaml = infrastructure\k8s\base\microservices\notification\service.yaml
-		infrastructure\k8s\base\microservices\notification\ingress.yaml = infrastructure\k8s\base\microservices\notification\ingress.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "audit", "audit", "{44444444-4444-4444-4444-444444444449}"
@@ -214,7 +208,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "audit", "audit", "{44444444
 		infrastructure\k8s\base\microservices\audit\kustomization.yaml = infrastructure\k8s\base\microservices\audit\kustomization.yaml
 		infrastructure\k8s\base\microservices\audit\deployment.yaml = infrastructure\k8s\base\microservices\audit\deployment.yaml
 		infrastructure\k8s\base\microservices\audit\service.yaml = infrastructure\k8s\base\microservices\audit\service.yaml
-		infrastructure\k8s\base\microservices\audit\ingress.yaml = infrastructure\k8s\base\microservices\audit\ingress.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infrastructure", "infrastructure", "{44444444-4444-4444-4444-44444444444A}"

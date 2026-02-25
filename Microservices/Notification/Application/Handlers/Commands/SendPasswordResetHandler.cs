@@ -45,7 +45,7 @@ public class SendPasswordResetHandler : IRequestHandler<SendPasswordResetCommand
             .Replace("{2}", DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss"));
 
         var subject = "Password Reset - CryptoJackpot";
-        var success = await _emailProvider.SendEmailAsync(request.Email, subject, body);
+        var emailResult = await _emailProvider.SendEmailAsync(request.Email, subject, body);
 
         await _logRepository.AddAsync(new NotificationLog
         {
@@ -53,14 +53,15 @@ public class SendPasswordResetHandler : IRequestHandler<SendPasswordResetCommand
             Recipient = request.Email,
             Subject = subject,
             TemplateName = TemplateNames.PasswordReset,
-            Success = success,
-            ErrorMessage = success ? null : "Failed to send email",
+            Success = emailResult.Success,
+            ErrorMessage = emailResult.ErrorMessage,
             SentAt = DateTime.UtcNow
         });
 
-        if (!success)
+        if (!emailResult.Success)
         {
-            _logger.LogWarning("Failed to send password reset email to {Email}", request.Email);
+            _logger.LogWarning("Failed to send password reset email to {Email}. Error: {Error}",
+                request.Email, emailResult.ErrorMessage);
             return Result.Fail<bool>(new InternalServerError("Failed to send email"));
         }
 

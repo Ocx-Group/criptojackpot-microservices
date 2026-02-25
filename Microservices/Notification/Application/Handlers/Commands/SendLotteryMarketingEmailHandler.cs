@@ -60,7 +60,7 @@ public class SendLotteryMarketingEmailHandler : IRequestHandler<SendLotteryMarke
             .Replace("{LotteryUrl}", lotteryUrl);
 
         var subject = $"🎰 New Lottery Alert: {request.LotteryTitle} - Don't Miss Out!";
-        var success = await _emailProvider.SendEmailAsync(request.Email, subject, body);
+        var emailResult = await _emailProvider.SendEmailAsync(request.Email, subject, body);
 
         await _logRepository.AddAsync(new NotificationLog
         {
@@ -68,15 +68,15 @@ public class SendLotteryMarketingEmailHandler : IRequestHandler<SendLotteryMarke
             Recipient = request.Email,
             Subject = subject,
             TemplateName = TemplateNames.LotteryMarketing,
-            Success = success,
-            ErrorMessage = success ? null : "Failed to send marketing email",
+            Success = emailResult.Success,
+            ErrorMessage = emailResult.ErrorMessage,
             SentAt = DateTime.UtcNow
         });
 
-        if (!success)
+        if (!emailResult.Success)
         {
-            _logger.LogWarning("Failed to send lottery marketing email to {Email} for lottery {LotteryId}", 
-                request.Email, request.LotteryId);
+            _logger.LogWarning("Failed to send lottery marketing email to {Email} for lottery {LotteryId}. Error: {Error}", 
+                request.Email, request.LotteryId, emailResult.ErrorMessage);
             return Result.Fail<bool>(new InternalServerError("Failed to send marketing email"));
         }
 

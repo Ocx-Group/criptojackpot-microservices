@@ -56,7 +56,7 @@ public class SendWelcomeEmailHandler : IRequestHandler<SendWelcomeEmailCommand, 
             .Replace("{2}", dashboardUrl);
 
         var subject = $"Welcome to CryptoJackpot, {fullName}!";
-        var success = await _emailProvider.SendEmailAsync(request.Email, subject, body);
+        var emailResult = await _emailProvider.SendEmailAsync(request.Email, subject, body);
 
         await _logRepository.AddAsync(new NotificationLog
         {
@@ -64,14 +64,15 @@ public class SendWelcomeEmailHandler : IRequestHandler<SendWelcomeEmailCommand, 
             Recipient = request.Email,
             Subject = subject,
             TemplateName = TemplateNames.WelcomeEmail,
-            Success = success,
-            ErrorMessage = success ? null : "Failed to send",
+            Success = emailResult.Success,
+            ErrorMessage = emailResult.ErrorMessage,
             SentAt = DateTime.UtcNow
         });
 
-        if (!success)
+        if (!emailResult.Success)
         {
-            _logger.LogError("Failed to send welcome email to {Email}", request.Email);
+            _logger.LogError("Failed to send welcome email to {Email}. Error: {Error}",
+                request.Email, emailResult.ErrorMessage);
             return Result.Fail<bool>(new ExternalServiceError("Brevo", "Failed to send welcome email"));
         }
 

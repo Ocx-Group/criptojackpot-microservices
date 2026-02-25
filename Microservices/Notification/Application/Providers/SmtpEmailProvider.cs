@@ -18,7 +18,7 @@ public class SmtpEmailProvider : IEmailProvider
         _logger = logger;
     }
 
-    public async Task<bool> SendEmailAsync(string to, string subject, string body)
+    public async Task<EmailSendResult> SendEmailAsync(string to, string subject, string body)
     {
         try
         {
@@ -37,12 +37,13 @@ public class SmtpEmailProvider : IEmailProvider
 
             await client.SendMailAsync(message);
             _logger.LogInformation("Email sent successfully to {To}", to);
-            return true;
+            return new EmailSendResult(true);
         }
         catch (Exception ex)
         {
+            var errorMessage = $"SMTP error: {ex.Message}";
             _logger.LogError(ex, "Failed to send email to {To}", to);
-            return false;
+            return new EmailSendResult(false, errorMessage);
         }
     }
 }

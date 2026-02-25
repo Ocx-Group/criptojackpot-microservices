@@ -52,7 +52,7 @@ public class SendEmailConfirmationHandler : IRequestHandler<SendEmailConfirmatio
             .Replace("{2}", url);
 
         var subject = $"Welcome to CryptoJackpot, {fullName}!";
-        var success = await _emailProvider.SendEmailAsync(request.Email, subject, body);
+        var emailResult = await _emailProvider.SendEmailAsync(request.Email, subject, body);
 
         await _logRepository.AddAsync(new NotificationLog
         {
@@ -60,14 +60,15 @@ public class SendEmailConfirmationHandler : IRequestHandler<SendEmailConfirmatio
             Recipient = request.Email,
             Subject = subject,
             TemplateName = TemplateNames.ConfirmEmail,
-            Success = success,
-            ErrorMessage = success ? null : "Failed to send email",
+            Success = emailResult.Success,
+            ErrorMessage = emailResult.ErrorMessage,
             SentAt = DateTime.UtcNow
         });
 
-        if (!success)
+        if (!emailResult.Success)
         {
-            _logger.LogWarning("Failed to send confirmation email for user {UserId}", request.UserId);
+            _logger.LogWarning("Failed to send confirmation email for user {UserId}. Error: {Error}",
+                request.UserId, emailResult.ErrorMessage);
             return Result.Fail<bool>(new InternalServerError("Failed to send email"));
         }
 

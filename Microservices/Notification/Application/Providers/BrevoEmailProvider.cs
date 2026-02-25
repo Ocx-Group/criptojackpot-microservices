@@ -33,7 +33,7 @@ public class BrevoEmailProvider : IEmailProvider
         _httpClient.DefaultRequestHeaders.Add("api-key", _settings.ApiKey);
     }
 
-    public async Task<bool> SendEmailAsync(string to, string subject, string body)
+    public async Task<EmailSendResult> SendEmailAsync(string to, string subject, string body)
     {
         try
         {
@@ -64,18 +64,19 @@ public class BrevoEmailProvider : IEmailProvider
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation("Email sent successfully via Brevo to {To}", to);
-                return true;
+                return new EmailSendResult(true);
             }
 
             var responseContent = await response.Content.ReadAsStringAsync();
-            _logger.LogError("Failed to send email via Brevo to {To}. Status: {StatusCode}, Response: {Response}",
-                to, response.StatusCode, responseContent);
-            return false;
+            var errorMessage = $"Brevo API error - Status: {response.StatusCode}, Response: {responseContent}";
+            _logger.LogError("Failed to send email via Brevo to {To}. {Error}", to, errorMessage);
+            return new EmailSendResult(false, errorMessage);
         }
         catch (Exception ex)
         {
+            var errorMessage = $"Exception sending email via Brevo: {ex.Message}";
             _logger.LogError(ex, "Exception while sending email via Brevo to {To}", to);
-            return false;
+            return new EmailSendResult(false, errorMessage);
         }
     }
 }
