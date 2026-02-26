@@ -306,23 +306,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "secrets", "secrets", "{5555
 		infrastructure\k8s\overlays\qa\secrets\brevo-secrets.yaml = infrastructure\k8s\overlays\qa\secrets\brevo-secrets.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ingress", "ingress", "{55555555-5555-5555-5555-555555555558}"
-	ProjectSection(SolutionItems) = preProject
-		infrastructure\k8s\overlays\qa\ingress\kustomization.yaml = infrastructure\k8s\overlays\qa\ingress\kustomization.yaml
-		infrastructure\k8s\overlays\qa\ingress\ingress.yaml = infrastructure\k8s\overlays\qa\ingress\ingress.yaml
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "patches", "patches", "{55555555-5555-5555-5555-55555555555D}"
 	ProjectSection(SolutionItems) = preProject
 		infrastructure\k8s\overlays\qa\patches\deployments-replicas.yaml = infrastructure\k8s\overlays\qa\patches\deployments-replicas.yaml
 		infrastructure\k8s\overlays\qa\patches\security-context.yaml = infrastructure\k8s\overlays\qa\patches\security-context.yaml
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{55555555-5555-5555-5555-555555555560}"
-	ProjectSection(SolutionItems) = preProject
-		infrastructure\k8s\overlays\qa\keycloak\kustomization.yaml = infrastructure\k8s\overlays\qa\keycloak\kustomization.yaml
-		infrastructure\k8s\overlays\qa\keycloak\keycloak-configmap.yaml = infrastructure\k8s\overlays\qa\keycloak\keycloak-configmap.yaml
-		infrastructure\k8s\overlays\qa\keycloak\keycloak-secrets.yaml = infrastructure\k8s\overlays\qa\keycloak\keycloak-secrets.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "prod", "prod", "{55555555-5555-5555-5555-555555555559}"
@@ -341,24 +328,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "secrets", "secrets", "{5555
 		infrastructure\k8s\overlays\prod\secrets\brevo-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\brevo-secrets.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ingress", "ingress", "{55555555-5555-5555-5555-55555555555B}"
-	ProjectSection(SolutionItems) = preProject
-		infrastructure\k8s\overlays\prod\ingress\kustomization.yaml = infrastructure\k8s\overlays\prod\ingress\kustomization.yaml
-		infrastructure\k8s\overlays\prod\ingress\ingress.yaml = infrastructure\k8s\overlays\prod\ingress\ingress.yaml
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "patches", "patches", "{55555555-5555-5555-5555-55555555555E}"
 	ProjectSection(SolutionItems) = preProject
 		infrastructure\k8s\overlays\prod\patches\deployments-replicas.yaml = infrastructure\k8s\overlays\prod\patches\deployments-replicas.yaml
 		infrastructure\k8s\overlays\prod\patches\kafka-sasl-env.yaml = infrastructure\k8s\overlays\prod\patches\kafka-sasl-env.yaml
 		infrastructure\k8s\overlays\prod\patches\security-context.yaml = infrastructure\k8s\overlays\prod\patches\security-context.yaml
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{55555555-5555-5555-5555-555555555561}"
-	ProjectSection(SolutionItems) = preProject
-		infrastructure\k8s\overlays\prod\keycloak\kustomization.yaml = infrastructure\k8s\overlays\prod\keycloak\kustomization.yaml
-		infrastructure\k8s\overlays\prod\keycloak\keycloak-configmap.yaml = infrastructure\k8s\overlays\prod\keycloak\keycloak-configmap.yaml
-		infrastructure\k8s\overlays\prod\keycloak\keycloak-secrets.yaml = infrastructure\k8s\overlays\prod\keycloak\keycloak-secrets.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}"
@@ -1105,14 +1079,10 @@ Global
 		{55555555-5555-5555-5555-55555555555C} = {55555555-5555-5555-5555-555555555552}
 		{55555555-5555-5555-5555-555555555556} = {55555555-5555-5555-5555-555555555551}
 		{55555555-5555-5555-5555-555555555557} = {55555555-5555-5555-5555-555555555556}
-		{55555555-5555-5555-5555-555555555558} = {55555555-5555-5555-5555-555555555556}
 		{55555555-5555-5555-5555-55555555555D} = {55555555-5555-5555-5555-555555555556}
-		{55555555-5555-5555-5555-555555555560} = {55555555-5555-5555-5555-555555555556}
 		{55555555-5555-5555-5555-555555555559} = {55555555-5555-5555-5555-555555555551}
 		{55555555-5555-5555-5555-55555555555A} = {55555555-5555-5555-5555-555555555559}
-		{55555555-5555-5555-5555-55555555555B} = {55555555-5555-5555-5555-555555555559}
 		{55555555-5555-5555-5555-55555555555E} = {55555555-5555-5555-5555-555555555559}
-		{55555555-5555-5555-5555-555555555561} = {55555555-5555-5555-5555-555555555559}
 		{B2C3D4E5-F6A7-5B6C-9D0E-2F3A4B5C6D7E} = {AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}
 		{C3D4E5F6-A7B8-6C7D-0E1F-3A4B5C6D7E8F} = {AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE}
 		{B3C4D5E6-F7A8-6D7E-1F2A-3B4C5D6E7F8A} = {C3D4E5F6-A7B8-6C7D-0E1F-3A4B5C6D7E8F}

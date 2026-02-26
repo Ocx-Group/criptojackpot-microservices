@@ -280,11 +280,6 @@ configMapGenerator:
       - Logging__LogLevel__Default=Information
       - Logging__LogLevel__Microsoft.AspNetCore=Warning
       - Cors__AllowedOrigins__0=https://qa.cryptojackpot.com
-      - Keycloak__Authority=https://auth-qa.cryptojackpot.com
-      - Keycloak__Realm=cryptojackpot
-      - Keycloak__ClientId=cryptojackpot-backend
-      - Keycloak__RequireHttpsMetadata=true
-      - Keycloak__ValidateAudience=true
 
 generatorOptions:
   disableNameSuffixHash: true
