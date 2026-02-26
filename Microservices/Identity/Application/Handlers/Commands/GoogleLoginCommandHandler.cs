@@ -42,7 +42,8 @@ public class GoogleLoginCommandHandler : IRequestHandler<GoogleLoginCommand, Res
             ExpiresIn = request.ExpiresIn,
             DeviceInfo = request.DeviceInfo,
             IpAddress = request.IpAddress,
-            RememberMe = request.RememberMe
+            RememberMe = request.RememberMe,
+            ReferralCode = request.ReferralCode
         };
 
         return await _googleLoginService.LoginOrRegisterAsync(payload, context, cancellationToken);

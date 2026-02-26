@@ -50,5 +50,10 @@ public class GoogleLoginCommand : IRequest<Result<LoginResultDto>>
     /// Remember me preference for session duration.
     /// </summary>
     public bool RememberMe { get; set; }
+
+    /// <summary>
+    /// Referral code (optional). Used when registering via Google from a referral link.
+    /// </summary>
+    public string? ReferralCode { get; set; }
 }
 

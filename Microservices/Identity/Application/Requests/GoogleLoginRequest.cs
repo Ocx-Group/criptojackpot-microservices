@@ -29,5 +29,10 @@ public class GoogleLoginRequest
     /// Remember me preference.
     /// </summary>
     public bool RememberMe { get; set; }
+
+    /// <summary>
+    /// Referral code (optional). Used when registering via Google from a referral link.
+    /// </summary>
+    public string? ReferralCode { get; set; }
 }
 

@@ -35,5 +35,10 @@ public record GoogleLoginContext
     /// Remember me preference.
     /// </summary>
     public bool RememberMe { get; init; }
+
+    /// <summary>
+    /// Referral code (optional). Used when registering via Google from a referral link.
+    /// </summary>
+    public string? ReferralCode { get; init; }
 }
 

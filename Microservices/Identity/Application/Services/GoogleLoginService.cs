@@ -1,10 +1,12 @@
 using CryptoJackpot.Domain.Core.Enums;
 using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Identity.Application.DTOs;
+using CryptoJackpot.Identity.Application.Events;
 using CryptoJackpot.Identity.Application.Interfaces;
 using CryptoJackpot.Identity.Domain.Interfaces;
 using CryptoJackpot.Identity.Domain.Models;
 using FluentResults;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace CryptoJackpot.Identity.Application.Services;
@@ -20,6 +22,7 @@ public class GoogleLoginService : IGoogleLoginService
     private readonly IDataEncryptionService _encryptionService;
     private readonly IAuthenticationService _authenticationService;
     private readonly IIdentityEventPublisher _eventPublisher;
+    private readonly IPublisher _publisher;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<GoogleLoginService> _logger;
 
@@ -29,6 +32,7 @@ public class GoogleLoginService : IGoogleLoginService
         IDataEncryptionService encryptionService,
         IAuthenticationService authenticationService,
         IIdentityEventPublisher eventPublisher,
+        IPublisher publisher,
         IUnitOfWork unitOfWork,
         ILogger<GoogleLoginService> logger)
     {
@@ -37,6 +41,7 @@ public class GoogleLoginService : IGoogleLoginService
         _encryptionService = encryptionService;
         _authenticationService = authenticationService;
         _eventPublisher = eventPublisher;
+        _publisher = publisher;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -146,6 +151,18 @@ public class GoogleLoginService : IGoogleLoginService
             return Result.Fail(new InternalServerError("Configuration error. Please contact support."));
         }
 
+        // Validate referral code if provided
+        User? referrer = null;
+        if (!string.IsNullOrWhiteSpace(context.ReferralCode))
+        {
+            referrer = await _userRepository.GetByReferralCodeAsync(context.ReferralCode);
+            if (referrer is null)
+            {
+                _logger.LogWarning("Invalid referral code provided during Google registration: {ReferralCode}", context.ReferralCode);
+                return Result.Fail(new BadRequestError("Invalid referral code"));
+            }
+        }
+
         var user = CreateUserFromGooglePayload(payload, defaultRole.Id);
         UpdateGoogleTokens(user, context);
 
@@ -153,6 +170,18 @@ public class GoogleLoginService : IGoogleLoginService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("New user registered via Google: {UserId}", user.Id);
+
+        // Process referral if referrer exists
+        if (referrer is not null)
+        {
+            await _publisher.Publish(
+                new UserCreatedDomainEvent(user, referrer, context.ReferralCode),
+                cancellationToken);
+
+            _logger.LogDebug(
+                "UserCreatedDomainEvent published for Google user {UserId} with referrer {ReferrerId}",
+                user.Id, referrer.Id);
+        }
 
         await _eventPublisher.PublishExternalUserRegisteredAsync(user);
 

@@ -229,7 +229,8 @@ public class AuthController : ControllerBase
             ExpiresIn = request.ExpiresIn,
             IpAddress = Request.GetClientIpAddress(),
             DeviceInfo = Request.GetUserAgent(),
-            RememberMe = request.RememberMe
+            RememberMe = request.RememberMe,
+            ReferralCode = request.ReferralCode
         };
 
         var result = await _mediator.Send(command);
