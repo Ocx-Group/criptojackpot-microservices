@@ -33,6 +33,7 @@ public static class IoCExtension
    public static void AddLotteryServices(this IServiceCollection services,
        IConfiguration configuration)
     {
+        DependencyContainer.RegisterOpenTelemetry(services, configuration, "cryptojackpot-lottery");
         AddAuthentication(services, configuration);
         AddDatabase(services, configuration);
         AddSwagger(services);

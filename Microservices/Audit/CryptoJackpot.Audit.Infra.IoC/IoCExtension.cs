@@ -32,6 +32,8 @@ public static class IoCExtension
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        DependencyContainer.RegisterOpenTelemetry(services, configuration, "cryptojackpot-audit",
+            tracing => tracing.AddSource("MongoDB.Driver.Core.Extensions.DiagnosticSources"));
         AddAuthentication(services, configuration);
         AddMongoDb(services, configuration);
         AddSwagger(services);

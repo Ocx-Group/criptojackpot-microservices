@@ -3,6 +3,11 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using System.Reflection;
 
 namespace CryptoJackpot.Infra.IoC;
 
@@ -12,6 +17,71 @@ namespace CryptoJackpot.Infra.IoC;
 /// </summary>
 public static class DependencyContainer
 {
+    /// <summary>
+    /// Registers OpenTelemetry tracing, metrics and logging with OTLP export.
+    /// Configuration is read from the "OpenTelemetry" section:
+    ///   Enabled  - bool (default true)
+    ///   Endpoint - OTLP gRPC endpoint (default http://localhost:4317)
+    /// </summary>
+    public static void RegisterOpenTelemetry(
+        IServiceCollection services,
+        IConfiguration configuration,
+        string serviceName,
+        Action<TracerProviderBuilder>? configureTracing = null)
+    {
+        var otelSection = configuration.GetSection("OpenTelemetry");
+        var enabled = otelSection.GetValue("Enabled", true);
+        if (!enabled) return;
+
+        var endpoint = otelSection["Endpoint"] ?? "http://localhost:4317";
+        var serviceVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "1.0.0";
+        var environment = configuration["ASPNETCORE_ENVIRONMENT"] ?? "Production";
+
+        void ConfigureOtlpExporter(OtlpExporterOptions opts)
+        {
+            opts.Endpoint = new Uri(endpoint);
+            opts.Protocol = OtlpExportProtocol.Grpc;
+        }
+
+        services.AddOpenTelemetry()
+            .ConfigureResource(r => r
+                .AddService(serviceName, serviceVersion: serviceVersion)
+                .AddAttributes(new Dictionary<string, object>
+                {
+                    ["deployment.environment"] = environment
+                }))
+            .WithTracing(tracing =>
+            {
+                tracing
+                    .AddAspNetCoreInstrumentation(opts =>
+                    {
+                        opts.RecordException = true;
+                    })
+                    .AddHttpClientInstrumentation(opts =>
+                    {
+                        opts.RecordException = true;
+                    })
+                    .AddEntityFrameworkCoreInstrumentation(opts =>
+                    {
+                        opts.SetDbStatementForText = true;
+                        opts.SetDbStatementForStoredProcedure = true;
+                    })
+                    .AddSource("MassTransit")
+                    .AddOtlpExporter(ConfigureOtlpExporter);
+
+                // Allow each microservice to add extra sources (e.g. MongoDB)
+                configureTracing?.Invoke(tracing);
+            })
+            .WithMetrics(metrics =>
+            {
+                metrics
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddOtlpExporter(ConfigureOtlpExporter);
+            });
+    }
+
     /// <summary>
     /// Registers shared infrastructure with Kafka and Transactional Outbox.
     /// </summary>

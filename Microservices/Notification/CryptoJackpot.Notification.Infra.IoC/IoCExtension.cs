@@ -27,6 +27,7 @@ public static class IoCExtension
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        DependencyContainer.RegisterOpenTelemetry(services, configuration, "cryptojackpot-notification");
         AddConfiguration(services, configuration);
         AddDatabase(services, configuration);
         AddSwagger(services);

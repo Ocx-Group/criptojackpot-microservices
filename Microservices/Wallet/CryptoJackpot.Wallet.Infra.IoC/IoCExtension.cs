@@ -33,6 +33,7 @@ public static class IoCExtension
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        DependencyContainer.RegisterOpenTelemetry(services, configuration, "cryptojackpot-wallet");
         AddAuthentication(services, configuration);
         AddDatabase(services, configuration);
         AddSwagger(services);

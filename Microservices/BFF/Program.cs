@@ -1,8 +1,47 @@
+using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ==============================================
+// OpenTelemetry
+// ==============================================
+var otelSection = builder.Configuration.GetSection("OpenTelemetry");
+if (otelSection.GetValue("Enabled", true))
+{
+    var otelEndpoint = otelSection["Endpoint"] ?? "http://localhost:4317";
+    var serviceVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "1.0.0";
+    var environment = builder.Environment.EnvironmentName;
+
+    void ConfigureOtlp(OtlpExporterOptions opts)
+    {
+        opts.Endpoint = new Uri(otelEndpoint);
+        opts.Protocol = OtlpExportProtocol.Grpc;
+    }
+
+    builder.Services.AddOpenTelemetry()
+        .ConfigureResource(r => r
+            .AddService("cryptojackpot-bff", serviceVersion: serviceVersion)
+            .AddAttributes(new Dictionary<string, object>
+            {
+                ["deployment.environment"] = environment
+            }))
+        .WithTracing(tracing => tracing
+            .AddAspNetCoreInstrumentation(opts => opts.RecordException = true)
+            .AddHttpClientInstrumentation(opts => opts.RecordException = true)
+            .AddOtlpExporter(ConfigureOtlp))
+        .WithMetrics(metrics => metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddOtlpExporter(ConfigureOtlp));
+}
 
 // ==============================================
 // YARP Reverse Proxy Configuration

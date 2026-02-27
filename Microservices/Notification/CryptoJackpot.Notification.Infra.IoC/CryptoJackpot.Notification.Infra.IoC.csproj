@@ -20,6 +20,7 @@
       <ProjectReference Include="..\Application\CryptoJackpot.Notification.Application.csproj" />
       <ProjectReference Include="..\Data\CryptoJackpot.Notification.Data.csproj" />
       <ProjectReference Include="..\Domain\CryptoJackpot.Notification.Domain.csproj" />
+      <ProjectReference Include="..\..\..\Infra.IoC\CryptoJackpot.Infra.IoC.csproj" />
     </ItemGroup>
 
 </Project>
