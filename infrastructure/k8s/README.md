@@ -1,203 +1,154 @@
-# Kubernetes Deployment - CryptoJackpotDistributed
+# Kubernetes Deployment - CriptoJackpot Distributed
 
-## Estructura de Directorios
+## Estructura
 
 ```
 k8s/
-├── local/                   # ← Desarrollo local (Docker Desktop / Minikube)
+├── base/                          # Recursos comunes a todos los entornos
 │   ├── namespace.yaml
 │   ├── configmap.yaml
-│   ├── secrets/             # Secrets para desarrollo
-│   ├── postgres/            # PostgreSQL local en cluster
-│   ├── redpanda/            # Redpanda (Kafka) local
-│   ├── minio/               # MinIO (S3 compatible) local
-│   ├── microservices/       # Deployments locales
-│   ├── ingress/             # Ingress local
-│   └── setup-local-k8s.ps1  # Script de setup automatizado
+│   ├── microservices/             # Deployments base (identity, lottery, order, wallet, winner, notification, audit, bff)
+│   └── infrastructure/           # Infraestructura local (postgres, redis, mongodb, redpanda, minio, pgbouncer)
 │
-├── prod/                    # ← Producción (DigitalOcean / AWS / GCP)
-│   ├── base/                # Configuraciones base
-│   │   ├── namespace.yaml
-│   │   ├── configmap.yaml
-│   │   └── secrets.yaml     # ⚠️ Plantilla - NO commitar valores reales
-│   ├── databases/           # Scripts de inicialización
-│   │   └── init-databases.sql
-│   ├── network/             # NetworkPolicies para seguridad
-│   │   └── network-policies.yaml
-│   ├── microservices/       # Deployments de producción
-│   │   ├── identity/
-│   │   ├── lottery/
-│   │   ├── order/
-│   │   ├── wallet/
-│   │   ├── winner/
-│   │   └── notification/
-│   ├── ingress/             # Ingress con TLS/SSL
-│   │   └── ingress.yaml
-│   └── kafka/               # Redpanda con SASL para producción
-│       └── redpanda.yaml
-│
-└── README.md                # Este archivo
+└── overlays/
+    ├── local/                     # Desarrollo local (Docker Desktop / Minikube)
+    │   ├── kustomization.yaml
+    │   ├── configmaps/            # Scripts de init para postgres/mongodb
+    │   ├── jobs/                  # Migration job (db-migrations)
+    │   ├── patches/               # imagePullPolicy, initContainers
+    │   └── secrets/               # Secrets locales (valores de dev)
+    │
+    ├── qa/                        # Entorno QA (DigitalOcean Kubernetes)
+    │   ├── kustomization.yaml
+    │   ├── pgbouncer/             # Connection pooler → DO Managed Postgres
+    │   └── secrets/               # Placeholders para secrets reales
+    │
+    └── prod/                      # Producción (DigitalOcean Kubernetes)
+        ├── kustomization.yaml
+        ├── pgbouncer/             # Connection pooler → DO Managed Postgres
+        └── secrets/               # Placeholders — gestionar con Sealed Secrets
 ```
 
 ---
 
-## 🏠 Desarrollo Local
+## Arquitectura de red
 
-### Prerrequisitos
-- Docker Desktop con Kubernetes habilitado (o Minikube)
-- kubectl
-- Skaffold
-
-### Setup Rápido
-
-```powershell
-# Windows PowerShell
-cd k8s\local
-.\setup-local-k8s.ps1
-
-# Luego desplegar con Skaffold
-cd ..\..
-skaffold dev -p dev
+### Local
+```
+Browser → http://localhost → NGINX Ingress → BFF Gateway → microservicios (ClusterIP)
+                                              ↓
+                                   Infraestructura en cluster
+                                   (postgres, redis, mongodb, redpanda, minio)
 ```
 
-### Servicios Locales
-| Servicio | URL |
-|----------|-----|
-| Identity API | http://localhost:5001 |
-| Lottery API | http://localhost:5002 |
-| Order API | http://localhost:5003 |
-| Wallet API | http://localhost:5004 |
-| Winner API | http://localhost:5005 |
-| Notification API | http://localhost:5006 |
-| PostgreSQL | localhost:5433 |
-| Kafka (Redpanda) | localhost:9092 |
-| Redpanda Console | http://localhost:8080 |
-| MinIO Console | http://localhost:9001 |
+### QA y Producción
+```
+Frontend → Cloudflare (TLS terminado) → NGINX Ingress → BFF Gateway → microservicios (ClusterIP)
+                                                                        ↓
+                                                             Servicios gestionados externos
+                                                             (DO Managed Postgres vía PgBouncer,
+                                                              Upstash Kafka, Upstash Redis,
+                                                              MongoDB Atlas, DO Spaces)
+```
 
-### Comandos Útiles (Local)
+**Principios clave:**
+- El **BFF Gateway** es el **único punto de entrada externo**. Todos los microservicios son `ClusterIP`.
+- **Cloudflare** termina el TLS externo en QA y producción. No se usa `cert-manager` ni Let's Encrypt.
+- El ingress NGINX recibe tráfico HTTP plano desde Cloudflare y lo reenvía al BFF.
+- La IP real del cliente llega al BFF mediante el header `CF-Connecting-IP`.
 
+### Dominios
+
+| Entorno | Dominio externo (Cloudflare) | Ingress interno |
+|---------|------------------------------|-----------------|
+| Local   | `http://localhost`           | Sin host (bare) |
+| QA      | `https://api-qa.criptojackpot.com` | `api-qa.criptojackpot.com` |
+| Prod    | `https://api.criptojackpot.com`    | `api.criptojackpot.com`    |
+
+---
+
+## Servicios gestionados por entorno
+
+| Servicio         | Local                          | QA / Prod                          |
+|------------------|--------------------------------|------------------------------------|
+| PostgreSQL        | StatefulSet en cluster         | DO Managed Postgres + PgBouncer    |
+| Kafka             | Redpanda en cluster            | Upstash Kafka (SASL/SSL)           |
+| Redis             | StatefulSet en cluster         | Upstash Redis (TLS)                |
+| MongoDB           | StatefulSet en cluster         | MongoDB Atlas                      |
+| Object Storage    | MinIO en cluster               | DigitalOcean Spaces                |
+| TLS / Certificados| No                             | Cloudflare (externo al cluster)    |
+
+---
+
+## Comandos rápidos
+
+### Desarrollo local (Skaffold)
+```bash
+# Levantar todo con hot-reload
+skaffold dev --cleanup=false
+
+# Solo un microservicio
+skaffold dev -f skaffold-modules.yaml -m identity
+```
+
+### Kustomize — previsualizar manifiestos
+```bash
+# Ver manifiestos finales de QA
+kubectl kustomize infrastructure/k8s/overlays/qa
+
+# Aplicar QA
+kubectl apply -k infrastructure/k8s/overlays/qa
+
+# Ver manifiestos de prod (dry-run)
+kubectl apply -k infrastructure/k8s/overlays/prod --dry-run=client
+```
+
+### Comandos kubectl útiles
 ```bash
 # Ver pods
 kubectl get pods -n cryptojackpot
 
-# Ver logs de un servicio
-kubectl logs -f deployment/identity-api -n cryptojackpot
+# Logs de un servicio
+kubectl logs -f deployment/bff-gateway -n cryptojackpot
 
 # Reiniciar un deployment
 kubectl rollout restart deployment/identity-api -n cryptojackpot
 
-# Port-forward PostgreSQL
+# Port-forward PostgreSQL (local)
 kubectl port-forward svc/postgres 5433:5432 -n cryptojackpot
 
-# Limpiar todo
+# Limpiar namespace completo
 kubectl delete namespace cryptojackpot
 ```
 
 ---
 
-## 🚀 Producción (DigitalOcean)
+## Secrets
 
-### Arquitectura
+Los secrets **nunca se commitean con valores reales** en QA/prod. Los archivos en `overlays/qa/secrets/` y `overlays/prod/secrets/` son **plantillas** con `REPLACE_WITH_*` como valores.
 
-```
-                    ┌─────────────────────┐
-                    │   Cloudflare CDN    │
-                    │   (DNS + SSL/TLS)   │
-                    └──────────┬──────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │   NGINX Ingress     │
-                    │   Controller        │
-                    └──────────┬──────────┘
-                               │
-        ┌──────────────────────┼──────────────────────┐
-        │                      │                      │
-   ┌────▼────┐           ┌────▼────┐           ┌────▼────┐
-   │Identity │           │ Lottery │           │  Order  │
-   │   API   │           │   API   │           │   API   │
-   └────┬────┘           └────┬────┘           └────┬────┘
-        │                      │                      │
-        └──────────────────────┼──────────────────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │   Redpanda (Kafka)  │
-                    │   DigitalOcean      │
-                    └──────────┬──────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │   PostgreSQL        │
-                    │   Managed DB        │
-                    └─────────────────────┘
-```
+### Gestión recomendada en QA/Prod
+- **Sealed Secrets** (recomendado) — cifrado con la clave del cluster
+- **External Secrets Operator** — sincronización desde DigitalOcean Secrets / Vault
+- `kubectl create secret` manual (solo para bootstrap inicial)
 
-### Base de Datos
+### Secrets requeridos por entorno
 
-Usamos **PostgreSQL Managed** en DigitalOcean con **6 databases separadas**:
-
-```
-PostgreSQL Server (DigitalOcean Managed)
-├── cryptojackpot_identity_db
-├── cryptojackpot_lottery_db
-├── cryptojackpot_order_db
-├── cryptojackpot_wallet_db
-├── cryptojackpot_winner_db
-└── cryptojackpot_notification_db
-```
-
-### Despliegue de Producción
-
-```bash
-# 1. Configurar secrets (NUNCA commitear valores reales)
-cp k8s/prod/base/secrets.yaml k8s/prod/base/secrets.local.yaml
-# Editar secrets.local.yaml con valores reales
-
-# 2. Aplicar configuraciones
-kubectl apply -f k8s/prod/base/namespace.yaml
-kubectl apply -f k8s/prod/base/configmap.yaml
-kubectl apply -f k8s/prod/base/secrets.local.yaml  # Archivo local, no commiteado
-kubectl apply -f k8s/prod/network/
-kubectl apply -f k8s/prod/kafka/
-kubectl apply -f k8s/prod/microservices/
-kubectl apply -f k8s/prod/ingress/
-```
-
-### Seguridad
-
-#### NetworkPolicies
-- **default-deny-ingress**: Deniega todo tráfico por defecto
-- **allow-ingress-to-apis**: Solo el Ingress Controller puede acceder a las APIs
-- **allow-apis-to-redpanda**: Solo las APIs pueden comunicarse con Redpanda
-- **allow-api-to-api**: Comunicación interna entre microservicios
-
-#### Autenticación Kafka/Redpanda
-- **SASL/SCRAM-SHA-256** habilitado
-- Credenciales almacenadas en Kubernetes Secrets
+| Secret                        | Descripción                              |
+|-------------------------------|------------------------------------------|
+| `jwt-secrets`                 | JWT key, issuer, audience                |
+| `postgres-secrets`            | Host, puerto, usuario, password, SSL, connection strings |
+| `kafka-secrets`               | Bootstrap servers, SASL user/password    |
+| `mongodb-secrets`             | Atlas connection string                  |
+| `digitalocean-spaces-secrets` | Endpoint, bucket, access/secret key      |
+| `brevo-secrets`               | API key, sender email, frontend base URL |
+| `redis-secrets`               | Upstash connection string                |
 
 ---
 
-## 📋 Diferencias Local vs Producción
+## Configuración de Cloudflare (QA y Prod)
 
-| Aspecto | Local | Producción |
-|---------|-------|------------|
-| PostgreSQL | StatefulSet en cluster | DigitalOcean Managed |
-| Kafka | Redpanda en cluster | Redpanda DigitalOcean |
-| Object Storage | MinIO | DigitalOcean Spaces |
-| Ingress | NGINX local | NGINX + Cloudflare |
-| TLS/SSL | No | Sí (Cloudflare) |
-| NetworkPolicies | No | Sí |
-| Secrets | Valores de desarrollo | ⚠️ Valores seguros |
-| Replicas | 1 | 2-3 |
-| Resources | Mínimos | Escalados |
-
----
-
-## 🔧 Terraform
-
-Para infraestructura como código, ver `/terraform/`:
-
-```bash
-cd terraform
-terraform init
-terraform plan -var-file="environments/production.tfvars"
-terraform apply -var-file="environments/production.tfvars"
-```
+1. En el dashboard de Cloudflare, crear un registro DNS tipo `A` (o `CNAME`) apuntando al **Load Balancer IP** del cluster de DigitalOcean con **proxy habilitado (nube naranja)**.
+2. Configurar SSL/TLS mode en **"Full"** (no Full Strict, ya que el ingress NGINX recibe HTTP plano).
+3. El header `CF-Connecting-IP` se propaga automáticamente — el ingress NGINX lo usa para obtener la IP real del cliente.
+4. _(Opcional)_ Configurar una **WAF Rule** en Cloudflare para bloquear tráfico que no provenga de los rangos de IPs de Cloudflare.

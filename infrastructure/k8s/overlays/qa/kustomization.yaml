@@ -492,20 +492,19 @@ patches:
             cpu: "125m"
 
   # BFF Ingress - único punto de entrada externo (api-qa.criptojackpot.com)
+  # Flujo: Frontend → Cloudflare (TLS terminado) → BFF Ingress (HTTP interno)
+  # Cloudflare gestiona el certificado TLS externo; dentro del cluster es HTTP plano.
   # Todos los microservicios son ClusterIP - solo accesibles internamente desde el BFF
   - target:
       kind: Ingress
       name: bff-ingress
     patch: |-
       - op: add
-        path: /metadata/annotations/cert-manager.io~1cluster-issuer
-        value: letsencrypt-prod
+        path: /metadata/annotations/nginx.ingress.kubernetes.io~1use-forwarded-headers
+        value: "true"
       - op: add
-        path: /spec/tls
-        value:
-          - hosts:
-              - api-qa.criptojackpot.com
-            secretName: criptojackpot-qa-tls
+        path: /metadata/annotations/nginx.ingress.kubernetes.io~1forwarded-for-header
+        value: "CF-Connecting-IP"
       - op: replace
         path: /spec/rules
         value:

@@ -489,26 +489,26 @@ patches:
             memory: "256Mi"
             cpu: "250m"
 
-  # BFF Ingress - Add TLS, host, and rate limiting for production (JSON patch for complete rule replacement)
+  # BFF Ingress - único punto de entrada externo (api.criptojackpot.com)
+  # Flujo: Frontend → Cloudflare (TLS terminado) → BFF Ingress (HTTP interno)
+  # Cloudflare gestiona el certificado TLS externo; dentro del cluster es HTTP plano.
+  # Rate limiting aplicado a nivel de nginx como capa extra de defensa.
   - target:
       kind: Ingress
       name: bff-ingress
     patch: |-
       - op: add
-        path: /metadata/annotations/cert-manager.io~1cluster-issuer
-        value: letsencrypt-prod
+        path: /metadata/annotations/nginx.ingress.kubernetes.io~1use-forwarded-headers
+        value: "true"
+      - op: add
+        path: /metadata/annotations/nginx.ingress.kubernetes.io~1forwarded-for-header
+        value: "CF-Connecting-IP"
       - op: add
         path: /metadata/annotations/nginx.ingress.kubernetes.io~1limit-rps
         value: "100"
       - op: add
         path: /metadata/annotations/nginx.ingress.kubernetes.io~1limit-connections
         value: "50"
-      - op: add
-        path: /spec/tls
-        value:
-          - hosts:
-              - api.criptojackpot.com
-            secretName: criptojackpot-prod-tls
       - op: replace
         path: /spec/rules
         value:
