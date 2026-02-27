@@ -19,12 +19,10 @@ resource "digitalocean_spaces_bucket" "main" {
       id      = "cleanup-old-versions"
       enabled = true
 
-      # Eliminar versiones antiguas después de X días
       noncurrent_version_expiration {
         days = var.noncurrent_version_expiration_days
       }
 
-      # Eliminar uploads incompletos
       abort_incomplete_multipart_upload_days = 7
     }
   }
@@ -40,8 +38,17 @@ resource "digitalocean_spaces_bucket" "main" {
     }
   }
 
-  # Forzar destrucción del bucket (solo para dev)
   force_destroy = var.force_destroy
+
+  lifecycle {
+    # CRÍTICO: el bucket de prod contiene imágenes/assets de usuarios.
+    # force_destroy=false en prod.tfvars ya lo protege, pero prevent_destroy
+    # es una segunda línea de defensa a nivel de Terraform plan.
+    prevent_destroy = true
+
+    # Ignorar cambios en CORS (pueden cambiar con el frontend sin afectar datos)
+    ignore_changes = [cors_rule]
+  }
 }
 
 # Crear directorios (prefijos) para organización

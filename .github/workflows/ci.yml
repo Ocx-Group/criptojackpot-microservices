@@ -1,0 +1,155 @@
+﻿# =============================================================================
+# CI - Continuous Integration
+# Se ejecuta en: PRs hacia develop, qa y main
+# Hace: build + unit tests + integration tests
+# =============================================================================
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, qa, main]
+  push:
+    branches: [develop]  # También en push directo a develop
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: "8.0.x"
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Build — compila la solución completa para detectar errores de compilación
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build Solution
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore CriptojackpotMicroservices.sln
+
+      - name: Build
+        run: dotnet build CriptojackpotMicroservices.sln --no-restore --configuration Release
+
+  # ---------------------------------------------------------------------------
+  # Unit Tests — rápidos, sin infraestructura externa
+  # ---------------------------------------------------------------------------
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore CriptojackpotMicroservices.sln
+
+      - name: Run Unit Tests
+        run: |
+          dotnet test Tests/Unit/Identity/CryptoJackpot.Identity.Test/CryptoJackpot.Identity.Test.csproj \
+            --no-restore \
+            --configuration Release \
+            --logger "trx;LogFileName=unit-results.trx" \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults/Unit \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-test-results
+          path: TestResults/Unit/**/*.trx
+          retention-days: 7
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-coverage
+          path: TestResults/Unit/**/coverage.cobertura.xml
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Integration Tests — usan Testcontainers (Docker requerido en runner)
+  # Solo se ejecutan en PRs hacia qa y main (no en develop para ser más rápido)
+  # ---------------------------------------------------------------------------
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: build
+    if: |
+      github.base_ref == 'qa' ||
+      github.base_ref == 'main'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore CriptojackpotMicroservices.sln
+
+      - name: Run Integration Tests (Identity)
+        run: |
+          dotnet test Tests/Integration/Identity/CryptoJackpot.Identity.IntegrationTests/CryptoJackpot.Identity.IntegrationTests.csproj \
+            --no-restore \
+            --configuration Release \
+            --logger "trx;LogFileName=integration-results.trx" \
+            --results-directory ./TestResults/Integration \
+            --timeout 120
+        env:
+          # Testcontainers usa Docker local, no necesita credenciales externas
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: TestResults/Integration/**/*.trx
+          retention-days: 7
+

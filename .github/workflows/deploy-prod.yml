@@ -1,0 +1,391 @@
+﻿# =============================================================================
+# Deploy Production
+# Se ejecuta en: push a rama 'main' (via PR desde qa)
+# Hace:
+#   1. Build + push de las 8 imágenes Docker con tag semver (vX.Y.Z) + :latest
+#   2. terraform apply -var-file=environments/prod.tfvars
+#      (crea/actualiza infra + secrets K8s + kustomize apply overlays/prod)
+#
+# IMPORTANTE: El deploy a prod requiere aprobación manual via GitHub Environments
+# Configura el environment "production" en Settings > Environments con reviewers
+# =============================================================================
+name: Deploy Production
+
+on:
+  push:
+    branches: [main]
+  # También se puede disparar creando un tag vX.Y.Z
+  # push:
+  #   tags: ['v*.*.*']
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false  # NUNCA cancelar un deploy de prod en curso
+
+env:
+  DOTNET_VERSION: "8.0.x"
+  ENVIRONMENT: prod
+  REGISTRY: registry.digitalocean.com/criptojackpot
+  TF_DIR: infrastructure/terraform
+  K8S_NAMESPACE: criptojackpot
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Build & Push — construye y publica con tag :latest + :vX.Y.Z (si hay tag)
+  # ---------------------------------------------------------------------------
+  build-and-push:
+    name: Build & Push Images (Production)
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Necesario para obtener tags git
+
+      - name: Set image tag
+        id: meta
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          # Intentar obtener el tag semver más reciente
+          GIT_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$GIT_TAG" ]; then
+            TAG="${GIT_TAG}"
+            VERSION="${GIT_TAG}"
+          else
+            TAG="prod-${SHORT_SHA}"
+            VERSION="prod-${SHORT_SHA}"
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Building production with tag: ${TAG}"
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Login to DOCR
+        run: doctl registry login --expiry-seconds 3600
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # -----------------------------------------------------------------------
+      # BFF Gateway
+      # -----------------------------------------------------------------------
+      - name: Build & Push BFF
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Microservices/BFF/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/bff-gateway:latest
+            ${{ env.REGISTRY }}/bff-gateway:${{ steps.meta.outputs.tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/bff-gateway:latest
+          cache-to: type=inline
+          build-args: |
+            BUILD_VERSION=${{ steps.meta.outputs.version }}
+
+      # -----------------------------------------------------------------------
+      # Identity
+      # -----------------------------------------------------------------------
+      - name: Build & Push Identity
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Microservices/Identity/Api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/identity-api:latest
+            ${{ env.REGISTRY }}/identity-api:${{ steps.meta.outputs.tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/identity-api:latest
+          cache-to: type=inline
+
+      # -----------------------------------------------------------------------
+      # Lottery
+      # -----------------------------------------------------------------------
+      - name: Build & Push Lottery
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Microservices/Lottery/Api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/lottery-api:latest
+            ${{ env.REGISTRY }}/lottery-api:${{ steps.meta.outputs.tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/lottery-api:latest
+          cache-to: type=inline
+
+      # -----------------------------------------------------------------------
+      # Order
+      # -----------------------------------------------------------------------
+      - name: Build & Push Order
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Microservices/Order/Api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/order-api:latest
+            ${{ env.REGISTRY }}/order-api:${{ steps.meta.outputs.tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/order-api:latest
+          cache-to: type=inline
+
+      # -----------------------------------------------------------------------
+      # Wallet
+      # -----------------------------------------------------------------------
+      - name: Build & Push Wallet
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Microservices/Wallet/Api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/wallet-api:latest
+            ${{ env.REGISTRY }}/wallet-api:${{ steps.meta.outputs.tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/wallet-api:latest
+          cache-to: type=inline
+
+      # -----------------------------------------------------------------------
+      # Winner
+      # -----------------------------------------------------------------------
+      - name: Build & Push Winner
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Microservices/Winner/Api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/winner-api:latest
+            ${{ env.REGISTRY }}/winner-api:${{ steps.meta.outputs.tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/winner-api:latest
+          cache-to: type=inline
+
+      # -----------------------------------------------------------------------
+      # Notification
+      # -----------------------------------------------------------------------
+      - name: Build & Push Notification
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Microservices/Notification/Api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/notification-api:latest
+            ${{ env.REGISTRY }}/notification-api:${{ steps.meta.outputs.tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/notification-api:latest
+          cache-to: type=inline
+
+      # -----------------------------------------------------------------------
+      # Audit
+      # -----------------------------------------------------------------------
+      - name: Build & Push Audit
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Microservices/Audit/Api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/audit-api:latest
+            ${{ env.REGISTRY }}/audit-api:${{ steps.meta.outputs.tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/audit-api:latest
+          cache-to: type=inline
+
+  # ---------------------------------------------------------------------------
+  # Terraform — actualiza infra Prod y despliega manifiestos K8s
+  # Requiere aprobación manual (configura environment "production" en GitHub)
+  # ---------------------------------------------------------------------------
+  terraform-deploy:
+    name: Terraform Deploy Production
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: production  # ← Bloquea hasta que un reviewer apruebe
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_DIR }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.7"
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure AWS credentials for DO Spaces backend
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.DO_SPACES_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.DO_SPACES_SECRET_KEY }}" >> $GITHUB_ENV
+
+      - name: Terraform Init (Prod state)
+        run: |
+          terraform init \
+            -backend-config="key=prod/terraform.tfstate" \
+            -input=false
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -var-file="environments/prod.tfvars" \
+            -out=tfplan-prod \
+            -input=false \
+            -lock=true \
+            -detailed-exitcode \
+            2>&1 | tee plan-output.txt
+
+          # Bloquear si el plan va a destruir recursos críticos de producción
+          if grep -E "must be replaced|will be destroyed|forces replacement" plan-output.txt | \
+             grep -E "digitalocean_kubernetes_cluster|digitalocean_database_cluster|digitalocean_vpc|digitalocean_spaces_bucket"; then
+            echo "❌ BLOQUEADO: El plan destruiría recursos críticos de PRODUCCIÓN."
+            echo "   Esto nunca debe ocurrir en un deploy automático."
+            echo "   Revisa el plan manualmente y ejecuta terraform apply localmente si es necesario."
+            exit 1
+          fi
+        env:
+          TF_VAR_do_token:                    ${{ secrets.DO_TOKEN }}
+          TF_VAR_spaces_access_key:           ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          TF_VAR_spaces_secret_key:           ${{ secrets.DO_SPACES_SECRET_KEY }}
+          TF_VAR_cloudflare_api_token:        ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_zone_id:          ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          TF_VAR_jwt_secret_key:              ${{ secrets.PROD_JWT_SECRET_KEY }}
+          TF_VAR_kafka_bootstrap_servers:     ${{ secrets.PROD_KAFKA_BOOTSTRAP_SERVERS }}
+          TF_VAR_kafka_sasl_username:         ${{ secrets.PROD_KAFKA_SASL_USERNAME }}
+          TF_VAR_kafka_sasl_password:         ${{ secrets.PROD_KAFKA_SASL_PASSWORD }}
+          TF_VAR_redis_connection_string:     ${{ secrets.PROD_REDIS_CONNECTION_STRING }}
+          TF_VAR_mongodb_connection_string:   ${{ secrets.PROD_MONGODB_CONNECTION_STRING }}
+          TF_VAR_brevo_api_key:               ${{ secrets.PROD_BREVO_API_KEY }}
+        continue-on-error: true
+
+      - name: Fail if plan errored
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform Apply
+        run: |
+          terraform apply -auto-approve tfplan-prod
+        env:
+          TF_VAR_do_token:                    ${{ secrets.DO_TOKEN }}
+          TF_VAR_spaces_access_key:           ${{ secrets.DO_SPACES_ACCESS_KEY }}
+          TF_VAR_spaces_secret_key:           ${{ secrets.DO_SPACES_SECRET_KEY }}
+          TF_VAR_cloudflare_api_token:        ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_cloudflare_zone_id:          ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          TF_VAR_jwt_secret_key:              ${{ secrets.PROD_JWT_SECRET_KEY }}
+          TF_VAR_kafka_bootstrap_servers:     ${{ secrets.PROD_KAFKA_BOOTSTRAP_SERVERS }}
+          TF_VAR_kafka_sasl_username:         ${{ secrets.PROD_KAFKA_SASL_USERNAME }}
+          TF_VAR_kafka_sasl_password:         ${{ secrets.PROD_KAFKA_SASL_PASSWORD }}
+          TF_VAR_redis_connection_string:     ${{ secrets.PROD_REDIS_CONNECTION_STRING }}
+          TF_VAR_mongodb_connection_string:   ${{ secrets.PROD_MONGODB_CONNECTION_STRING }}
+          TF_VAR_brevo_api_key:               ${{ secrets.PROD_BREVO_API_KEY }}
+
+      - name: Connect kubectl to Prod cluster
+        run: |
+          CLUSTER_ID=$(terraform output -raw cluster_id)
+          doctl kubernetes cluster kubeconfig save "$CLUSTER_ID" \
+            --context criptojackpot-prod
+
+      - name: Update image tags in Prod overlay
+        run: |
+          cd ${{ github.workspace }}
+          TAG="${{ needs.build-and-push.outputs.image_tag }}"
+          REGISTRY="${{ env.REGISTRY }}"
+
+          cd infrastructure/k8s/overlays/prod
+          kustomize edit set image \
+            bff-gateway=${REGISTRY}/bff-gateway:${TAG} \
+            identity-api=${REGISTRY}/identity-api:${TAG} \
+            lottery-api=${REGISTRY}/lottery-api:${TAG} \
+            order-api=${REGISTRY}/order-api:${TAG} \
+            wallet-api=${REGISTRY}/wallet-api:${TAG} \
+            winner-api=${REGISTRY}/winner-api:${TAG} \
+            notification-api=${REGISTRY}/notification-api:${TAG} \
+            audit-api=${REGISTRY}/audit-api:${TAG}
+
+      - name: Apply Kustomize overlays/prod
+        run: |
+          kubectl apply -k infrastructure/k8s/overlays/prod \
+            --context criptojackpot-prod \
+            --namespace ${{ env.K8S_NAMESPACE }} \
+            --timeout=300s
+
+      - name: Wait for rollout
+        run: |
+          DEPLOYMENTS=(
+            bff-gateway identity-api lottery-api order-api
+            wallet-api winner-api notification-api audit-api
+          )
+          for dep in "${DEPLOYMENTS[@]}"; do
+            echo "Waiting for $dep..."
+            kubectl rollout status deployment/$dep \
+              --namespace ${{ env.K8S_NAMESPACE }} \
+              --context criptojackpot-prod \
+              --timeout=300s
+          done
+
+      - name: Smoke test - BFF healthcheck
+        run: |
+          sleep 15
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 15 \
+            https://api.criptojackpot.com/health || echo "000")
+          echo "Health check status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "❌ Production health check failed with status $HTTP_STATUS"
+            exit 1
+          fi
+          echo "✅ Production health check passed"
+
+      - name: Create GitHub Release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.build-and-push.outputs.version }}
+          name: "Release ${{ needs.build-and-push.outputs.version }}"
+          body: |
+            ## Deploy Production — ${{ needs.build-and-push.outputs.version }}
+
+            **Commit:** ${{ github.sha }}
+            **Deployed at:** ${{ github.event.head_commit.timestamp }}
+            **Deployed by:** ${{ github.actor }}
+
+            ### Images
+            - `bff-gateway:${{ needs.build-and-push.outputs.image_tag }}`
+            - `identity-api:${{ needs.build-and-push.outputs.image_tag }}`
+            - `lottery-api:${{ needs.build-and-push.outputs.image_tag }}`
+            - `order-api:${{ needs.build-and-push.outputs.image_tag }}`
+            - `wallet-api:${{ needs.build-and-push.outputs.image_tag }}`
+            - `winner-api:${{ needs.build-and-push.outputs.image_tag }}`
+            - `notification-api:${{ needs.build-and-push.outputs.image_tag }}`
+            - `audit-api:${{ needs.build-and-push.outputs.image_tag }}`
+          generate_release_notes: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify deploy success
+        if: success()
+        run: |
+          echo "🚀 Production deploy successful!"
+          echo "  Version: ${{ needs.build-and-push.outputs.version }}"
+          echo "  Commit: ${{ github.sha }}"
+          echo "  URL: https://api.criptojackpot.com"
+

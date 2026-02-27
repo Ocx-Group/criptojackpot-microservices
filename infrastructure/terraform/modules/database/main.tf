@@ -23,7 +23,17 @@ resource "digitalocean_database_cluster" "main" {
   }
 
   lifecycle {
-    prevent_destroy = false
+    # CRÍTICO: nunca destruir la base de datos automáticamente.
+    # Si necesitas cambiar name/region/engine debes hacerlo manualmente
+    # con terraform state mv o creando un nuevo cluster antes de destruir el viejo.
+    prevent_destroy = true
+
+    # Ignorar cambios operacionales que DO gestiona internamente
+    # (versión de pg puede subir en auto-upgrade, tags pueden cambiar externamente)
+    ignore_changes = [
+      tags,
+      maintenance_window,
+    ]
   }
 }
 

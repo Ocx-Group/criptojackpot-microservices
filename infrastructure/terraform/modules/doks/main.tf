@@ -47,7 +47,22 @@ resource "digitalocean_kubernetes_cluster" "main" {
   tags = var.tags
 
   lifecycle {
-    prevent_destroy = false
+    # CRÍTICO: nunca destruir el cluster K8s automáticamente.
+    # Un cambio en name/region/version_k8s forzaría recreación — hacerlo manualmente.
+    # Para actualizar la versión de K8s usa auto_upgrade=true o doctl directamente.
+    prevent_destroy = true
+
+    # Ignorar cambios que DO gestiona o que pueden variar sin requerir recreación
+    ignore_changes = [
+      # La versión exacta puede cambiar con auto_upgrade
+      version,
+      # Tags pueden cambiar externamente sin problema
+      tags,
+      # El node_count es gestionado por auto_scale
+      node_pool[0].node_count,
+      # Los tags del node_pool también
+      node_pool[0].tags,
+    ]
   }
 }
 
