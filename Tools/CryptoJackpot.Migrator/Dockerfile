@@ -4,7 +4,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # Copy solution and project files for restore
-COPY ["CryptoJackpotDistributed.sln", "."]
+COPY ["CriptojackpotMicroservices.sln", "."]
 COPY ["Domain/CryptoJackpot.Domain.Core.csproj", "Domain/"]
 COPY ["Infra.Bus/CryptoJackpot.Infra.Bus.csproj", "Infra.Bus/"]
 COPY ["Infra.IoC/CryptoJackpot.Infra.IoC.csproj", "Infra.IoC/"]
