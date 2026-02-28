@@ -23,9 +23,9 @@ manifests:
   kustomize:
     paths:
       - infrastructure/k8s/overlays/local
+      - infrastructure/k8s/overlays/local/monitoring
 deploy:
   kubectl:
-    defaultNamespace: cryptojackpot
     hooks:
       before:
         - host:

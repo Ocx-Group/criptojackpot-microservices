@@ -61,11 +61,11 @@ manifests:
   kustomize:
     paths:
       - infrastructure/k8s/overlays/local
+      - infrastructure/k8s/overlays/local/monitoring
 
 # Default deploy
 deploy:
   kubectl:
-    defaultNamespace: cryptojackpot
     hooks:
       before:
         - host:
@@ -87,6 +87,7 @@ profiles:
       kustomize:
         paths:
           - infrastructure/k8s/overlays/local
+          - infrastructure/k8s/overlays/local/monitoring
     portForward:
       - resourceType: service
         resourceName: bff-gateway
@@ -153,6 +154,11 @@ profiles:
         namespace: cryptojackpot
         port: 27017
         localPort: 27017
+      - resourceType: service
+        resourceName: otel-collector
+        namespace: monitoring
+        port: 4317
+        localPort: 4317
 
   # ============================================
   # DEBUG with remote debugging
@@ -248,9 +254,9 @@ profiles:
       kustomize:
         paths:
           - infrastructure/k8s/overlays/qa
+          - infrastructure/k8s/overlays/qa/monitoring
     deploy:
       kubectl:
-        defaultNamespace: cryptojackpot
         flags:
           apply:
             - --server-side
@@ -270,9 +276,9 @@ profiles:
       kustomize:
         paths:
           - infrastructure/k8s/overlays/prod
+          - infrastructure/k8s/overlays/prod/monitoring
     deploy:
       kubectl:
-        defaultNamespace: cryptojackpot
         flags:
           apply:
             - --server-side

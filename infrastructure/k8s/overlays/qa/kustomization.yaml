@@ -542,6 +542,8 @@ configMapGenerator:
       - Logging__LogLevel__Default=Information
       - Logging__LogLevel__Microsoft.AspNetCore=Warning
       - Cors__AllowedOrigins__0=https://qa.criptojackpot.com
+      - OpenTelemetry__Endpoint=http://otel-collector.monitoring.svc.cluster.local:4317
+      - OpenTelemetry__Enabled=true
 
 generatorOptions:
   disableNameSuffixHash: true

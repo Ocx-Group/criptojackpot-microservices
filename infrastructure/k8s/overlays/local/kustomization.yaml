@@ -289,6 +289,8 @@ configMapGenerator:
       - Cors__AllowedOrigins__0=http://localhost:3000
       - Cors__AllowedOrigins__1=http://localhost:8080
       - Cors__AllowedOrigins__2=http://localhost:30180
+      - OpenTelemetry__Endpoint=http://otel-collector.monitoring.svc.cluster.local:4317
+      - OpenTelemetry__Enabled=true
 
 generatorOptions:
   disableNameSuffixHash: true

@@ -1,0 +1,11 @@
+﻿# Kustomization for LOCAL monitoring overlay
+# Namespace propio: "monitoring" (NO hereda el namespace: cryptojackpot del overlay padre)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Sin override de namespace — cada recurso define el suyo (monitoring)
+resources:
+  - ../../../base/infrastructure/monitoring
+  - secrets.yaml
+
+

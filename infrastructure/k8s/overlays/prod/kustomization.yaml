@@ -537,6 +537,8 @@ patches:
                       port:
                         number: 80
 
+  # OTel Collector patch moved to overlays/prod/monitoring/kustomization.yaml
+
 # ConfigMap for Production environment
 configMapGenerator:
   - name: app-config
@@ -547,6 +549,8 @@ configMapGenerator:
       - Logging__LogLevel__Microsoft.AspNetCore=Warning
       - Cors__AllowedOrigins__0=https://criptojackpot.com
       - Cors__AllowedOrigins__1=https://www.criptojackpot.com
+      - OpenTelemetry__Endpoint=http://otel-collector.monitoring.svc.cluster.local:4317
+      - OpenTelemetry__Enabled=true
 
 generatorOptions:
   disableNameSuffixHash: true
