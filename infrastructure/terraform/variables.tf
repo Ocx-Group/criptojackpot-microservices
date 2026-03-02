@@ -133,13 +133,12 @@ variable "databases" {
 }
 
 # -----------------------------------------------------------------------------
-# Redis (Upstash - externo) Configuration
+# Redis (DO Managed) Configuration
 # -----------------------------------------------------------------------------
-variable "redis_connection_string" {
-  description = "Connection string de Upstash Redis (con TLS)"
+variable "redis_size" {
+  description = "Plan del cluster Redis de DigitalOcean (db-s-1vcpu-1gb, db-s-1vcpu-2gb, etc.)"
   type        = string
-  sensitive   = true
-  default     = ""
+  default     = "db-s-1vcpu-1gb"
 }
 
 # -----------------------------------------------------------------------------
@@ -195,53 +194,24 @@ variable "jwt_audience" {
 }
 
 # -----------------------------------------------------------------------------
-# Kafka - Upstash (externo, SASL_SSL)
+# Kafka - Redpanda (interno en el cluster, sin credenciales externas)
+# Bootstrap server: redpanda.<namespace>.svc.cluster.local:9092
 # -----------------------------------------------------------------------------
-variable "kafka_bootstrap_servers" {
-  description = "Bootstrap servers de Upstash Kafka (ej: host:9092)"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "kafka_sasl_username" {
-  description = "Username SASL para Upstash Kafka"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "kafka_sasl_password" {
-  description = "Password SASL para Upstash Kafka"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "kafka_sasl_mechanism" {
-  description = "Mecanismo SASL para Kafka (SCRAM-SHA-256)"
-  type        = string
-  default     = "SCRAM-SHA-256"
-}
-
-variable "kafka_security_protocol" {
-  description = "Protocolo de seguridad Kafka (SASL_SSL para Upstash)"
-  type        = string
-  default     = "SASL_SSL"
-}
 
 # -----------------------------------------------------------------------------
 # MongoDB Atlas (externo) - Audit Service
 # -----------------------------------------------------------------------------
-variable "mongodb_connection_string" {
-  description = "Connection string de MongoDB Atlas (mongodb+srv://...)"
+# -----------------------------------------------------------------------------
+# MongoDB (DO Managed) Configuration
+# -----------------------------------------------------------------------------
+variable "mongodb_size" {
+  description = "Plan del cluster MongoDB de DigitalOcean"
   type        = string
-  sensitive   = true
-  default     = ""
+  default     = "db-s-1vcpu-1gb"
 }
 
 variable "mongodb_audit_database" {
-  description = "Nombre de la base de datos de auditoría en MongoDB Atlas"
+  description = "Nombre de la base de datos de auditoría en MongoDB"
   type        = string
   default     = "criptojackpot_audit"
 }

@@ -369,6 +369,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "terraform", "terraform", "{
 		Infrastructure\terraform\providers.tf = Infrastructure\terraform\providers.tf
 		Infrastructure\terraform\versions.tf = Infrastructure\terraform\versions.tf
 		Infrastructure\terraform\CLOUDFLARE_SETUP.md = Infrastructure\terraform\CLOUDFLARE_SETUP.md
+		infrastructure\terraform\terraform.tfvars = infrastructure\terraform\terraform.tfvars
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "environments", "environments", "{33333333-3333-3333-3333-333333333331}"

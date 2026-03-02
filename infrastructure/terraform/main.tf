@@ -115,8 +115,51 @@ module "spaces" {
 }
 
 # -----------------------------------------------------------------------------
-# NGINX Ingress Controller (sin cert-manager — TLS gestionado por Cloudflare)
+# Redis (DO Managed) Module
+# Reemplaza Upstash Redis — mismo VPC, latencia mínima, gestionado por DO
+# Usado como: SignalR Backplane (Lottery), Cache distribuido (Wallet), DataProtection (Identity)
 # -----------------------------------------------------------------------------
+module "redis" {
+  source = "./modules/redis"
+
+  depends_on = [module.vpc, module.doks]
+
+  name   = "${local.resource_prefix}-redis"
+  region = var.region
+
+  size       = var.redis_size
+  node_count = 1
+  vpc_uuid   = module.vpc.vpc_id
+
+  trusted_sources_ids = [module.doks.cluster_id]
+
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# MongoDB (DO Managed) Module
+# Reemplaza MongoDB Atlas — mismo VPC, sin costo externo
+# Usado por: Audit service
+# -----------------------------------------------------------------------------
+module "mongodb" {
+  source = "./modules/mongodb"
+
+  depends_on = [module.vpc, module.doks]
+
+  name   = "${local.resource_prefix}-mongodb"
+  region = var.region
+
+  size            = var.mongodb_size
+  node_count      = 1
+  vpc_uuid        = module.vpc.vpc_id
+  audit_database  = var.mongodb_audit_database
+
+  trusted_sources_ids = [module.doks.cluster_id]
+
+  tags = local.common_tags
+}
+
+
 module "ingress" {
   source = "./modules/ingress"
 
@@ -135,7 +178,7 @@ module "ingress" {
 module "k8s_secrets" {
   source = "./modules/secrets"
 
-  depends_on = [module.doks, module.database, module.spaces]
+  depends_on = [module.doks, module.database, module.redis, module.mongodb, module.spaces]
 
   namespace   = var.project_name
   environment = var.environment
@@ -152,19 +195,14 @@ module "k8s_secrets" {
   jwt_issuer     = var.jwt_issuer
   jwt_audience   = var.jwt_audience
 
-  # Kafka - Upstash (SASL_SSL externo)
-  kafka_bootstrap_servers = var.kafka_bootstrap_servers
-  kafka_sasl_username     = var.kafka_sasl_username
-  kafka_sasl_password     = var.kafka_sasl_password
-  kafka_sasl_mechanism    = var.kafka_sasl_mechanism
-  kafka_security_protocol = var.kafka_security_protocol
+  # Kafka - Redpanda interno (bootstrap server se construye desde el namespace, sin credenciales)
 
-  # Redis - Upstash (externo, TLS)
-  redis_connection_string = var.redis_connection_string
+  # Redis - DO Managed (reemplaza Upstash Redis)
+  redis_connection_string = module.redis.connection_string
 
-  # MongoDB Atlas - Audit service
-  mongodb_connection_string = var.mongodb_connection_string
-  mongodb_audit_database    = var.mongodb_audit_database
+  # MongoDB - DO Managed (reemplaza MongoDB Atlas)
+  mongodb_connection_string = module.mongodb.private_uri
+  mongodb_audit_database    = module.mongodb.audit_database
 
   # DigitalOcean Spaces
   spaces_endpoint   = module.spaces.endpoint

@@ -60,36 +60,8 @@ variable "jwt_audience" {
   default     = "CriptoJackpotApp"
 }
 
-# Kafka - Upstash
-variable "kafka_bootstrap_servers" {
-  description = "Servidores bootstrap de Kafka"
-  type        = string
-  sensitive   = true
-}
-
-variable "kafka_sasl_username" {
-  description = "Username para SASL en Kafka"
-  type        = string
-  sensitive   = true
-}
-
-variable "kafka_sasl_password" {
-  description = "Password para SASL en Kafka"
-  type        = string
-  sensitive   = true
-}
-
-variable "kafka_sasl_mechanism" {
-  description = "Mecanismo SASL para Kafka"
-  type        = string
-  default     = "SCRAM-SHA-256"
-}
-
-variable "kafka_security_protocol" {
-  description = "Protocolo de seguridad para Kafka"
-  type        = string
-  default     = "SASL_SSL"
-}
+# Kafka - Redpanda interno (no requiere credenciales, solo namespace para construir el host)
+# El bootstrap server se construye como: redpanda.<namespace>.svc.cluster.local:9092
 
 # Redis - Upstash
 variable "redis_connection_string" {

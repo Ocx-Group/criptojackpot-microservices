@@ -11,11 +11,10 @@
 #   $env:TF_VAR_spaces_secret_key     = "..."
 #   $env:TF_VAR_cloudflare_api_token  = "..."
 #   $env:TF_VAR_cloudflare_zone_id    = "..."
-#   $env:TF_VAR_kafka_bootstrap_servers = "upstash-host:9092"
-#   $env:TF_VAR_kafka_sasl_username   = "..."
-#   $env:TF_VAR_kafka_sasl_password   = "..."
-#   $env:TF_VAR_mongodb_connection_string = "mongodb+srv://..."
 #   $env:TF_VAR_brevo_api_key         = "..."
+#   (Kafka: Redpanda interno — sin TF_VAR)
+#   (Redis: DO Managed — sin TF_VAR)
+#   (MongoDB: DO Managed — sin TF_VAR)
 # =============================================================================
 
 # Project
@@ -58,10 +57,14 @@ cloudflare_proxied    = true  # Nube naranja: CDN + WAF activo
 jwt_issuer   = "CriptoJackpotIdentity"
 jwt_audience = "CriptoJackpotApp"
 
-# Kafka - Upstash (externo, SASL_SSL)
-# Los valores reales se pasan via TF_VAR_* en CI/CD
-kafka_sasl_mechanism    = "SCRAM-SHA-256"
-kafka_security_protocol = "SASL_SSL"
+# Redis - DO Managed (misma VPC, gestionado por DigitalOcean)
+redis_size = "db-s-1vcpu-1gb"
+
+# MongoDB - DO Managed (mismo VPC, reemplaza Atlas)
+mongodb_size           = "db-s-1vcpu-1gb"
+mongodb_audit_database = "criptojackpot_audit"
+
+# Kafka - Redpanda interno (pod en el cluster, sin credenciales externas)
 
 # Tags
 tags = ["criptojackpot", "prod", "terraform-managed", "critical"]

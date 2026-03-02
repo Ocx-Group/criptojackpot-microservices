@@ -63,7 +63,7 @@ resource "kubernetes_secret" "jwt" {
 }
 
 # -----------------------------------------------------------------------------
-# kafka-secrets — Upstash Kafka (SASL_SSL)
+# kafka-secrets — Redpanda interno (PLAINTEXT, sin SASL)
 # -----------------------------------------------------------------------------
 resource "kubernetes_secret" "kafka" {
   metadata {
@@ -72,11 +72,8 @@ resource "kubernetes_secret" "kafka" {
   }
 
   data = {
-    KAFKA_BOOTSTRAP_SERVERS = var.kafka_bootstrap_servers
-    KAFKA_SASL_USERNAME     = var.kafka_sasl_username
-    KAFKA_SASL_PASSWORD     = var.kafka_sasl_password
-    KAFKA_SASL_MECHANISM    = var.kafka_sasl_mechanism
-    KAFKA_SECURITY_PROTOCOL = var.kafka_security_protocol
+    KAFKA_BOOTSTRAP_SERVERS = "redpanda.${var.namespace}.svc.cluster.local:9092"
+    KAFKA_SECURITY_PROTOCOL = "PLAINTEXT"
   }
 
   type = "Opaque"
