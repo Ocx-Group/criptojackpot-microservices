@@ -26,7 +26,7 @@ region       = "nyc3"
 vpc_ip_range = "10.10.0.0/16"
 
 # Kubernetes - Configuración robusta para producción
-k8s_version    = "1.32.2-do.0"
+k8s_version    = "1.32.10-do.5"
 k8s_node_size  = "s-4vcpu-8gb"
 k8s_node_count = 3
 k8s_auto_scale = true

@@ -15,10 +15,6 @@ resource "digitalocean_database_cluster" "mongodb" {
 
   tags = var.tags
 
-  maintenance_window {
-    day  = "sunday"
-    hour = "04:00"
-  }
 
   lifecycle {
     prevent_destroy = false

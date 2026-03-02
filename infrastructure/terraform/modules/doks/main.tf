@@ -65,10 +65,3 @@ resource "digitalocean_kubernetes_cluster" "main" {
     ]
   }
 }
-
-# Obtener credenciales del cluster
-data "digitalocean_kubernetes_cluster" "main" {
-  name = digitalocean_kubernetes_cluster.main.name
-  
-  depends_on = [digitalocean_kubernetes_cluster.main]
-}

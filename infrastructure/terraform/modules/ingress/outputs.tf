@@ -17,8 +17,4 @@ output "nginx_ingress_namespace" {
   value       = helm_release.nginx_ingress.namespace
 }
 
-output "cert_manager_namespace" {
-  description = "Namespace del Cert-Manager"
-  value       = var.enable_ssl ? helm_release.cert_manager[0].namespace : null
-}
 

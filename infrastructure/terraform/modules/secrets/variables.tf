@@ -28,12 +28,14 @@ variable "postgres_port" {
 variable "postgres_user" {
   description = "Usuario de PostgreSQL"
   type        = string
+  default     = ""
 }
 
 variable "postgres_password" {
   description = "Contraseña de PostgreSQL"
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "databases" {

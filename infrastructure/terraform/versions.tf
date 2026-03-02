@@ -56,11 +56,12 @@ terraform {
   #   TF_BACKEND_KEY: "qa/terraform.tfstate"
   # ===========================================================================
   backend "s3" {
-    endpoint = "nyc3.digitaloceanspaces.com"
-    bucket   = "criptojackpot-tf-state"
-    # key se pasa en tiempo de init: -backend-config="key=<env>/terraform.tfstate"
+    endpoints = {
+      s3 = "https://nyc3.digitaloceanspaces.com"
+    }
+    bucket = "criptojackpot-tf-state"
     key    = "terraform.tfstate"
-    region = "us-east-1" # Requerido por protocolo S3, ignorado por DO
+    region = "us-east-1"
 
     skip_credentials_validation = true
     skip_metadata_api_check     = true

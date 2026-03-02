@@ -418,6 +418,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "secrets", "secrets", "{3333
 		Infrastructure\terraform\modules\secrets\main.tf = Infrastructure\terraform\modules\secrets\main.tf
 		Infrastructure\terraform\modules\secrets\outputs.tf = Infrastructure\terraform\modules\secrets\outputs.tf
 		Infrastructure\terraform\modules\secrets\variables.tf = Infrastructure\terraform\modules\secrets\variables.tf
+		infrastructure\terraform\modules\secrets\versions.tf = infrastructure\terraform\modules\secrets\versions.tf
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "spaces", "spaces", "{33333333-3333-3333-3333-333333333338}"

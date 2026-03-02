@@ -29,16 +29,16 @@ resource "kubernetes_secret" "postgres" {
   data = {
     POSTGRES_HOST     = var.postgres_host
     POSTGRES_PORT     = tostring(var.postgres_port)
-    POSTGRES_USER     = var.postgres_user
-    POSTGRES_PASSWORD = var.postgres_password
+    POSTGRES_USER     = var.postgres_user != null ? var.postgres_user : ""
+    POSTGRES_PASSWORD = var.postgres_password != null ? var.postgres_password : ""
     POSTGRES_SSLMODE  = "require"
 
-    IDENTITY_DB_CONNECTION     = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_identity_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
-    LOTTERY_DB_CONNECTION      = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_lottery_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
-    ORDER_DB_CONNECTION        = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_order_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
-    WALLET_DB_CONNECTION       = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_wallet_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
-    WINNER_DB_CONNECTION       = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_winner_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
-    NOTIFICATION_DB_CONNECTION = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_notification_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
+    IDENTITY_DB_CONNECTION     = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_identity_db;Username=${var.postgres_user != null ? var.postgres_user : ""};Password=${var.postgres_password != null ? var.postgres_password : ""};SSL Mode=Disable"
+    LOTTERY_DB_CONNECTION      = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_lottery_db;Username=${var.postgres_user != null ? var.postgres_user : ""};Password=${var.postgres_password != null ? var.postgres_password : ""};SSL Mode=Disable"
+    ORDER_DB_CONNECTION        = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_order_db;Username=${var.postgres_user != null ? var.postgres_user : ""};Password=${var.postgres_password != null ? var.postgres_password : ""};SSL Mode=Disable"
+    WALLET_DB_CONNECTION       = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_wallet_db;Username=${var.postgres_user != null ? var.postgres_user : ""};Password=${var.postgres_password != null ? var.postgres_password : ""};SSL Mode=Disable"
+    WINNER_DB_CONNECTION       = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_winner_db;Username=${var.postgres_user != null ? var.postgres_user : ""};Password=${var.postgres_password != null ? var.postgres_password : ""};SSL Mode=Disable"
+    NOTIFICATION_DB_CONNECTION = "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_notification_db;Username=${var.postgres_user != null ? var.postgres_user : ""};Password=${var.postgres_password != null ? var.postgres_password : ""};SSL Mode=Disable"
   }
 
   type = "Opaque"
@@ -155,12 +155,14 @@ resource "kubernetes_secret" "brevo" {
 # ⚠️ IMPORTANTE: Este archivo contiene credenciales sensibles
 # Está incluido en .gitignore para evitar commits accidentales
 locals {
+  pg_user     = var.postgres_user != null ? var.postgres_user : ""
+  pg_password = var.postgres_password != null ? var.postgres_password : ""
+
   secrets_yaml_content = <<-EOT
 # =============================================================================
 # ARCHIVO GENERADO AUTOMÁTICAMENTE POR TERRAFORM
 # ⚠️ CONTIENE CREDENCIALES SENSIBLES - NO SUBIR A GIT
 # NO EDITAR MANUALMENTE - Los cambios se perderán
-# Generado: ${timestamp()}
 # =============================================================================
 apiVersion: v1
 kind: Secret
@@ -171,15 +173,15 @@ type: Opaque
 stringData:
   POSTGRES_HOST: "${var.postgres_host}"
   POSTGRES_PORT: "${var.postgres_port}"
-  POSTGRES_USER: "${var.postgres_user}"
-  POSTGRES_PASSWORD: "${var.postgres_password}"
+  POSTGRES_USER: "${local.pg_user}"
+  POSTGRES_PASSWORD: "${local.pg_password}"
   POSTGRES_SSLMODE: "require"
-  IDENTITY_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_identity_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
-  LOTTERY_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_lottery_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
-  ORDER_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_order_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
-  WALLET_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_wallet_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
-  WINNER_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_winner_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
-  NOTIFICATION_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_notification_db;Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=Disable"
+  IDENTITY_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_identity_db;Username=${local.pg_user};Password=${local.pg_password};SSL Mode=Disable"
+  LOTTERY_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_lottery_db;Username=${local.pg_user};Password=${local.pg_password};SSL Mode=Disable"
+  ORDER_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_order_db;Username=${local.pg_user};Password=${local.pg_password};SSL Mode=Disable"
+  WALLET_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_wallet_db;Username=${local.pg_user};Password=${local.pg_password};SSL Mode=Disable"
+  WINNER_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_winner_db;Username=${local.pg_user};Password=${local.pg_password};SSL Mode=Disable"
+  NOTIFICATION_DB_CONNECTION: "Host=pgbouncer.${var.namespace}.svc.cluster.local;Port=6432;Database=${var.namespace}_notification_db;Username=${local.pg_user};Password=${local.pg_password};SSL Mode=Disable"
 ---
 apiVersion: v1
 kind: Secret
@@ -199,11 +201,8 @@ metadata:
   namespace: ${var.namespace}
 type: Opaque
 stringData:
-  KAFKA_BOOTSTRAP_SERVERS: "${var.kafka_bootstrap_servers}"
-  KAFKA_SASL_USERNAME: "${var.kafka_sasl_username}"
-  KAFKA_SASL_PASSWORD: "${var.kafka_sasl_password}"
-  KAFKA_SASL_MECHANISM: "${var.kafka_sasl_mechanism}"
-  KAFKA_SECURITY_PROTOCOL: "${var.kafka_security_protocol}"
+  KAFKA_BOOTSTRAP_SERVERS: "redpanda.${var.namespace}.svc.cluster.local:9092"
+  KAFKA_SECURITY_PROTOCOL: "PLAINTEXT"
 ---
 apiVersion: v1
 kind: Secret

@@ -226,10 +226,8 @@ resource "null_resource" "kustomize_apply" {
   depends_on = [module.doks, module.k8s_secrets, module.ingress]
 
   triggers = {
-    # Re-aplica si el cluster cambia o si hay cambios en los overlays
     cluster_id  = module.doks.cluster_id
     environment = var.environment
-    # Checksum de los archivos del overlay para detectar cambios
     overlay_hash = sha256(join("", [
       filesha256("${path.root}/../k8s/overlays/${var.environment}/kustomization.yaml"),
     ]))
@@ -237,16 +235,16 @@ resource "null_resource" "kustomize_apply" {
 
   provisioner "local-exec" {
     command     = <<-EOT
-      echo "Conectando kubectl al cluster ${module.doks.cluster_name}..."
+      Write-Host "Conectando kubectl al cluster ${module.doks.cluster_name}..."
       doctl kubernetes cluster kubeconfig save ${module.doks.cluster_id} --context ${local.resource_prefix}
 
-      echo "Aplicando manifiestos Kustomize para ambiente: ${var.environment}..."
+      Write-Host "Aplicando manifiestos Kustomize para ambiente: ${var.environment}..."
       kubectl apply -k ../k8s/overlays/${var.environment} --context ${local.resource_prefix} --timeout=300s
 
-      echo "Verificando rollout de deployments..."
+      Write-Host "Verificando rollout de deployments..."
       kubectl rollout status deployment/bff-gateway -n ${var.project_name} --context ${local.resource_prefix} --timeout=300s
     EOT
-    interpreter = ["bash", "-c"]
+    interpreter = ["powershell", "-Command"]
     working_dir = path.module
   }
 }
@@ -255,7 +253,7 @@ resource "null_resource" "kustomize_apply" {
 # Cloudflare DNS — apunta al Load Balancer IP del NGINX Ingress
 # -----------------------------------------------------------------------------
 resource "cloudflare_record" "api_endpoint" {
-  count = local.is_cloudflare_ready && module.ingress.load_balancer_ip != "pending" ? 1 : 0
+  count = local.is_cloudflare_ready ? 1 : 0
 
   zone_id = var.cloudflare_zone_id
   name    = local.subdomain  # "api-qa" o "api"

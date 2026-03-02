@@ -17,11 +17,6 @@ resource "digitalocean_database_cluster" "redis" {
   # Tags para identificación
   tags = var.tags
 
-  # Configuraciones de mantenimiento
-  maintenance_window {
-    day  = var.maintenance_day
-    hour = var.maintenance_hour
-  }
 
   # Eviction policy para cache
   eviction_policy = var.eviction_policy

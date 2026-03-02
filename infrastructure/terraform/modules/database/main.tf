@@ -16,26 +16,16 @@ resource "digitalocean_database_cluster" "main" {
   # Tags para identificación
   tags = var.tags
 
-  # Configuraciones de mantenimiento
-  maintenance_window {
-    day  = var.maintenance_day
-    hour = var.maintenance_hour
-  }
 
   lifecycle {
-    # CRÍTICO: nunca destruir la base de datos automáticamente.
-    # Si necesitas cambiar name/region/engine debes hacerlo manualmente
-    # con terraform state mv o creando un nuevo cluster antes de destruir el viejo.
     prevent_destroy = true
-
-    # Ignorar cambios operacionales que DO gestiona internamente
-    # (versión de pg puede subir en auto-upgrade, tags pueden cambiar externamente)
     ignore_changes = [
       tags,
       maintenance_window,
     ]
   }
 }
+
 
 # Crear las 6 bases de datos para cada microservicio
 resource "digitalocean_database_db" "databases" {

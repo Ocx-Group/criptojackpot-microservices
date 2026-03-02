@@ -13,9 +13,8 @@ resource "digitalocean_container_registry_docker_credentials" "main" {
 }
 
 # Integrar el registry con el cluster DOKS (permite pull de imágenes privadas)
-resource "digitalocean_kubernetes_cluster_registry" "main" {
-  count      = var.kubernetes_cluster_id != "" ? 1 : 0
-  cluster_id = var.kubernetes_cluster_id
-  registry_id = digitalocean_container_registry.main.id
+resource "digitalocean_container_registry_docker_credentials" "k8s" {
+  registry_name = digitalocean_container_registry.main.name
+  write         = false
 }
 
