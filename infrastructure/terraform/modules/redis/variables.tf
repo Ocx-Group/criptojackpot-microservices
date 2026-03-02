@@ -25,9 +25,9 @@ variable "node_count" {
 }
 
 variable "version_redis" {
-  description = "Redis version"
+  description = "Valkey version (compatible con Redis)"
   type        = string
-  default     = "7"
+  default     = "8"
 }
 
 variable "vpc_uuid" {

@@ -235,14 +235,15 @@ resource "null_resource" "kustomize_apply" {
 
   provisioner "local-exec" {
     command     = <<-EOT
+      $k8sContext = "do-${var.region}-${local.resource_prefix}-cluster"
       Write-Host "Conectando kubectl al cluster ${module.doks.cluster_name}..."
-      doctl kubernetes cluster kubeconfig save ${module.doks.cluster_id} --context ${local.resource_prefix}
+      doctl kubernetes cluster kubeconfig save ${module.doks.cluster_id} --access-token ${var.do_token}
 
       Write-Host "Aplicando manifiestos Kustomize para ambiente: ${var.environment}..."
-      kubectl apply -k ../k8s/overlays/${var.environment} --context ${local.resource_prefix} --timeout=300s
+      kubectl apply -k ../k8s/overlays/${var.environment} --context $k8sContext --timeout=300s
 
       Write-Host "Verificando rollout de deployments..."
-      kubectl rollout status deployment/bff-gateway -n ${var.project_name} --context ${local.resource_prefix} --timeout=300s
+      kubectl rollout status deployment/bff-gateway -n ${var.project_name} --context $k8sContext --timeout=300s
     EOT
     interpreter = ["powershell", "-Command"]
     working_dir = path.module

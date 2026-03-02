@@ -8,19 +8,17 @@ provider "digitalocean" {
   spaces_secret_key = var.spaces_secret_key
 }
 
-# Provider Kubernetes configurado después de crear el cluster DOKS
+# Provider Kubernetes — usa kubeconfig local (guardado con doctl kubeconfig save)
 provider "kubernetes" {
-  host                   = module.doks.cluster_endpoint
-  token                  = module.doks.cluster_token
-  cluster_ca_certificate = base64decode(module.doks.cluster_ca_certificate)
+  config_path    = "~/.kube/config"
+  config_context = "do-nyc3-${var.project_name}-${var.environment}-cluster"
 }
 
 # Provider Helm para instalar cert-manager y nginx-ingress
 provider "helm" {
   kubernetes {
-    host                   = module.doks.cluster_endpoint
-    token                  = module.doks.cluster_token
-    cluster_ca_certificate = base64decode(module.doks.cluster_ca_certificate)
+    config_path    = "~/.kube/config"
+    config_context = "do-nyc3-${var.project_name}-${var.environment}-cluster"
   }
 }
 
