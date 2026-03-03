@@ -3,13 +3,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: wallet-api
-  namespace: cryptojackpot
+  namespace: criptojackpot
   labels:
     app: wallet-api
 spec:
   type: ClusterIP
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8080
   selector:
     app: wallet-api

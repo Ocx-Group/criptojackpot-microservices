@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: bff-gateway
-  namespace: cryptojackpot
+  namespace: criptojackpot
   labels:
     app: bff-gateway
     component: api-gateway
@@ -21,7 +21,7 @@ spec:
         - name: bff-gateway
           image: cryptojackpot/bff-gateway
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               name: http
           env:
             - name: ASPNETCORE_ENVIRONMENT
@@ -31,7 +31,7 @@ spec:
                   key: ASPNETCORE_ENVIRONMENT
                   optional: true
             - name: ASPNETCORE_URLS
-              value: "http://+:80"
+              value: "http://+:8080"
             - name: JwtSettings__SecretKey
               valueFrom:
                 secretKeyRef:
@@ -50,14 +50,14 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8080
             initialDelaySeconds: 10
             periodSeconds: 30
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
@@ -68,4 +68,3 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "250m"
-

@@ -266,8 +266,18 @@ patches:
             memory: "256Mi"
             cpu: "250m"
 
-  # BFF Ingress - único punto de entrada externo (api.criptojackpot.com)
-  # Flujo: Frontend → Cloudflare (TLS terminado) → BFF Ingress (HTTP interno)
+  # imagePullSecrets for all Deployments â€” needed to pull from private DOCR
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /spec/template/spec/imagePullSecrets
+        value:
+          - name: regcred
+
+
+  # BFF Ingress - Ãºnico punto de entrada externo (api.criptojackpot.com) - Ãºnico punto de entrada externo (api.criptojackpot.com)
+  # Flujo: Frontend â†’ Cloudflare (TLS terminado) â†’ BFF Ingress (HTTP interno)
   # Cloudflare gestiona el certificado TLS externo; dentro del cluster es HTTP plano.
   # Rate limiting aplicado a nivel de nginx como capa extra de defensa.
   - target:
@@ -321,12 +331,12 @@ configMapGenerator:
   - name: app-config
     literals:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_URLS=http://+:8080
       - Logging__LogLevel__Default=Warning
       - Logging__LogLevel__Microsoft.AspNetCore=Warning
       - Cors__AllowedOrigins__0=https://criptojackpot.com
       - Cors__AllowedOrigins__1=https://www.criptojackpot.com
-      - KAFKA_BOOTSTRAP_SERVERS=redpanda.cryptojackpot.svc.cluster.local:9092
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda.criptojackpot.svc.cluster.local:9092
       - OpenTelemetry__Endpoint=http://otel-collector.monitoring.svc.cluster.local:4317
       - OpenTelemetry__Enabled=true
 

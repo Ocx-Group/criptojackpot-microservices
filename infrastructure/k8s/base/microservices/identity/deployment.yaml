@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: identity-api
-  namespace: cryptojackpot
+  namespace: criptojackpot
   labels:
     app: identity-api
     tier: api
@@ -21,7 +21,7 @@ spec:
         - name: identity-api
           image: cryptojackpot/identity-api
           ports:
-            - containerPort: 80
+            - containerPort: 8080
           envFrom:
             - configMapRef:
                 name: app-config
@@ -73,18 +73,20 @@ spec:
                 secretKeyRef:
                   name: kafka-secrets
                   key: KAFKA_BOOTSTRAP_SERVERS
+            - name: ASPNETCORE_URLS
+              value: "http://*:8080"
 
           readinessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8080
             initialDelaySeconds: 10
             periodSeconds: 5
             failureThreshold: 10
           livenessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8080
             initialDelaySeconds: 30
             periodSeconds: 10
           resources:
@@ -93,4 +95,4 @@ spec:
               cpu: "100m"
             limits:
               memory: "256Mi"
-              cpu: "500m"  
+              cpu: "500m"

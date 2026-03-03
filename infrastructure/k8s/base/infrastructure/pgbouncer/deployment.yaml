@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: pgbouncer
-  namespace: cryptojackpot
+  namespace: criptojackpot
   labels:
     app: pgbouncer
     tier: database
@@ -20,48 +20,50 @@ spec:
     spec:
       containers:
         - name: pgbouncer
-          image: bitnami/pgbouncer:1.22.1
+          image: edoburu/pgbouncer:v1.25.1-p0
           ports:
             - containerPort: 6432
               name: pgbouncer
           env:
-            - name: PGBOUNCER_DATABASE
-              value: "*"
-            - name: POSTGRESQL_HOST
+            - name: DB_HOST
               valueFrom:
                 secretKeyRef:
                   name: postgres-secrets
                   key: POSTGRES_HOST
-            - name: POSTGRESQL_PORT
+            - name: DB_PORT
               valueFrom:
                 secretKeyRef:
                   name: postgres-secrets
                   key: POSTGRES_PORT
-            - name: POSTGRESQL_USERNAME
+            - name: DB_USER
               valueFrom:
                 secretKeyRef:
                   name: postgres-secrets
                   key: POSTGRES_USER
-            - name: POSTGRESQL_PASSWORD
+            - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: postgres-secrets
                   key: POSTGRES_PASSWORD
-            - name: PGBOUNCER_POOL_MODE
+            - name: POOL_MODE
               value: "transaction"
-            - name: PGBOUNCER_MAX_CLIENT_CONN
+            - name: MAX_CLIENT_CONN
               value: "400"
-            - name: PGBOUNCER_DEFAULT_POOL_SIZE
+            - name: DEFAULT_POOL_SIZE
               value: "20"
-            - name: PGBOUNCER_MIN_POOL_SIZE
+            - name: MIN_POOL_SIZE
               value: "5"
-            - name: PGBOUNCER_RESERVE_POOL_SIZE
+            - name: RESERVE_POOL_SIZE
               value: "5"
-            - name: PGBOUNCER_SERVER_TLS_SSLMODE
+            - name: SERVER_TLS_SSLMODE
               valueFrom:
                 secretKeyRef:
                   name: postgres-secrets
                   key: POSTGRES_SSLMODE
+            - name: AUTH_TYPE
+              value: "scram-sha-256"
+            - name: LISTEN_PORT
+              value: "6432"
           resources:
             requests:
               memory: "64Mi"

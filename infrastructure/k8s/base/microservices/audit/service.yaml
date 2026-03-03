@@ -3,13 +3,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: audit-api
-  namespace: cryptojackpot
+  namespace: criptojackpot
   labels:
     app: audit-api
 spec:
   type: ClusterIP
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8080
   selector:
     app: audit-api

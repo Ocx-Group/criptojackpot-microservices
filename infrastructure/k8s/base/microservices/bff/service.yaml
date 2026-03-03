@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: bff-gateway
-  namespace: cryptojackpot
+  namespace: criptojackpot
   labels:
     app: bff-gateway
     component: api-gateway
@@ -11,7 +11,7 @@ spec:
   type: ClusterIP
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8080
       protocol: TCP
       name: http
   selector:
