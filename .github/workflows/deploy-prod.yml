@@ -274,6 +274,8 @@ jobs:
           TF_VAR_redis_connection_string:     ${{ secrets.PROD_REDIS_CONNECTION_STRING }}
           TF_VAR_mongodb_connection_string:   ${{ secrets.PROD_MONGODB_CONNECTION_STRING }}
           TF_VAR_brevo_api_key:               ${{ secrets.PROD_BREVO_API_KEY }}
+          TF_VAR_google_client_id:            ${{ secrets.PROD_GOOGLE_CLIENT_ID }}
+          TF_VAR_google_client_secret:        ${{ secrets.PROD_GOOGLE_CLIENT_SECRET }}
         continue-on-error: true
 
       - name: Fail if plan errored
@@ -296,6 +298,8 @@ jobs:
           TF_VAR_redis_connection_string:     ${{ secrets.PROD_REDIS_CONNECTION_STRING }}
           TF_VAR_mongodb_connection_string:   ${{ secrets.PROD_MONGODB_CONNECTION_STRING }}
           TF_VAR_brevo_api_key:               ${{ secrets.PROD_BREVO_API_KEY }}
+          TF_VAR_google_client_id:            ${{ secrets.PROD_GOOGLE_CLIENT_ID }}
+          TF_VAR_google_client_secret:        ${{ secrets.PROD_GOOGLE_CLIENT_SECRET }}
 
       - name: Connect kubectl to Prod cluster
         run: |

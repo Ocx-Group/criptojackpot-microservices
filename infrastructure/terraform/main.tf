@@ -216,6 +216,10 @@ module "k8s_secrets" {
   brevo_sender_email = var.brevo_sender_email
   brevo_sender_name  = var.brevo_sender_name
   brevo_base_url     = local.frontend_url
+
+  # Google OAuth - Identity service
+  google_client_id     = var.google_client_id
+  google_client_secret = var.google_client_secret
 }
 
 # -----------------------------------------------------------------------------

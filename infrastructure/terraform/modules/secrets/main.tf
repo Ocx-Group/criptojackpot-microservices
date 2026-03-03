@@ -151,6 +151,23 @@ resource "kubernetes_secret" "brevo" {
   type = "Opaque"
 }
 
+# -----------------------------------------------------------------------------
+# google-secrets — Google OAuth (Identity service)
+# -----------------------------------------------------------------------------
+resource "kubernetes_secret" "google" {
+  metadata {
+    name      = "google-secrets"
+    namespace = kubernetes_namespace.main.metadata[0].name
+  }
+
+  data = {
+    GOOGLEAUTH__CLIENTID     = var.google_client_id
+    GOOGLEAUTH__CLIENTSECRET = var.google_client_secret
+  }
+
+  type = "Opaque"
+}
+
 # Generar el archivo secrets.yaml para referencia/backup
 # ⚠️ IMPORTANTE: Este archivo contiene credenciales sensibles
 # Está incluido en .gitignore para evitar commits accidentales
@@ -247,5 +264,15 @@ stringData:
   BREVO_SENDER_EMAIL: "${var.brevo_sender_email}"
   BREVO_SENDER_NAME: "${var.brevo_sender_name}"
   BREVO_BASE_URL: "${var.brevo_base_url}"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: google-secrets
+  namespace: ${var.namespace}
+type: Opaque
+stringData:
+  GOOGLEAUTH__CLIENTID: "${var.google_client_id}"
+  GOOGLEAUTH__CLIENTSECRET: "${var.google_client_secret}"
 EOT
 }

@@ -273,6 +273,23 @@ variable "cloudflare_zone_id" {
   default     = ""
 }
 
+# -----------------------------------------------------------------------------
+# Google OAuth
+# -----------------------------------------------------------------------------
+variable "google_client_id" {
+  description = "Google OAuth Client ID (Identity service)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "google_client_secret" {
+  description = "Google OAuth Client Secret (Identity service)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "cloudflare_proxied" {
   description = "Activar proxy de Cloudflare (nube naranja - CDN/WAF)"
   type        = bool
