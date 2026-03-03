@@ -241,7 +241,7 @@ resource "null_resource" "kustomize_apply" {
     command     = <<-EOT
       $k8sContext = "do-${var.region}-${local.resource_prefix}-cluster"
       Write-Host "Conectando kubectl al cluster ${module.doks.cluster_name}..."
-      doctl kubernetes cluster kubeconfig save ${module.doks.cluster_id} --access-token ${var.do_token}
+      doctl kubernetes cluster kubeconfig save ${module.doks.cluster_id}
 
       Write-Host "Aplicando manifiestos Kustomize para ambiente: ${var.environment}..."
       kubectl apply -k ../k8s/overlays/${var.environment} --context $k8sContext --timeout=300s
@@ -251,6 +251,10 @@ resource "null_resource" "kustomize_apply" {
     EOT
     interpreter = ["powershell", "-Command"]
     working_dir = path.module
+
+    environment = {
+      DIGITALOCEAN_ACCESS_TOKEN = var.do_token
+    }
   }
 }
 
