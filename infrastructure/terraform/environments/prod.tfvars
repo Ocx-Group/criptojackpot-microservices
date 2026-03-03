@@ -25,13 +25,13 @@ region       = "nyc3"
 # VPC
 vpc_ip_range = "10.10.0.0/16"
 
-# Kubernetes - Configuración robusta para producción
+# Kubernetes - Configuración optimizada para inicio (escalar según demanda)
 k8s_version    = "1.32.10-do.5"
 k8s_node_size  = "s-4vcpu-8gb"
-k8s_node_count = 3
+k8s_node_count = 2
 k8s_auto_scale = true
-k8s_min_nodes  = 3
-k8s_max_nodes  = 10
+k8s_min_nodes  = 2
+k8s_max_nodes  = 5
 
 # Database - HA para producción (replicación + failover automático)
 db_size       = "db-s-2vcpu-4gb"
