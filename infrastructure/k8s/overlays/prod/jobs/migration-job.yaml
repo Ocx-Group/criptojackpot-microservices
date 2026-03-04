@@ -42,7 +42,7 @@ spec:
               sleep 2
       containers:
         - name: migrator
-          image: cryptojackpot/migrator:v1.0.0
+          image: registry.digitalocean.com/criptojackpot/migrator:latest
           imagePullPolicy: Always
           env:
             - name: DOTNET_ENVIRONMENT
