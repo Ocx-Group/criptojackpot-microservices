@@ -273,7 +273,7 @@ patches:
       - op: add
         path: /spec/template/spec/imagePullSecrets
         value:
-          - name: regcred
+          - name: registry-criptojackpot
 
 
   # BFF Ingress - Ãºnico punto de entrada externo (api.criptojackpot.com) - Ãºnico punto de entrada externo (api.criptojackpot.com)
