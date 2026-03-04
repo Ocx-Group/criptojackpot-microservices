@@ -42,6 +42,12 @@ resource "kubernetes_secret" "postgres" {
   }
 
   type = "Opaque"
+
+  # Workaround: kubernetes provider bug with sensitive attributes on imported secrets
+  # https://github.com/hashicorp/terraform-provider-kubernetes/issues/1420
+  lifecycle {
+    ignore_changes = [data]
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -60,6 +66,10 @@ resource "kubernetes_secret" "jwt" {
   }
 
   type = "Opaque"
+
+  lifecycle {
+    ignore_changes = [data]
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -77,6 +87,10 @@ resource "kubernetes_secret" "kafka" {
   }
 
   type = "Opaque"
+
+  lifecycle {
+    ignore_changes = [data]
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -93,6 +107,10 @@ resource "kubernetes_secret" "redis" {
   }
 
   type = "Opaque"
+
+  lifecycle {
+    ignore_changes = [data]
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -110,6 +128,10 @@ resource "kubernetes_secret" "mongodb" {
   }
 
   type = "Opaque"
+
+  lifecycle {
+    ignore_changes = [data]
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -130,6 +152,10 @@ resource "kubernetes_secret" "spaces" {
   }
 
   type = "Opaque"
+
+  lifecycle {
+    ignore_changes = [data]
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -149,6 +175,10 @@ resource "kubernetes_secret" "brevo" {
   }
 
   type = "Opaque"
+
+  lifecycle {
+    ignore_changes = [data]
+  }
 }
 
 # -----------------------------------------------------------------------------
@@ -166,6 +196,10 @@ resource "kubernetes_secret" "google" {
   }
 
   type = "Opaque"
+
+  lifecycle {
+    ignore_changes = [data]
+  }
 }
 
 # Generar el archivo secrets.yaml para referencia/backup
