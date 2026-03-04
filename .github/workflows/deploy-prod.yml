@@ -275,21 +275,41 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
 
-      - name: Import existing Redis cluster if not in state
+      - name: Import existing resources into Terraform state
         run: |
-          # Use exact name match to avoid partial matches
+          # Helper: import only if not already in state
+          tf_import() {
+            local addr="$1"
+            local id="$2"
+            if terraform state show "$addr" > /dev/null 2>&1; then
+              echo "Already in state: $addr — skipping"
+            else
+              echo "Importing: $addr ($id)"
+              terraform import -var-file="environments/prod.tfvars" -input=false "$addr" "$id" 2>&1 || true
+            fi
+          }
+
+          # Redis cluster
           REDIS_NAME="criptojackpot-prod-redis"
           REDIS_ID=$(doctl databases list --format ID,Name --no-header 2>/dev/null \
             | awk -v name="$REDIS_NAME" '$2 == name {print $1}')
-          if [ -n "$REDIS_ID" ]; then
-            echo "Found Redis cluster: $REDIS_ID — importing into state..."
-            terraform import \
-              -var-file="environments/prod.tfvars" \
-              -input=false \
-              module.redis.digitalocean_database_cluster.redis "$REDIS_ID" 2>&1 || true
-          else
-            echo "Redis cluster '$REDIS_NAME' not found in DO — Terraform will create it."
-          fi
+          [ -n "$REDIS_ID" ] && tf_import "module.redis.digitalocean_database_cluster.redis" "$REDIS_ID"
+
+          # NGINX Ingress Helm release (namespace/release-name)
+          tf_import "module.ingress.helm_release.nginx_ingress" "ingress-nginx/ingress-nginx"
+
+          # Kubernetes namespace
+          tf_import "module.k8s_secrets.kubernetes_namespace.main" "criptojackpot"
+
+          # Kubernetes secrets
+          tf_import "module.k8s_secrets.kubernetes_secret.postgres"    "criptojackpot/postgres-secrets"
+          tf_import "module.k8s_secrets.kubernetes_secret.jwt"         "criptojackpot/jwt-secrets"
+          tf_import "module.k8s_secrets.kubernetes_secret.kafka"       "criptojackpot/kafka-secrets"
+          tf_import "module.k8s_secrets.kubernetes_secret.redis"       "criptojackpot/redis-secrets"
+          tf_import "module.k8s_secrets.kubernetes_secret.mongodb"     "criptojackpot/mongodb-secrets"
+          tf_import "module.k8s_secrets.kubernetes_secret.spaces"      "criptojackpot/digitalocean-spaces-secrets"
+          tf_import "module.k8s_secrets.kubernetes_secret.brevo"       "criptojackpot/brevo-secrets"
+          tf_import "module.k8s_secrets.kubernetes_secret.google"      "criptojackpot/google-secrets"
         env:
           TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
           TF_VAR_spaces_access_key: ${{ secrets.DO_SPACES_ACCESS_KEY }}
