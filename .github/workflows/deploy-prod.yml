@@ -411,7 +411,7 @@ jobs:
           git add infrastructure/k8s/overlays/prod/kustomization.yaml
           git diff --cached --quiet || git commit -m "chore(prod): update image tags to ${{ needs.build-and-push.outputs.image_tag }} [skip ci]"
           git checkout -- .
-          git pull --rebase origin main
+          git pull --rebase -X theirs origin main
           git push origin main
           echo "ArgoCD detectara el cambio en ~3 minutos y desplegara automaticamente."
           echo "Monitorea el despliegue en la UI de ArgoCD."
