@@ -254,6 +254,18 @@ jobs:
           echo "AWS_ACCESS_KEY_ID=${{ secrets.DO_SPACES_ACCESS_KEY }}" >> $GITHUB_ENV
           echo "AWS_SECRET_ACCESS_KEY=${{ secrets.DO_SPACES_SECRET_KEY }}" >> $GITHUB_ENV
 
+      - name: Configure kubectl for existing DOKS cluster
+        run: |
+          # Required so kubernetes/helm Terraform providers can authenticate
+          CLUSTER_ID=$(doctl kubernetes cluster list --format ID,Name --no-header \
+            | awk '$2 ~ /criptojackpot-prod/ {print $1}' | head -1)
+          if [ -n "$CLUSTER_ID" ]; then
+            doctl kubernetes cluster kubeconfig save "$CLUSTER_ID"
+            echo "Kubeconfig saved for cluster $CLUSTER_ID"
+          else
+            echo "Warning: DOKS cluster not found. Helm/K8s providers may fail."
+          fi
+
       - name: Terraform Init (Prod state)
         run: |
           terraform init \
@@ -265,14 +277,18 @@ jobs:
 
       - name: Import existing Redis cluster if not in state
         run: |
+          # Use exact name match to avoid partial matches
+          REDIS_NAME="criptojackpot-prod-redis"
           REDIS_ID=$(doctl databases list --format ID,Name --no-header 2>/dev/null \
-            | grep "criptojackpot-prod-redis" | awk '{print $1}' || echo "")
+            | awk -v name="$REDIS_NAME" '$2 == name {print $1}')
           if [ -n "$REDIS_ID" ]; then
+            echo "Found Redis cluster: $REDIS_ID — importing into state..."
             terraform import \
               -var-file="environments/prod.tfvars" \
               -input=false \
-              module.redis.digitalocean_database_cluster.redis "$REDIS_ID" \
-              2>&1 | grep -v "already managed" || true
+              module.redis.digitalocean_database_cluster.redis "$REDIS_ID" 2>&1 || true
+          else
+            echo "Redis cluster '$REDIS_NAME' not found in DO — Terraform will create it."
           fi
         env:
           TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
