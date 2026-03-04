@@ -112,7 +112,7 @@ static async Task MigrateContextAsync(
     {
         try
         {
-            await using var context = contextFactory();
+            var context = contextFactory();
 
             // Wait for database to be ready
             if (!await context.Database.CanConnectAsync())
