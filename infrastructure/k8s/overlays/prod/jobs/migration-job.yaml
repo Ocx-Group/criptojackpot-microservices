@@ -34,7 +34,7 @@ spec:
             - -c
             - |
               echo "Waiting for PgBouncer to be ready..."
-              until nc -z pgbouncer.criptojackpot.svc.cluster.local 5432; do
+              until nc -z pgbouncer.criptojackpot.svc.cluster.local 6432; do
                 echo "PgBouncer not ready, waiting..."
                 sleep 2
               done
