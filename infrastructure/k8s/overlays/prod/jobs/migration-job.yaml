@@ -1,0 +1,67 @@
+# Database Migration Job for PRODUCTION environment
+# Uses ArgoCD PreSync hook to run before any Deployment is updated.
+# ArgoCD deletes the previous completed job before creating a new one.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrations
+  namespace: criptojackpot
+  labels:
+    app: db-migrations
+    component: infrastructure
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+  parallelism: 1
+  completions: 1
+  template:
+    metadata:
+      labels:
+        app: db-migrations
+    spec:
+      restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: registry-criptojackpot
+      # Wait for PgBouncer to be ready before running migrations
+      initContainers:
+        - name: wait-for-pgbouncer
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for PgBouncer to be ready..."
+              until nc -z pgbouncer.criptojackpot.svc.cluster.local 5432; do
+                echo "PgBouncer not ready, waiting..."
+                sleep 2
+              done
+              echo "PgBouncer is ready!"
+              sleep 2
+      containers:
+        - name: migrator
+          image: cryptojackpot/migrator:v1.0.0
+          imagePullPolicy: Always
+          env:
+            - name: DOTNET_ENVIRONMENT
+              value: "Production"
+          envFrom:
+            - secretRef:
+                name: postgres-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000

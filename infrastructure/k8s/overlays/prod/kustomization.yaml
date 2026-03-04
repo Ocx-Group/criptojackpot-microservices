@@ -9,6 +9,7 @@ resources:
   - ../../base/infrastructure/redpanda
   - secrets
   - pgbouncer
+  - jobs
 
 # PROD uses:
 # - DigitalOcean Managed PostgreSQL (via PgBouncer)
@@ -344,6 +345,9 @@ generatorOptions:
   disableNameSuffixHash: true
 
 images:
+  - name: cryptojackpot/migrator
+    newName: registry.digitalocean.com/criptojackpot/migrator
+    newTag: v1.0.0
   - name: cryptojackpot/bff-gateway
     newName: registry.digitalocean.com/criptojackpot/bff-gateway
     newTag: v1.0.0
