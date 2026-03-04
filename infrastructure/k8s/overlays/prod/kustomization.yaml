@@ -347,31 +347,31 @@ generatorOptions:
 images:
   - name: cryptojackpot/migrator
     newName: registry.digitalocean.com/criptojackpot/migrator
-    newTag: v1.0.0
+    newTag: prod-c098432
   - name: cryptojackpot/bff-gateway
     newName: registry.digitalocean.com/criptojackpot/bff-gateway
-    newTag: v1.0.0
+    newTag: prod-c098432
   - name: cryptojackpot/identity-api
     newName: registry.digitalocean.com/criptojackpot/identity-api
-    newTag: v1.0.0
+    newTag: prod-c098432
   - name: cryptojackpot/lottery-api
     newName: registry.digitalocean.com/criptojackpot/lottery-api
-    newTag: v1.0.0
+    newTag: prod-c098432
   - name: cryptojackpot/order-api
     newName: registry.digitalocean.com/criptojackpot/order-api
-    newTag: v1.0.0
+    newTag: prod-c098432
   - name: cryptojackpot/wallet-api
     newName: registry.digitalocean.com/criptojackpot/wallet-api
-    newTag: v1.0.0
+    newTag: prod-c098432
   - name: cryptojackpot/winner-api
     newName: registry.digitalocean.com/criptojackpot/winner-api
-    newTag: v1.0.0
+    newTag: prod-c098432
   - name: cryptojackpot/notification-api
     newName: registry.digitalocean.com/criptojackpot/notification-api
-    newTag: v1.0.0
+    newTag: prod-c098432
   - name: cryptojackpot/audit-api
     newName: registry.digitalocean.com/criptojackpot/audit-api
-    newTag: v1.0.0
+    newTag: prod-c098432
 
 labels:
   - pairs:
