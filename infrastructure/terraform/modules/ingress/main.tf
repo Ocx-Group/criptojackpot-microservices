@@ -45,6 +45,12 @@ resource "helm_release" "nginx_ingress" {
 
   wait    = true
   timeout = 600
+
+  # Ingress is long-lived infra — avoid re-upgrading on every deploy
+  # which causes unexpected EOF / timeout errors against the K8s API.
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 # Obtener la IP del Load Balancer
