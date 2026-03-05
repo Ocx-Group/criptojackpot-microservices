@@ -63,6 +63,27 @@ public class OrderController : ControllerBase
     }
 
     /// <summary>
+    /// Creates a CoinPayments invoice for a pending order.
+    /// Returns the checkout URL to redirect the user for payment.
+    /// </summary>
+    [HttpPost("{orderId:guid}/pay")]
+    public async Task<IActionResult> PayOrder([FromRoute] Guid orderId)
+    {
+        var userId = User.GetUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        var command = new PayOrderCommand
+        {
+            OrderId = orderId,
+            UserId = userId.Value
+        };
+
+        var result = await _mediator.Send(command);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
     /// Cancels a pending order and releases reserved lottery numbers.
     /// </summary>
     [HttpPost("{orderId:guid}/cancel")]
