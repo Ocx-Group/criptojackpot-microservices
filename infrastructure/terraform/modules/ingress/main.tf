@@ -1,8 +1,13 @@
-﻿# =============================================================================
+# =============================================================================
 # Ingress Module - CriptoJackpot
 # Instala NGINX Ingress Controller via Helm
-# TLS es gestionado por Cloudflare externamente — cert-manager NO se instala
-# en QA/prod. El ingress recibe HTTP plano desde Cloudflare (proxy ON).
+#
+# Cloudflare SSL "Full" → LB (TCP passthrough) → ingress-nginx (TLS termination
+# con Cloudflare Origin Certificate) → HTTP → pods
+#
+# IMPORTANTE: El protocolo del LB DEBE ser "tcp" para que Cloudflare pueda
+# establecer la conexion TLS con el ingress-nginx controller. Si se cambia
+# a "http", Cloudflare no podra conectar y mostrara error 521.
 # =============================================================================
 
 resource "helm_release" "nginx_ingress" {
@@ -17,18 +22,21 @@ resource "helm_release" "nginx_ingress" {
     <<-EOT
     controller:
       replicaCount: ${var.ingress_replicas}
+      # Usa el Cloudflare Origin Certificate como cert por defecto para TLS
+      extraArgs:
+        default-ssl-certificate: "ingress-nginx/cloudflare-origin-cert"
       service:
         type: LoadBalancer
         annotations:
           service.beta.kubernetes.io/do-loadbalancer-name: "criptojackpot-lb"
-          service.beta.kubernetes.io/do-loadbalancer-protocol: "http"
+          # CRITICO: Debe ser "tcp" para TLS passthrough con Cloudflare Full SSL.
+          # "http" rompe la conexion TLS y causa error 521.
+          service.beta.kubernetes.io/do-loadbalancer-protocol: "tcp"
           service.beta.kubernetes.io/do-loadbalancer-algorithm: "round_robin"
           service.beta.kubernetes.io/do-loadbalancer-healthcheck-path: "/healthz"
           service.beta.kubernetes.io/do-loadbalancer-healthcheck-protocol: "http"
-          # Pasar la IP real del cliente desde Cloudflare
           service.beta.kubernetes.io/do-loadbalancer-enable-proxy-protocol: "false"
       config:
-        # Leer la IP real desde CF-Connecting-IP (seteado en el ingress patch de cada overlay)
         use-forwarded-headers: "true"
         forwarded-for-header: "CF-Connecting-IP"
       metrics:
@@ -45,12 +53,6 @@ resource "helm_release" "nginx_ingress" {
 
   wait    = true
   timeout = 600
-
-  # Ingress is long-lived infra — avoid re-upgrading on every deploy
-  # which causes unexpected EOF / timeout errors against the K8s API.
-  lifecycle {
-    ignore_changes = all
-  }
 }
 
 # Obtener la IP del Load Balancer

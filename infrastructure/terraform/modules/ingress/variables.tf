@@ -18,7 +18,7 @@ variable "letsencrypt_email" {
 variable "nginx_ingress_version" {
   description = "Versión del chart de NGINX Ingress"
   type        = string
-  default     = "4.11.0"
+  default     = "4.14.3"
 }
 
 variable "ingress_replicas" {

@@ -172,6 +172,22 @@ module "ingress" {
 }
 
 # -----------------------------------------------------------------------------
+# ArgoCD Image Updater — detecta nuevas imagenes en DOCR y actualiza deploys
+# Elimina la necesidad de commits automaticos con image tags desde CI/CD.
+# Usa write-back method "argocd" (sin commits a git, sin git pull forzado).
+# Flujo: CI push imagen → Image Updater detecta (~2 min) → ArgoCD sync
+# -----------------------------------------------------------------------------
+module "argocd_image_updater" {
+  source = "./modules/argocd-image-updater"
+
+  depends_on = [module.doks, module.ingress]
+
+  docr_token    = var.do_token
+  poll_interval = var.environment == "prod" ? "2m" : "1m"
+  log_level     = var.environment == "prod" ? "info" : "debug"
+}
+
+# -----------------------------------------------------------------------------
 # Kubernetes Secrets Module
 # Crea los secrets reales en el cluster con valores de los servicios gestionados
 # -----------------------------------------------------------------------------
@@ -222,40 +238,10 @@ module "k8s_secrets" {
   google_client_secret = var.google_client_secret
 }
 
-# -----------------------------------------------------------------------------
-# Kustomize apply — despliega los manifiestos K8s del overlay correcto
-# Se ejecuta DESPUÉS de que el cluster y los secrets estén listos
-# -----------------------------------------------------------------------------
-resource "null_resource" "kustomize_apply" {
-  depends_on = [module.doks, module.k8s_secrets, module.ingress]
-
-  triggers = {
-    cluster_id  = module.doks.cluster_id
-    environment = var.environment
-    overlay_hash = sha256(join("", [
-      filesha256("${path.root}/../k8s/overlays/${var.environment}/kustomization.yaml"),
-    ]))
-  }
-
-  provisioner "local-exec" {
-    command     = <<-EOT
-      echo "Conectando kubectl al cluster ${module.doks.cluster_name}..."
-      doctl kubernetes cluster kubeconfig save ${module.doks.cluster_id}
-
-      echo "Aplicando manifiestos Kustomize para ambiente: ${var.environment}..."
-      kubectl apply -k ../k8s/overlays/${var.environment} --timeout=300s
-
-      echo "Verificando rollout de deployments..."
-      kubectl rollout status deployment/bff-gateway -n ${var.project_name} --timeout=300s
-    EOT
-    interpreter = ["bash", "-c"]
-    working_dir = path.module
-
-    environment = {
-      DIGITALOCEAN_ACCESS_TOKEN = var.do_token
-    }
-  }
-}
+# NOTA: Los manifiestos K8s son desplegados por ArgoCD (GitOps), no por Terraform.
+# ArgoCD Image Updater detecta nuevas imagenes en DOCR y actualiza los deploys.
+# El null_resource.kustomize_apply fue eliminado porque conflictuaba con ArgoCD
+# (ambos intentaban gestionar los mismos recursos).
 
 # -----------------------------------------------------------------------------
 # Cloudflare DNS — apunta al Load Balancer IP del NGINX Ingress

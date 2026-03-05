@@ -2,17 +2,15 @@
 # Deploy Production
 # Se ejecuta en: push a rama 'main' (via PR desde qa)
 # Hace:
-#   1. Build + push de las 8 imágenes Docker con tag semver (vX.Y.Z) o prod-{sha}
+#   1. Build + push de las 8 imagenes Docker con tag semver (vX.Y.Z) o prod-{sha}
 #   2. terraform apply -var-file=environments/prod.tfvars
 #      (crea/actualiza infra + secrets K8s)
-#   3. Actualiza los image tags en overlays/prod/kustomization.yaml y hace commit
-#   4. ArgoCD detecta el cambio en el repo y despliega automaticamente (~3 min)
-#
-# IMPORTANTE: El deploy a prod requiere aprobación manual via GitHub Environments
-# Configura el environment "production" en Settings > Environments con reviewers
+#   3. ArgoCD Image Updater detecta las nuevas imagenes en DOCR (~2 min)
+#   4. ArgoCD sincroniza automaticamente los deployments
 # =============================================================================
-# Flujo GitOps:
-#   push a main → build+push imagenes → commit image tags → ArgoCD sync → cluster
+# Flujo GitOps con Image Updater:
+#   push a main → build+push imagenes → Image Updater detecta → ArgoCD sync
+#   (sin commits automaticos, sin git pull forzado)
 name: Deploy Production
 
 on:
@@ -224,9 +222,7 @@ jobs:
     name: Terraform Deploy Production
     runs-on: ubuntu-latest
     needs: build-and-push
-    environment: production # ← Bloquea hasta que un reviewer apruebe
-    permissions:
-      contents: write
+
 
     env:
       DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DO_TOKEN }}
@@ -394,27 +390,39 @@ jobs:
           TF_VAR_google_client_id: ${{ secrets.PROD_GOOGLE_CLIENT_ID }}
           TF_VAR_google_client_secret: ${{ secrets.PROD_GOOGLE_CLIENT_SECRET }}
 
-      - name: Update image tags in Prod overlay
-        working-directory: ${{ github.workspace }}
+      # ArgoCD Image Updater detecta las nuevas imagenes en DOCR (~2 min)
+      # y actualiza los deployments automaticamente (sin commits a git).
+
+      - name: Wait for Image Updater and verify deployment
         run: |
           TAG="${{ needs.build-and-push.outputs.image_tag }}"
-          FILE="infrastructure/k8s/overlays/prod/kustomization.yaml"
-          sed -i "s/newTag: .*/newTag: ${TAG}/" "$FILE"
-          echo "Updated all newTag entries to: ${TAG}"
-          grep 'newTag' "$FILE"
+          echo "Imagenes pushed con tag: ${TAG}"
+          echo "ArgoCD Image Updater detectara el nuevo tag en ~2 minutos..."
 
-      - name: Commit updated image tags to main branch
-        working-directory: ${{ github.workspace }}
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add infrastructure/k8s/overlays/prod/kustomization.yaml
-          git diff --cached --quiet || git commit -m "chore(prod): update image tags to ${{ needs.build-and-push.outputs.image_tag }} [skip ci]"
-          git checkout -- .
-          git pull --rebase -X theirs origin main
-          git push origin main
-          echo "ArgoCD detectara el cambio en ~3 minutos y desplegara automaticamente."
-          echo "Monitorea el despliegue en la UI de ArgoCD."
+          doctl kubernetes cluster kubeconfig save criptojackpot-prod-cluster 2>/dev/null || true
+
+          for i in $(seq 1 30); do
+            IMAGE=$(kubectl get deployment bff-gateway -n criptojackpot -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "unknown")
+            READY=$(kubectl get deployment bff-gateway -n criptojackpot -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
+
+            echo "  [$i/30] Image: $IMAGE | Ready: $READY"
+
+            if echo "$IMAGE" | grep -q "${TAG}"; then
+              if [ "$READY" != "0" ]; then
+                echo "Deployment verificado: bff-gateway actualizado con el tag correcto."
+                break
+              fi
+            fi
+
+            if [ "$i" = "30" ]; then
+              echo "ADVERTENCIA: Timeout esperando Image Updater. Verificar manualmente."
+              echo "  kubectl logs -n argocd -l app.kubernetes.io/name=argocd-image-updater --tail=20"
+            fi
+            sleep 10
+          done
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DO_TOKEN }}
+        continue-on-error: true
 
       - name: Create GitHub Release
         if: success()

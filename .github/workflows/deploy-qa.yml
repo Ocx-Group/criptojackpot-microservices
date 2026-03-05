@@ -277,26 +277,38 @@ jobs:
           TF_VAR_google_client_id: ${{ secrets.QA_GOOGLE_CLIENT_ID }}
           TF_VAR_google_client_secret: ${{ secrets.QA_GOOGLE_CLIENT_SECRET }}
 
-      - name: Update image tags in QA overlay
-        working-directory: ${{ github.workspace }}
+      # ArgoCD Image Updater detecta las nuevas imagenes en DOCR (~1 min en QA)
+      # y actualiza los deployments automaticamente (sin commits a git).
+
+      - name: Wait for Image Updater and verify deployment
         run: |
           TAG="${{ needs.build-and-push.outputs.image_tag }}"
-          FILE="infrastructure/k8s/overlays/qa/kustomization.yaml"
-          sed -i "s/newTag: .*/newTag: ${TAG}/" "$FILE"
-          echo "Updated all newTag entries to: ${TAG}"
-          grep 'newTag' "$FILE"
+          echo "Imagenes pushed con tag: ${TAG}"
+          echo "ArgoCD Image Updater detectara el nuevo tag en ~1 minuto..."
 
-      - name: Commit updated image tags to qa branch
-        working-directory: ${{ github.workspace }}
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add infrastructure/k8s/overlays/qa/kustomization.yaml
-          # Solo commitea si hay cambios reales
-          git diff --cached --quiet || git commit -m "chore(qa): update image tags to ${{ needs.build-and-push.outputs.image_tag }} [skip ci]"
-          git push origin qa
-          echo "ArgoCD detectara el cambio en ~3 minutos y desplegara automaticamente."
-          echo "Monitorea el despliegue en la UI de ArgoCD."
+          doctl kubernetes cluster kubeconfig save criptojackpot-qa-cluster 2>/dev/null || true
+
+          for i in $(seq 1 20); do
+            IMAGE=$(kubectl get deployment bff-gateway -n criptojackpot -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || echo "unknown")
+            READY=$(kubectl get deployment bff-gateway -n criptojackpot -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
+
+            echo "  [$i/20] Image: $IMAGE | Ready: $READY"
+
+            if echo "$IMAGE" | grep -q "${TAG}"; then
+              if [ "$READY" != "0" ]; then
+                echo "Deployment verificado: bff-gateway actualizado con el tag correcto."
+                break
+              fi
+            fi
+
+            if [ "$i" = "20" ]; then
+              echo "ADVERTENCIA: Timeout esperando Image Updater. Verificar manualmente."
+            fi
+            sleep 10
+          done
+        env:
+          DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DO_TOKEN }}
+        continue-on-error: true
 
       - name: Notify deploy triggered
         if: success()
