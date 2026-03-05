@@ -83,6 +83,11 @@ spec:
                 secretKeyRef:
                   name: google-secrets
                   key: GOOGLE_CLIENT_SECRET
+            - name: DataProtection__RedisConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secrets
+                  key: REDIS_CONNECTION_STRING
             - name: ASPNETCORE_URLS
               value: "http://*:8080"
 
