@@ -222,7 +222,8 @@ jobs:
     name: Terraform Deploy Production
     runs-on: ubuntu-latest
     needs: build-and-push
-
+    permissions:
+      contents: write # Necesario para crear GitHub Releases
 
     env:
       DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DO_TOKEN }}
