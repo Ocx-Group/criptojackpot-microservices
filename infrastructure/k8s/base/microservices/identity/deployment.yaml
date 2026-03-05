@@ -85,6 +85,16 @@ spec:
                   key: GOOGLE_CLIENT_SECRET
             - name: ASPNETCORE_URLS
               value: "http://*:8080"
+            - name: CookieSettings__AccessTokenCookieName
+              value: "__Secure-access_token"
+            - name: CookieSettings__RefreshTokenCookieName
+              value: "__Secure-refresh_token"
+            - name: CookieSettings__Domain
+              value: ".criptojackpot.com"
+            - name: CookieSettings__SecureOnly
+              value: "true"
+            - name: CookieSettings__SameSite
+              value: "Lax"
 
           readinessProbe:
             httpGet:

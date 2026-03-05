@@ -337,6 +337,7 @@ configMapGenerator:
       - Logging__LogLevel__Microsoft.AspNetCore=Warning
       - Cors__AllowedOrigins__0=https://criptojackpot.com
       - Cors__AllowedOrigins__1=https://www.criptojackpot.com
+      - Cors__AllowedOrigins__2=https://app.criptojackpot.com
       - KAFKA_BOOTSTRAP_SERVERS=redpanda.criptojackpot.svc.cluster.local:9092
       - OpenTelemetry__Endpoint=http://otel-collector.monitoring.svc.cluster.local:4317
       - OpenTelemetry__Enabled=true
