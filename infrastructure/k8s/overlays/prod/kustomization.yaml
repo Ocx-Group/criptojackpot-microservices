@@ -266,6 +266,16 @@ patches:
           limits:
             memory: "256Mi"
             cpu: "250m"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: CookieSettings__AccessTokenCookieName
+          value: "__Secure-access_token"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: CookieSettings__RefreshTokenCookieName
+          value: "__Secure-refresh_token"
 
   # imagePullSecrets for all Deployments â€” needed to pull from private DOCR
   - target:
@@ -338,6 +348,11 @@ configMapGenerator:
       - Cors__AllowedOrigins__0=https://criptojackpot.com
       - Cors__AllowedOrigins__1=https://www.criptojackpot.com
       - Cors__AllowedOrigins__2=https://app.criptojackpot.com
+      - CookieSettings__AccessTokenCookieName=__Secure-access_token
+      - CookieSettings__RefreshTokenCookieName=__Secure-refresh_token
+      - CookieSettings__Domain=.criptojackpot.com
+      - CookieSettings__SecureOnly=true
+      - CookieSettings__SameSite=Lax
       - KAFKA_BOOTSTRAP_SERVERS=redpanda.criptojackpot.svc.cluster.local:9092
       - OpenTelemetry__Endpoint=http://otel-collector.monitoring.svc.cluster.local:4317
       - OpenTelemetry__Enabled=true

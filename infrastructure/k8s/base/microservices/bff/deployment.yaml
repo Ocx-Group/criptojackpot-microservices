@@ -47,10 +47,6 @@ spec:
                 secretKeyRef:
                   name: jwt-secrets
                   key: JWT_AUDIENCE
-            - name: CookieSettings__AccessTokenCookieName
-              value: "__Secure-access_token"
-            - name: CookieSettings__RefreshTokenCookieName
-              value: "__Secure-refresh_token"
           livenessProbe:
             httpGet:
               path: /health
