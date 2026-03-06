@@ -15,6 +15,8 @@ public interface ICoinPaymentProvider
     Task<RestResponse> GetInvoiceAsync(
         string invoiceId,
         CancellationToken cancellationToken = default);
+
+    Task<RestResponse> GetCurrenciesAsync(CancellationToken cancellationToken = default);
 }
 
 public class InvoiceLineItem

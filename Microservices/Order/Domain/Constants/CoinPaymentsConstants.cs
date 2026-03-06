@@ -25,6 +25,7 @@ public static class CoinPaymentsEndpoints
 {
     public const string CreateInvoice = "v2/merchant/invoices";
     public const string GetInvoiceById = "v2/merchant/invoices/{0}";
+    public const string GetCurrencies = "v2/currencies";
 }
 
 public static class CoinPaymentsResilience

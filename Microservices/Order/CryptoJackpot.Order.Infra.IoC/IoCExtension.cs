@@ -44,6 +44,7 @@ public static class IoCExtension
         AddRepositories(services);
         AddApplicationServices(services);
         AddCoinPayments(services, configuration);
+        services.AddDistributedMemoryCache();
         AddQuartzScheduler(services, configuration);
         AddInfrastructure(services, configuration);
     }
@@ -297,7 +298,7 @@ public static class IoCExtension
             .AddPolicyHandler(GetRetryPolicy())
             .AddPolicyHandler(GetCircuitBreakerPolicy());
 
-        services.AddSingleton<Domain.Interfaces.ICoinPaymentProvider>(sp =>
+        services.AddSingleton<ICoinPaymentProvider>(sp =>
         {
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
             return new Application.Providers.CoinPaymentProvider(clientSecret, clientId, httpClientFactory);

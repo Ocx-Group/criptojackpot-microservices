@@ -39,15 +39,18 @@ public class CoinPaymentProvider : ICoinPaymentProvider
         string? notificationsUrl = null,
         CancellationToken cancellationToken = default)
     {
+        var totalAmount = amount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+
         var invoiceItems = items.Select(item => new InvoiceItem
         {
             Name = item.Name,
             Quantity = new InvoiceItemQuantity
             {
                 Value = item.Quantity,
-                Type = 2
+                Type = "2"
             },
-            Amount = item.Amount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
+            OriginalAmount = item.Amount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
+            Amount = (item.Amount * item.Quantity).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
         }).ToList();
 
         var body = new CreateInvoiceRequest
@@ -55,9 +58,23 @@ public class CoinPaymentProvider : ICoinPaymentProvider
             ClientId = _clientId,
             Currency = currency,
             Items = invoiceItems,
+            Amount = new InvoiceAmount
+            {
+                Breakdown = new InvoiceAmountBreakdown
+                {
+                    Subtotal = totalAmount
+                },
+                Total = totalAmount
+            },
             Description = description,
-            WebhookData = !string.IsNullOrEmpty(notificationsUrl)
-                ? new InvoiceWebhookData { NotificationsUrl = notificationsUrl }
+            Webhooks = !string.IsNullOrEmpty(notificationsUrl)
+                ? [
+                    new InvoiceWebhook
+                    {
+                        NotificationsUrl = notificationsUrl,
+                        Notifications = ["invoicePending", "invoicePaid", "invoiceCompleted", "invoiceCancelled", "invoiceTimedOut"]
+                    }
+                ]
                 : null
         };
 
@@ -70,6 +87,51 @@ public class CoinPaymentProvider : ICoinPaymentProvider
             string.Format(CoinPaymentsEndpoints.GetInvoiceById, invoiceId),
             null,
             cancellationToken);
+
+    public Task<RestResponse> GetCurrenciesAsync(CancellationToken cancellationToken = default) =>
+        SendPublicAsync(CoinPaymentsEndpoints.GetCurrencies, cancellationToken);
+
+    private async Task<RestResponse> SendPublicAsync(
+        string relativeEndpoint,
+        CancellationToken cancellationToken)
+    {
+        var restResponse = new RestResponse();
+
+        try
+        {
+            using var httpClient = _httpClientFactory.CreateClient(CoinPaymentsDefaults.HttpClientName);
+
+            var baseAddress = httpClient.BaseAddress
+                ?? throw new InvalidOperationException("CoinPayments HttpClient BaseAddress is not configured");
+
+            var requestUri = new Uri(baseAddress, relativeEndpoint);
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            using var response = await httpClient.SendAsync(request, cancellationToken);
+
+            restResponse.Content = await response.Content.ReadAsStringAsync(cancellationToken);
+            restResponse.StatusCode = response.StatusCode;
+            restResponse.StatusDescription = response.ReasonPhrase;
+        }
+        catch (OperationCanceledException)
+        {
+            restResponse.StatusCode = HttpStatusCode.RequestTimeout;
+            restResponse.Content = "Request was cancelled";
+            throw;
+        }
+        catch (HttpRequestException ex)
+        {
+            restResponse.StatusCode = HttpStatusCode.ServiceUnavailable;
+            restResponse.Content = $"Error contacting CoinPayments API: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            restResponse.StatusCode = HttpStatusCode.InternalServerError;
+            restResponse.Content = $"Unexpected error: {ex.Message}";
+            throw;
+        }
+
+        return restResponse;
+    }
 
     private async Task<RestResponse> SendAsync(
         HttpMethod method,

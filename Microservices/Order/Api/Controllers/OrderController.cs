@@ -2,6 +2,7 @@ using Asp.Versioning;
 using AutoMapper;
 using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Order.Application.Commands;
+using CryptoJackpot.Order.Application.Queries;
 using CryptoJackpot.Order.Application.Requests;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -80,6 +81,18 @@ public class OrderController : ControllerBase
         };
 
         var result = await _mediator.Send(command);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Returns the list of supported cryptocurrencies for payment.
+    /// Cached for 6 hours since the list rarely changes.
+    /// </summary>
+    [HttpGet("currencies")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetCurrencies()
+    {
+        var result = await _mediator.Send(new GetCurrenciesQuery());
         return result.ToActionResult();
     }
 

@@ -32,7 +32,10 @@ public class UserCryptoWalletController : ControllerBase
         if (userGuid is null)
             return Unauthorized();
 
-        var query = new GetUserCryptoWalletsQuery { UserGuid = userGuid.Value };
+        var query = new GetUserCryptoWalletsQuery
+        {
+            UserGuid = userGuid.Value
+        };
         var result = await _mediator.Send(query, cancellationToken);
         return result.ToActionResult();
     }
