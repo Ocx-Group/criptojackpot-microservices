@@ -24,6 +24,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
+using Polly;
+using Polly.Extensions.Http;
 using Quartz;
 
 namespace CryptoJackpot.Order.Infra.IoC;
@@ -41,6 +43,8 @@ public static class IoCExtension
         AddControllers(services, configuration);
         AddRepositories(services);
         AddApplicationServices(services);
+        AddCoinPayments(services, configuration);
+        services.AddDistributedMemoryCache();
         AddQuartzScheduler(services, configuration);
         AddInfrastructure(services, configuration);
     }
@@ -271,6 +275,53 @@ public static class IoCExtension
 
         // Register the background cleanup service as a fallback
         services.AddHostedService<ExpiredOrdersCleanupService>();
+    }
+
+    private static void AddCoinPayments(IServiceCollection services, IConfiguration configuration)
+    {
+        var section = configuration.GetSection(Domain.Constants.CoinPaymentsConfigKeys.Section);
+        var clientSecret = section["ClientSecret"]
+            ?? throw new InvalidOperationException("CoinPayments ClientSecret is not configured");
+        var clientId = section["ClientId"]
+            ?? throw new InvalidOperationException("CoinPayments ClientId is not configured");
+        var baseUrl = section["BaseUrl"] ?? Domain.Constants.CoinPaymentsDefaults.BaseUrl;
+
+        if (!baseUrl.EndsWith('/'))
+            baseUrl += '/';
+
+        services.AddHttpClient(Domain.Constants.CoinPaymentsDefaults.HttpClientName, client =>
+            {
+                client.BaseAddress = new Uri(baseUrl);
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.Timeout = TimeSpan.FromSeconds(Domain.Constants.CoinPaymentsDefaults.HttpClientTimeoutSeconds);
+            })
+            .AddPolicyHandler(GetRetryPolicy())
+            .AddPolicyHandler(GetCircuitBreakerPolicy());
+
+        services.AddSingleton<ICoinPaymentProvider>(sp =>
+        {
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            return new Application.Providers.CoinPaymentProvider(clientSecret, clientId, httpClientFactory);
+        });
+    }
+
+    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            .WaitAndRetryAsync(
+                Domain.Constants.CoinPaymentsResilience.RetryCount,
+                retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+    }
+
+    private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+    {
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .CircuitBreakerAsync(
+                Domain.Constants.CoinPaymentsResilience.CircuitBreakerFailureThreshold,
+                TimeSpan.FromSeconds(Domain.Constants.CoinPaymentsResilience.CircuitBreakerDurationSeconds));
     }
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)
