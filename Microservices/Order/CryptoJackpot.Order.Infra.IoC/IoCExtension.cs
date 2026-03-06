@@ -2,6 +2,7 @@
 using Asp.Versioning;
 using CryptoJackpot.Domain.Core.Behaviors;
 using CryptoJackpot.Domain.Core.Constants;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Audit;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
 using CryptoJackpot.Infra.IoC;
@@ -338,6 +339,7 @@ public static class IoCExtension
                 rider.AddProducer<OrderCompletedEvent>(KafkaTopics.OrderCompleted);
                 rider.AddProducer<OrderExpiredEvent>(KafkaTopics.OrderExpired);
                 rider.AddProducer<OrderCancelledEvent>(KafkaTopics.OrderCancelled);
+                rider.AddProducer<AuditLogEvent>(KafkaTopics.AuditLog);
 
                 // Register consumer for NumbersReserved events from Lottery
                 rider.AddConsumer<NumbersReservedConsumer>();

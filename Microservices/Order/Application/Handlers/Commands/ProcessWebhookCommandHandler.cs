@@ -1,4 +1,7 @@
-﻿using CryptoJackpot.Domain.Core.Responses.Errors;
+﻿using System.Text.Json;
+using CryptoJackpot.Domain.Core.Bus;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Audit;
+using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Order.Application.Commands;
 using CryptoJackpot.Order.Domain.Constants;
 using CryptoJackpot.Order.Domain.Enums;
@@ -11,17 +14,22 @@ namespace CryptoJackpot.Order.Application.Handlers.Commands;
 
 public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookCommand, Result>
 {
+    private const string ResourceTypeOrder = "Order";
+    
     private readonly IOrderRepository _orderRepository;
     private readonly IMediator _mediator;
+    private readonly IEventBus _eventBus;
     private readonly ILogger<ProcessWebhookCommandHandler> _logger;
 
     public ProcessWebhookCommandHandler(
         IOrderRepository orderRepository,
         IMediator mediator,
+        IEventBus eventBus,
         ILogger<ProcessWebhookCommandHandler> logger)
     {
         _orderRepository = orderRepository;
         _mediator = mediator;
+        _eventBus = eventBus;
         _logger = logger;
     }
 
@@ -52,6 +60,27 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
         }
 
         var eventType = request.EventType;
+
+        // Audit: log every webhook received
+        await _eventBus.Publish(new AuditLogEvent
+        {
+            EventType = 305, // CoinPaymentWebhookReceived
+            Source = 4,      // Order
+            Action = "WebhookReceived",
+            Status = 1,      // Success
+            Description = $"CoinPayments webhook received. Event: {eventType}, Invoice: {coinPaymentsInvoiceId}, Order: {order.OrderGuid}",
+            ResourceType = ResourceTypeOrder,
+            ResourceId = order.OrderGuid.ToString(),
+            Metadata = JsonSerializer.Serialize(new
+            {
+                EventType = eventType,
+                InvoiceId = coinPaymentsInvoiceId,
+                OrderId = order.OrderGuid,
+                OrderStatus = order.Status.ToString(),
+                order.UserId,
+                request.Payload.Timestamp
+            })
+        });
 
         // Handle event types (case-insensitive as recommended by CoinPayments)
         if (eventType.Equals(CoinPaymentsWebhookEvents.InvoicePaid, StringComparison.OrdinalIgnoreCase) ||
@@ -126,6 +155,27 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
             return Result.Fail(completeResult.Errors);
         }
 
+        // Audit: payment confirmed via webhook
+        await _eventBus.Publish(new AuditLogEvent
+        {
+            EventType = 306, // CoinPaymentWebhookPaymentConfirmed
+            Source = 4,      // Order
+            Action = "WebhookPaymentConfirmed",
+            Status = 1,      // Success
+            Description = $"Payment confirmed via webhook for order {order.OrderGuid}. TransactionId: {transactionId}",
+            ResourceType = ResourceTypeOrder,
+            ResourceId = order.OrderGuid.ToString(),
+            Metadata = JsonSerializer.Serialize(new
+            {
+                OrderId = order.OrderGuid,
+                order.InvoiceId,
+                TransactionId = transactionId,
+                order.UserId,
+                Amount = order.TotalAmount,
+                WebhookEvent = request.EventType
+            })
+        });
+
         _logger.LogInformation(
             "Order {OrderId} successfully completed via CoinPayments webhook",
             order.OrderGuid);
@@ -174,6 +224,24 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
             return Result.Fail(cancelResult.Errors);
         }
 
+        // Audit: payment cancelled via webhook
+        await _eventBus.Publish(new AuditLogEvent
+        {
+            EventType = 307, // CoinPaymentWebhookPaymentCancelled
+            Source = 4,      // Order
+            Action = "WebhookPaymentCancelled",
+            Status = 1,
+            Description = $"Payment cancelled via webhook for order {order.OrderGuid}",
+            ResourceType = ResourceTypeOrder,
+            ResourceId = order.OrderGuid.ToString(),
+            Metadata = JsonSerializer.Serialize(new
+            {
+                OrderId = order.OrderGuid,
+                order.InvoiceId,
+                order.UserId
+            })
+        });
+
         _logger.LogInformation(
             "Order {OrderId} successfully cancelled via CoinPayments webhook",
             order.OrderGuid);
@@ -221,6 +289,24 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
                 order.OrderGuid, cancelResult.Errors.FirstOrDefault()?.Message);
             return Result.Fail(cancelResult.Errors);
         }
+
+        // Audit: payment timed out via webhook
+        await _eventBus.Publish(new AuditLogEvent
+        {
+            EventType = 308, // CoinPaymentWebhookPaymentTimedOut
+            Source = 4,      // Order
+            Action = "WebhookPaymentTimedOut",
+            Status = 1,
+            Description = $"Payment timed out via webhook for order {order.OrderGuid}",
+            ResourceType = ResourceTypeOrder,
+            ResourceId = order.OrderGuid.ToString(),
+            Metadata = JsonSerializer.Serialize(new
+            {
+                OrderId = order.OrderGuid,
+                order.InvoiceId,
+                order.UserId
+            })
+        });
 
         _logger.LogInformation(
             "Order {OrderId} successfully expired via CoinPayments webhook (invoiceTimedOut)",

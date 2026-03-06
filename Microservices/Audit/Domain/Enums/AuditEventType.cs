@@ -32,6 +32,10 @@ public enum AuditEventType
     CoinPaymentTransactionCompleted = 302,
     CoinPaymentTransactionFailed = 303,
     CoinPaymentTransactionPending = 304,
+    CoinPaymentWebhookReceived = 305,
+    CoinPaymentWebhookPaymentConfirmed = 306,
+    CoinPaymentWebhookPaymentCancelled = 307,
+    CoinPaymentWebhookPaymentTimedOut = 308,
     
     // Lottery Events
     LotteryTicketPurchased = 400,
@@ -44,6 +48,7 @@ public enum AuditEventType
     OrderUpdated = 501,
     OrderCompleted = 502,
     OrderCancelled = 503,
+    OrderPaymentInitiated = 504,
     
     // Notification Events
     NotificationSent = 600,

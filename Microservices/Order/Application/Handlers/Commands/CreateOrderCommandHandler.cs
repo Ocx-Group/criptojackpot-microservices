@@ -21,7 +21,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
     private readonly IOrderTimeoutScheduler _orderTimeoutScheduler;
     private readonly IMapper _mapper;
     private readonly ILogger<CreateOrderCommandHandler> _logger;
-    private const int OrderExpirationMinutes = 5;
+    private const int OrderExpirationMinutes = 30;
 
     public CreateOrderCommandHandler(
         IOrderRepository orderRepository,

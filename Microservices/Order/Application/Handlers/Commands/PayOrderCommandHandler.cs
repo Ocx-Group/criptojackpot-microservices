@@ -1,4 +1,6 @@
 using System.Text.Json;
+using CryptoJackpot.Domain.Core.Bus;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Audit;
 using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Order.Application.Commands;
 using CryptoJackpot.Order.Application.DTOs;
@@ -18,6 +20,7 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<Pa
 {
     private readonly IOrderRepository _orderRepository;
     private readonly ICoinPaymentProvider _coinPaymentProvider;
+    private readonly IEventBus _eventBus;
     private readonly IConfiguration _configuration;
     private readonly ILogger<PayOrderCommandHandler> _logger;
 
@@ -29,11 +32,13 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<Pa
     public PayOrderCommandHandler(
         IOrderRepository orderRepository,
         ICoinPaymentProvider coinPaymentProvider,
+        IEventBus eventBus,
         IConfiguration configuration,
         ILogger<PayOrderCommandHandler> logger)
     {
         _orderRepository = orderRepository;
         _coinPaymentProvider = coinPaymentProvider;
+        _eventBus = eventBus;
         _configuration = configuration;
         _logger = logger;
     }
@@ -87,6 +92,25 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<Pa
                 _logger.LogError(
                     "CoinPayments API error for order {OrderId}: {StatusCode} - {Content}",
                     request.OrderId, response.StatusCode, response.Content);
+
+                await _eventBus.Publish(new AuditLogEvent
+                {
+                    EventType = 504, // OrderPaymentInitiated
+                    Source = 4,      // Order
+                    Action = "PayOrder",
+                    Status = 2,      // Failed
+                    Description = $"Payment initiation failed for order {request.OrderId}. CoinPayments returned {response.StatusCode}",
+                    ResourceType = "Order",
+                    ResourceId = request.OrderId.ToString(),
+                    ErrorMessage = $"CoinPayments API error: {response.StatusCode} - {response.Content}",
+                    Metadata = JsonSerializer.Serialize(new
+                    {
+                        request.OrderId,
+                        request.UserId,
+                        StatusCode = (int)response.StatusCode
+                    })
+                });
+
                 return Result.Fail<PayOrderResponse>(
                     new ExternalServiceError("CoinPayments",
                         $"Payment service returned {response.StatusCode}"));
@@ -113,6 +137,28 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<Pa
             _logger.LogInformation(
                 "CoinPayments invoice {InvoiceId} created for order {OrderId}. CheckoutUrl: {CheckoutUrl}",
                 invoice.InvoiceId, order.OrderGuid, invoice.CheckoutUrl);
+
+            // Publish audit event for payment initiation
+            await _eventBus.Publish(new AuditLogEvent
+            {
+                EventType = 504, // OrderPaymentInitiated
+                Source = 4,      // Order
+                Action = "PayOrder",
+                Status = 1,      // Success
+                Description = $"Payment initiated for order {order.OrderGuid}. CoinPayments invoice {invoice.InvoiceId} created. Amount: {order.TotalAmount}",
+                ResourceType = "Order",
+                ResourceId = order.OrderGuid.ToString(),
+                Metadata = JsonSerializer.Serialize(new
+                {
+                    OrderId = order.OrderGuid,
+                    invoice.InvoiceId,
+                    Amount = order.TotalAmount,
+                    Currency = currency,
+                    invoice.CheckoutUrl,
+                    request.UserId,
+                    ItemCount = order.TotalItems
+                })
+            });
 
             return Result.Ok(new PayOrderResponse
             {
