@@ -59,8 +59,7 @@ public class GetCurrenciesQueryHandler
                     $"Failed to fetch currencies: {response.StatusCode}"));
             }
 
-            var apiResponse = response.Deserialize<CoinPaymentsApiResponse<CurrencyResult>>(JsonOptions);
-            var currencies = apiResponse?.Items ?? [];
+            var currencies = response.Deserialize<List<CurrencyResult>>(JsonOptions) ?? [];
 
             var result = currencies.Select(c => new CoinPaymentCurrencyDto
             {
