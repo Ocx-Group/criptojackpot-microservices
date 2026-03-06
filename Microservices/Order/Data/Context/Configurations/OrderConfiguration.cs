@@ -40,6 +40,15 @@ public class OrderConfiguration : IEntityTypeConfiguration<Domain.Models.Order>
             .HasColumnName("expires_at")
             .IsRequired();
 
+        builder.Property(o => o.InvoiceId)
+            .HasColumnName("invoice_id")
+            .HasMaxLength(100);
+
+        builder.HasIndex(o => o.InvoiceId)
+            .IsUnique()
+            .HasFilter("invoice_id IS NOT NULL")
+            .HasDatabaseName("ix_orders_invoice_id");
+
         builder.Property(o => o.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();

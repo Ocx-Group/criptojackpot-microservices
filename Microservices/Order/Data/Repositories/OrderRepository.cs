@@ -37,6 +37,11 @@ public class OrderRepository : IOrderRepository
             .Include(o => o.OrderDetails)
             .FirstOrDefaultAsync(o => o.OrderGuid == orderGuid);
 
+    public async Task<Domain.Models.Order?> GetByInvoiceIdWithTrackingAsync(string invoiceId)
+        => await _context.Orders
+            .Include(o => o.OrderDetails)
+            .FirstOrDefaultAsync(o => o.InvoiceId == invoiceId);
+
     public async Task<IEnumerable<Domain.Models.Order>> GetByUserIdAsync(long userId)
         => await _context.Orders
             .AsNoTracking()

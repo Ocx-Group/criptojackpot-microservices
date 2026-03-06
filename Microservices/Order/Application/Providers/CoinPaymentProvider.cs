@@ -6,6 +6,7 @@ using CryptoJackpot.Domain.Core.Responses;
 using CryptoJackpot.Order.Application.DTOs.CoinPayments;
 using CryptoJackpot.Order.Domain.Constants;
 using CryptoJackpot.Order.Domain.Interfaces;
+using CryptoJackpot.Order.Domain.Models;
 
 namespace CryptoJackpot.Order.Application.Providers;
 
@@ -90,6 +91,21 @@ public class CoinPaymentProvider : ICoinPaymentProvider
 
     public Task<RestResponse> GetCurrenciesAsync(CancellationToken cancellationToken = default) =>
         SendPublicAsync(CoinPaymentsEndpoints.GetCurrencies, cancellationToken);
+
+    public Task<RestResponse> RegisterWebhookAsync(
+        string notificationsUrl,
+        List<string> notifications,
+        CancellationToken cancellationToken = default)
+    {
+        var body = new
+        {
+            notificationsUrl,
+            notifications
+        };
+
+        var endpoint = string.Format(CoinPaymentsEndpoints.RegisterWebhook, _clientId);
+        return SendAsync(HttpMethod.Post, endpoint, body, cancellationToken);
+    }
 
     private async Task<RestResponse> SendPublicAsync(
         string relativeEndpoint,

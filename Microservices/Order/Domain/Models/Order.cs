@@ -20,6 +20,11 @@ public class Order : BaseEntity
     public OrderStatus Status { get; set; }
     
     /// <summary>
+    /// CoinPayments invoice ID associated with this order
+    /// </summary>
+    public string? InvoiceId { get; set; }
+    
+    /// <summary>
     /// Expiration time for pending orders (5 minutes from creation)
     /// </summary>
     public DateTime ExpiresAt { get; set; }

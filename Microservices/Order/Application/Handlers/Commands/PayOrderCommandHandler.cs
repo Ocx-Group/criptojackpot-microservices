@@ -6,6 +6,7 @@ using CryptoJackpot.Order.Application.DTOs.CoinPayments;
 using CryptoJackpot.Order.Domain.Constants;
 using CryptoJackpot.Order.Domain.Enums;
 using CryptoJackpot.Order.Domain.Interfaces;
+using CryptoJackpot.Order.Domain.Models;
 using FluentResults;
 using MediatR;
 using Microsoft.Extensions.Configuration;
@@ -41,7 +42,7 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<Pa
         PayOrderCommand request,
         CancellationToken cancellationToken)
     {
-        var order = await _orderRepository.GetByGuidAsync(request.OrderId);
+        var order = await _orderRepository.GetByGuidWithTrackingAsync(request.OrderId);
 
         if (order is null)
             return Result.Fail<PayOrderResponse>(new NotFoundError("Order not found"));
@@ -102,6 +103,10 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<Pa
                 return Result.Fail<PayOrderResponse>(
                     new ExternalServiceError("CoinPayments", "No invoice returned in response"));
             }
+
+            // Persist the CoinPayments invoice ID on the order for webhook correlation
+            order.InvoiceId = invoice.InvoiceId;
+            await _orderRepository.UpdateAsync(order);
 
             var secondsRemaining = (int)(order.ExpiresAt - DateTime.UtcNow).TotalSeconds;
 

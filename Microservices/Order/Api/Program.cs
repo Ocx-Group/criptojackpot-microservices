@@ -1,4 +1,5 @@
 using CryptoJackpot.Infra.IoC.Extensions;
+using CryptoJackpot.Order.Api.Filters;
 using CryptoJackpot.Order.Data.Context;
 using CryptoJackpot.Order.Data.Extensions;
 using CryptoJackpot.Order.Infra.IoC;
@@ -7,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Single point of DI configuration
 builder.Services.AddOrderServices(builder.Configuration);
+
+// Register webhook signature filter
+builder.Services.AddScoped<CoinPaymentsWebhookSignatureFilter>();
 
 // Health Checks for Kubernetes probes
 builder.Services.AddHealthChecks();
