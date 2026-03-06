@@ -151,10 +151,10 @@ public class CreateInvoiceResult
     [JsonPropertyName("status")]
     public string Status { get; set; } = string.Empty;
 
-    [JsonPropertyName("statusUrl")]
+    [JsonPropertyName("link")]
     public string StatusUrl { get; set; } = string.Empty;
 
-    [JsonPropertyName("checkoutUrl")]
+    [JsonPropertyName("checkoutLink")]
     public string CheckoutUrl { get; set; } = string.Empty;
 
     [JsonPropertyName("qrCodeUrl")]
