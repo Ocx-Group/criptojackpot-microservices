@@ -518,7 +518,7 @@ patches:
                       name: bff-gateway
                       port:
                         number: 80
-                - path: /lottery-hub
+                - path: /hubs/lottery
                   pathType: Prefix
                   backend:
                     service:

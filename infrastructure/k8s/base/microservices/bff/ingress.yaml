@@ -11,7 +11,6 @@ metadata:
   annotations:
     # WebSocket support for SignalR
     nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
-    nginx.ingress.kubernetes.io/proxy-set-headers: "ingress-nginx/custom-headers"
     # Session affinity for SignalR (sticky sessions)
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "BFF_AFFINITY"
@@ -36,7 +35,7 @@ spec:
                 port:
                   number: 80
           # SignalR hub
-          - path: /lottery-hub
+          - path: /hubs/lottery
             pathType: Prefix
             backend:
               service:
