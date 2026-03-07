@@ -77,7 +77,7 @@ public class ReserveNumbersCommandHandler : IRequestHandler<ReserveNumbersComman
             {
                 number.Status = NumberStatus.Reserved;
                 number.TicketId = request.TicketId;
-                number.ReservationExpiresAt = now.AddMinutes(5);
+                number.ReservationExpiresAt = now.AddMinutes(30);
                 number.UpdatedAt = now;
             }
 

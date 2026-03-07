@@ -19,7 +19,7 @@ public class LotteryNumberService : ILotteryNumberService
     private readonly ILotteryDrawRepository _lotteryDrawRepository;
     private readonly IEventBus _eventBus;
     private readonly ILogger<LotteryNumberService> _logger;
-    private const int ReservationMinutes = 5;
+    private const int ReservationMinutes = 30;
 
     public LotteryNumberService(
         ILotteryNumberRepository lotteryNumberRepository,

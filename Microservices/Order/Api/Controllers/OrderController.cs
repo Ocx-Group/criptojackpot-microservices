@@ -26,24 +26,6 @@ public class OrderController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new order with a 5-minute countdown for payment.
-    /// The lottery numbers are reserved until payment is completed or order expires.
-    /// </summary>
-    [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
-    {
-        var userId = User.GetUserId();
-        if (userId is null)
-            return Unauthorized();
-
-        var command = _mapper.Map<CreateOrderCommand>(request);
-        command.UserId = userId.Value;
-
-        var result = await _mediator.Send(command);
-        return result.ToActionResult();
-    }
-
-    /// <summary>
     /// Completes an order after successful payment.
     /// Creates a ticket (confirmed purchase) from the order.
     /// Must be called within 5 minutes of order creation.
