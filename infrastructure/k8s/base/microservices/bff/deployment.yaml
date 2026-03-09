@@ -47,6 +47,20 @@ spec:
                 secretKeyRef:
                   name: jwt-secrets
                   key: JWT_AUDIENCE
+            - name: ReverseProxy__Clusters__identity-cluster__Destinations__default__Address
+              value: "http://identity-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__lottery-cluster__Destinations__default__Address
+              value: "http://lottery-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__order-cluster__Destinations__default__Address
+              value: "http://order-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__wallet-cluster__Destinations__default__Address
+              value: "http://wallet-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__winner-cluster__Destinations__default__Address
+              value: "http://winner-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__notification-cluster__Destinations__default__Address
+              value: "http://notification-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__audit-cluster__Destinations__default__Address
+              value: "http://audit-api.criptojackpot.svc.cluster.local"
           livenessProbe:
             httpGet:
               path: /health
