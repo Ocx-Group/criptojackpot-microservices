@@ -51,6 +51,16 @@ spec:
                 secretKeyRef:
                   name: kafka-secrets
                   key: KAFKA_BOOTSTRAP_SERVERS
+            - name: CoinPayments__ClientSecret
+              valueFrom:
+                secretKeyRef:
+                  name: coinpayments-secrets
+                  key: COINPAYMENTS_CLIENT_SECRET
+            - name: CoinPayments__ClientId
+              valueFrom:
+                secretKeyRef:
+                  name: coinpayments-secrets
+                  key: COINPAYMENTS_CLIENT_ID
             - name: ASPNETCORE_URLS
               value: "http://*:8080"
           readinessProbe:
