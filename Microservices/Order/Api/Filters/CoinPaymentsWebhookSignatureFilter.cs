@@ -111,8 +111,29 @@ public class CoinPaymentsWebhookSignatureFilter : IAsyncActionFilter
 
         // 5. Compute HMAC-SHA256 signature
         // CoinPayments signature format: \ufeff{METHOD}{URL}{clientId}{timestamp}{body}
+        //
+        // Behind reverse proxies (Cloudflare → Nginx Ingress → BFF → Order API),
+        // request.Scheme/Host reflect the internal K8s address (e.g. http://order-api:8080),
+        // NOT the public URL that CoinPayments used to compute the signature.
+        // We must reconstruct the public URL using forwarded headers or the configured webhook URL.
         var method = request.Method.ToUpperInvariant();
-        var fullUrl = $"{request.Scheme}://{request.Host}{request.Path}{request.QueryString}";
+
+        var scheme = request.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? request.Scheme;
+        var host = request.Headers["X-Forwarded-Host"].FirstOrDefault() 
+                   ?? request.Headers["X-Original-Host"].FirstOrDefault()
+                   ?? request.Host.ToString();
+        var fullUrl = $"{scheme}://{host}{request.Path}{request.QueryString}";
+
+        // If the reconstructed URL still looks like an internal address, fall back to the
+        // configured public webhook URL to guarantee the signature matches.
+        var configuredUrl = _configuration[CoinPaymentsConfigKeys.WebhookNotificationsUrl];
+        if (!string.IsNullOrEmpty(configuredUrl) 
+            && !host.Contains("api.criptojackpot.com", StringComparison.OrdinalIgnoreCase))
+        {
+            fullUrl = configuredUrl;
+            _logger.LogDebug(
+                "Using configured webhook URL for signature validation: {Url}", fullUrl);
+        }
 
         var message = $"\ufeff{method}{fullUrl}{clientId}{timestamp}{body}";
 
@@ -130,8 +151,13 @@ public class CoinPaymentsWebhookSignatureFilter : IAsyncActionFilter
         if (!CryptographicOperations.FixedTimeEquals(expectedBytes, receivedBytes))
         {
             _logger.LogWarning(
-                "CoinPayments webhook signature validation failed. ClientId: {ClientId}, Timestamp: {Timestamp}",
-                clientId.ToString(), timestamp.ToString());
+                "CoinPayments webhook signature validation failed. " +
+                "ClientId: {ClientId}, Timestamp: {Timestamp}, " +
+                "ReconstructedUrl: {Url}, Method: {Method}, " +
+                "InternalScheme: {Scheme}, InternalHost: {Host}",
+                clientId.ToString(), timestamp.ToString(),
+                fullUrl, method,
+                request.Scheme, request.Host.ToString());
             context.Result = new UnauthorizedObjectResult(new
             {
                 success = false,
