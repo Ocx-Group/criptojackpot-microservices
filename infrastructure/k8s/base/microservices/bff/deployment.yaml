@@ -23,13 +23,10 @@ spec:
           ports:
             - containerPort: 8080
               name: http
+          envFrom:
+            - configMapRef:
+                name: app-config
           env:
-            - name: ASPNETCORE_ENVIRONMENT
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: ASPNETCORE_ENVIRONMENT
-                  optional: true
             - name: ASPNETCORE_URLS
               value: "http://+:8080"
             - name: JwtSettings__SecretKey
