@@ -58,6 +58,25 @@ spec:
               value: "http://notification-api.criptojackpot.svc.cluster.local"
             - name: ReverseProxy__Clusters__audit-cluster__Destinations__default__Address
               value: "http://audit-api.criptojackpot.svc.cluster.local"
+            # Route overrides (Docker image has outdated route paths)
+            - name: ReverseProxy__Routes__lottery-hub-route__Match__Path
+              value: "/hubs/lottery/{**remainder}"
+            - name: ReverseProxy__Routes__lottery-hub-route__ClusterId
+              value: "lottery-cluster"
+            - name: ReverseProxy__Routes__lottery-hub-route__Metadata__WebSocketsSupported
+              value: "true"
+            - name: ReverseProxy__Routes__order-webhook-route__ClusterId
+              value: "order-cluster"
+            - name: ReverseProxy__Routes__order-webhook-route__Match__Path
+              value: "/api/v1/webhooks/{**remainder}"
+            - name: ReverseProxy__Routes__lottery-numbers-route__ClusterId
+              value: "lottery-cluster"
+            - name: ReverseProxy__Routes__lottery-numbers-route__Match__Path
+              value: "/api/v1/lottery-numbers/{**remainder}"
+            - name: ReverseProxy__Routes__lottery-prizes-route__ClusterId
+              value: "lottery-cluster"
+            - name: ReverseProxy__Routes__lottery-prizes-route__Match__Path
+              value: "/api/v1/prizes/{**remainder}"
           livenessProbe:
             httpGet:
               path: /health
