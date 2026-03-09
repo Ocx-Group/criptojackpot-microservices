@@ -127,8 +127,8 @@ public class CoinPaymentsWebhookSignatureFilter : IAsyncActionFilter
         // If the reconstructed URL still looks like an internal address, fall back to the
         // configured public webhook URL to guarantee the signature matches.
         var configuredUrl = _configuration[CoinPaymentsConfigKeys.WebhookNotificationsUrl];
-        if (!string.IsNullOrEmpty(configuredUrl) 
-            && !host.Contains("api.criptojackpot.com", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(configuredUrl)
+            && !host.Contains("criptojackpot.com", StringComparison.OrdinalIgnoreCase))
         {
             fullUrl = configuredUrl;
             _logger.LogDebug(
