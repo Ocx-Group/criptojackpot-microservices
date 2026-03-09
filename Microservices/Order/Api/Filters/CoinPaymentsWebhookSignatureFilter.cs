@@ -44,6 +44,15 @@ public class CoinPaymentsWebhookSignatureFilter : IAsyncActionFilter
     {
         var request = context.HttpContext.Request;
 
+        _logger.LogWarning(
+            "CoinPayments webhook request received. " +
+            "Method: {Method}, Path: {Path}, Scheme: {Scheme}, Host: {Host}, " +
+            "HasSignature: {HasSignature}, HasClient: {HasClient}, HasTimestamp: {HasTimestamp}",
+            request.Method, request.Path, request.Scheme, request.Host.ToString(),
+            request.Headers.ContainsKey(SignatureHeader),
+            request.Headers.ContainsKey(ClientHeader),
+            request.Headers.ContainsKey(TimestampHeader));
+
         // 1. Validate IP address (optional, configurable)
         var validateIp = _configuration.GetValue("CoinPayments:ValidateWebhookIp", false);
         if (validateIp)
@@ -112,28 +121,28 @@ public class CoinPaymentsWebhookSignatureFilter : IAsyncActionFilter
         // 5. Compute HMAC-SHA256 signature
         // CoinPayments signature format: \ufeff{METHOD}{URL}{clientId}{timestamp}{body}
         //
-        // Behind reverse proxies (Cloudflare → Nginx Ingress → BFF → Order API),
-        // request.Scheme/Host reflect the internal K8s address (e.g. http://order-api:8080),
-        // NOT the public URL that CoinPayments used to compute the signature.
-        // We must reconstruct the public URL using forwarded headers or the configured webhook URL.
+        // Behind multiple reverse proxies (Cloudflare → Nginx Ingress → BFF YARP → Order API),
+        // forwarded headers are unreliable (each layer may overwrite X-Forwarded-*).
+        // Always use the configured public webhook URL which must match the URL registered
+        // with CoinPayments exactly.
         var method = request.Method.ToUpperInvariant();
 
-        var scheme = request.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? request.Scheme;
-        var host = request.Headers["X-Forwarded-Host"].FirstOrDefault() 
-                   ?? request.Headers["X-Original-Host"].FirstOrDefault()
-                   ?? request.Host.ToString();
-        var fullUrl = $"{scheme}://{host}{request.Path}{request.QueryString}";
-
-        // If the reconstructed URL still looks like an internal address, fall back to the
-        // configured public webhook URL to guarantee the signature matches.
         var configuredUrl = _configuration[CoinPaymentsConfigKeys.WebhookNotificationsUrl];
-        if (!string.IsNullOrEmpty(configuredUrl)
-            && !host.Contains("criptojackpot.com", StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrEmpty(configuredUrl))
         {
-            fullUrl = configuredUrl;
-            _logger.LogDebug(
-                "Using configured webhook URL for signature validation: {Url}", fullUrl);
+            _logger.LogError("CoinPayments:WebhookNotificationsUrl is not configured");
+            context.Result = new ObjectResult(new
+            {
+                success = false,
+                message = "Webhook URL configuration error"
+            })
+            {
+                StatusCode = 500
+            };
+            return;
         }
+
+        var fullUrl = configuredUrl;
 
         var message = $"\ufeff{method}{fullUrl}{clientId}{timestamp}{body}";
 
