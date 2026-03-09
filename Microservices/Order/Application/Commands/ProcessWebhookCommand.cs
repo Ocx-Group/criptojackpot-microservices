@@ -1,4 +1,4 @@
-﻿using CryptoJackpot.Order.Application.DTOs.CoinPayments;
+﻿using CryptoJackpot.Order.Application.DTOs.CoinPayments.Webhook;
 using FluentResults;
 using MediatR;
 

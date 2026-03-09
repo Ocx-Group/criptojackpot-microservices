@@ -1,5 +1,6 @@
 using System.Text.Json;
 using CryptoJackpot.Domain.Core.Responses.Errors;
+using CryptoJackpot.Order.Application.Converters;
 using CryptoJackpot.Order.Application.DTOs;
 using CryptoJackpot.Order.Application.DTOs.CoinPayments;
 using CryptoJackpot.Order.Application.Queries;
@@ -17,10 +18,6 @@ public class GetCurrenciesQueryHandler
     private const string CacheKey = "coinpayments:currencies";
     private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(6);
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
 
     private readonly ICoinPaymentProvider _coinPaymentProvider;
     private readonly IDistributedCache _cache;
@@ -45,7 +42,7 @@ public class GetCurrenciesQueryHandler
             var cached = await _cache.GetStringAsync(CacheKey, cancellationToken);
             if (cached is not null)
             {
-                var cachedResult = JsonSerializer.Deserialize<List<CoinPaymentCurrencyDto>>(cached, JsonOptions);
+                var cachedResult = JsonSerializer.Deserialize<List<CoinPaymentCurrencyDto>>(cached, JsonDefaults.ApiResponse);
                 return Result.Ok(cachedResult!);
             }
 
@@ -59,7 +56,7 @@ public class GetCurrenciesQueryHandler
                     $"Failed to fetch currencies: {response.StatusCode}"));
             }
 
-            var currencies = response.Deserialize<List<CurrencyResult>>(JsonOptions) ?? [];
+            var currencies = response.Deserialize<List<CurrencyResult>>(JsonDefaults.ApiResponse) ?? [];
 
             var result = currencies.Select(c => new CoinPaymentCurrencyDto
             {

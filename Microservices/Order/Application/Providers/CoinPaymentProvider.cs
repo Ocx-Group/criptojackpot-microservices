@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using CryptoJackpot.Domain.Core.Responses;
+using CryptoJackpot.Order.Application.Converters;
 using CryptoJackpot.Order.Application.DTOs.CoinPayments;
 using CryptoJackpot.Order.Domain.Constants;
 using CryptoJackpot.Order.Domain.Interfaces;
@@ -12,11 +13,6 @@ namespace CryptoJackpot.Order.Application.Providers;
 
 public class CoinPaymentProvider : ICoinPaymentProvider
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-    };
 
     private readonly string _clientSecret;
     private readonly string _clientId;
@@ -168,7 +164,7 @@ public class CoinPaymentProvider : ICoinPaymentProvider
 
             var timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss");
 
-            var bodyJson = body is not null ? JsonSerializer.Serialize(body, JsonOptions) : string.Empty;
+            var bodyJson = body is not null ? JsonSerializer.Serialize(body, JsonDefaults.ApiRequest) : string.Empty;
 
             var signature = BuildSignature(method.Method, requestUri.ToString(), timestamp, bodyJson);
 

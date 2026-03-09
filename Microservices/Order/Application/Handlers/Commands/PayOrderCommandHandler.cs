@@ -3,6 +3,7 @@ using CryptoJackpot.Domain.Core.Bus;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Audit;
 using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Order.Application.Commands;
+using CryptoJackpot.Order.Application.Converters;
 using CryptoJackpot.Order.Application.DTOs;
 using CryptoJackpot.Order.Application.DTOs.CoinPayments;
 using CryptoJackpot.Order.Domain.Constants;
@@ -24,10 +25,6 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<Pa
     private readonly IConfiguration _configuration;
     private readonly ILogger<PayOrderCommandHandler> _logger;
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
 
     public PayOrderCommandHandler(
         IOrderRepository orderRepository,
@@ -116,7 +113,7 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<Pa
                         $"Payment service returned {response.StatusCode}"));
             }
 
-            var apiResponse = response.Deserialize<CoinPaymentsApiResponse<CreateInvoiceResult>>(JsonOptions);
+            var apiResponse = response.Deserialize<CoinPaymentsApiResponse<CreateInvoiceResult>>(JsonDefaults.ApiResponse);
             var invoice = apiResponse?.FirstResult;
 
             if (invoice is null)

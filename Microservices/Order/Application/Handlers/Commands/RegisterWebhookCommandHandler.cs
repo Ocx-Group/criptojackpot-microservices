@@ -1,6 +1,6 @@
-﻿using System.Text.Json;
-using CryptoJackpot.Domain.Core.Responses.Errors;
+﻿using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Order.Application.Commands;
+using CryptoJackpot.Order.Application.Converters;
 using CryptoJackpot.Order.Application.DTOs.CoinPayments;
 using CryptoJackpot.Order.Domain.Constants;
 using CryptoJackpot.Order.Domain.Interfaces;
@@ -17,11 +17,6 @@ public class RegisterWebhookCommandHandler
     private readonly ICoinPaymentProvider _coinPaymentProvider;
     private readonly IConfiguration _configuration;
     private readonly ILogger<RegisterWebhookCommandHandler> _logger;
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
 
     /// <summary>
     /// Default notifications to subscribe to if none are specified.
@@ -87,7 +82,7 @@ public class RegisterWebhookCommandHandler
                         $"Webhook registration failed: {response.StatusCode} - {response.Content}"));
             }
 
-            var result = response.Deserialize<RegisterWebhookResult>(JsonOptions);
+            var result = response.Deserialize<RegisterWebhookResult>(JsonDefaults.ApiResponse);
 
             if (result is null)
             {

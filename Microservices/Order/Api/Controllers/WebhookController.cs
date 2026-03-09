@@ -3,7 +3,8 @@ using Asp.Versioning;
 using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Order.Api.Filters;
 using CryptoJackpot.Order.Application.Commands;
-using CryptoJackpot.Order.Application.DTOs.CoinPayments;
+using CryptoJackpot.Order.Application.Converters;
+using CryptoJackpot.Order.Application.DTOs.CoinPayments.Webhook;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,11 +18,6 @@ public class WebhookController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<WebhookController> _logger;
-
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
 
     public WebhookController(IMediator mediator, ILogger<WebhookController> logger)
     {
@@ -70,7 +66,7 @@ public class WebhookController : ControllerBase
         CoinPaymentsWebhookPayload? payload;
         try
         {
-            payload = JsonSerializer.Deserialize<CoinPaymentsWebhookPayload>(body, JsonOptions);
+            payload = JsonSerializer.Deserialize<CoinPaymentsWebhookPayload>(body, JsonDefaults.Webhook);
         }
         catch (JsonException ex)
         {

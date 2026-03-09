@@ -132,7 +132,8 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
         }
 
         // Extract transaction ID from payment details
-        var transactionId = request.Payload.Invoice?.Payments?.FirstOrDefault()?.TransactionId
+        // Use the payment ID as the transaction reference; fall back to invoice ID
+        var transactionId = request.Payload.Invoice?.Payments?.FirstOrDefault()?.Id
                             ?? request.Payload.Invoice?.Id
                             ?? request.InvoiceId;
 
