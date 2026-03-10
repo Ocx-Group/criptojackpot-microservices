@@ -1,5 +1,6 @@
 using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Wallet.Application.Queries;
+using CryptoJackpot.Wallet.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,40 @@ public class WalletController : ControllerBase
             return Unauthorized();
 
         var query = new GetReferralEarningsQuery { UserGuid = userGuid.Value };
+        var result = await _mediator.Send(query, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [HttpGet("balance")]
+    public async Task<IActionResult> GetBalance(CancellationToken cancellationToken)
+    {
+        var userGuid = User.GetUserGuid();
+        if (userGuid is null)
+            return Unauthorized();
+
+        var query = new GetWalletBalanceQuery { UserGuid = userGuid.Value };
+        var result = await _mediator.Send(query, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [HttpGet("transactions")]
+    public async Task<IActionResult> GetTransactions(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] WalletTransactionType? type = null,
+        CancellationToken cancellationToken = default)
+    {
+        var userGuid = User.GetUserGuid();
+        if (userGuid is null)
+            return Unauthorized();
+
+        var query = new GetWalletTransactionsQuery
+        {
+            UserGuid = userGuid.Value,
+            Type = type,
+            Page = page,
+            PageSize = pageSize,
+        };
         var result = await _mediator.Send(query, cancellationToken);
         return result.ToActionResult();
     }

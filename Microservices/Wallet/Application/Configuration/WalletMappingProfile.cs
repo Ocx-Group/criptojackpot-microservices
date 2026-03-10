@@ -15,5 +15,8 @@ public class WalletMappingProfile : Profile
 
         // UserCryptoWallet mappings
         CreateMap<UserCryptoWallet, UserCryptoWalletDto>();
+
+        // WalletTransaction mappings
+        CreateMap<WalletTransaction, WalletTransactionDto>();
     }
 }
