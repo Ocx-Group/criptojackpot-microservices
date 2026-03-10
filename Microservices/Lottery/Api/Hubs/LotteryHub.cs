@@ -122,6 +122,9 @@ public class LotteryHub : Hub<ILotteryHubClient>
                 return;
             }
 
+            var userEmail = Context.User?.GetEmail() ?? string.Empty;
+            var userName = Context.User?.GetName() ?? string.Empty;
+
             if (items.Count == 0)
             {
                 _logger.LogWarning("ReserveNumbersWithOrder failed: No items provided");
@@ -130,7 +133,7 @@ public class LotteryHub : Hub<ILotteryHubClient>
             }
 
             var result = await _lotteryNumberService.ReserveNumbersWithOrderAsync(
-                lotteryId, items, userId.Value, existingOrderId);
+                lotteryId, items, userId.Value, userEmail, userName, existingOrderId);
 
             if (result.IsSuccess)
             {

@@ -24,6 +24,26 @@ public class NumbersReservedEvent : Event
     public long UserId { get; set; }
     
     /// <summary>
+    /// User's email for purchase confirmation notification
+    /// </summary>
+    public string UserEmail { get; set; } = null!;
+    
+    /// <summary>
+    /// User's display name for purchase confirmation notification
+    /// </summary>
+    public string UserName { get; set; } = null!;
+    
+    /// <summary>
+    /// Lottery title snapshot for notification context
+    /// </summary>
+    public string LotteryTitle { get; set; } = null!;
+    
+    /// <summary>
+    /// Lottery number identifier snapshot (e.g. "001")
+    /// </summary>
+    public string LotteryNo { get; set; } = null!;
+    
+    /// <summary>
     /// The reserved lottery number IDs
     /// </summary>
     public List<Guid> LotteryNumberIds { get; set; } = [];

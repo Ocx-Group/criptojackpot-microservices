@@ -17,6 +17,26 @@ public class Order : BaseEntity
     public long UserId { get; set; }
     public Guid LotteryId { get; set; }
     
+    /// <summary>
+    /// Buyer's email snapshot (for notification after webhook-based payment)
+    /// </summary>
+    public string UserEmail { get; set; } = null!;
+    
+    /// <summary>
+    /// Buyer's display name snapshot
+    /// </summary>
+    public string UserName { get; set; } = null!;
+    
+    /// <summary>
+    /// Lottery title snapshot at order creation time
+    /// </summary>
+    public string LotteryTitle { get; set; } = null!;
+    
+    /// <summary>
+    /// Lottery number identifier snapshot (e.g. "001")
+    /// </summary>
+    public string LotteryNo { get; set; } = null!;
+    
     public OrderStatus Status { get; set; }
     
     /// <summary>

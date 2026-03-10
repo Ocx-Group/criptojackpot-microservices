@@ -31,6 +31,26 @@ public class OrderConfiguration : IEntityTypeConfiguration<Domain.Models.Order>
             .HasColumnName("lottery_id")
             .IsRequired();
 
+        builder.Property(o => o.UserEmail)
+            .HasColumnName("user_email")
+            .HasMaxLength(255)
+            .IsRequired();
+
+        builder.Property(o => o.UserName)
+            .HasColumnName("user_name")
+            .HasMaxLength(200)
+            .IsRequired();
+
+        builder.Property(o => o.LotteryTitle)
+            .HasColumnName("lottery_title")
+            .HasMaxLength(300)
+            .IsRequired();
+
+        builder.Property(o => o.LotteryNo)
+            .HasColumnName("lottery_no")
+            .HasMaxLength(50)
+            .IsRequired();
+
         builder.Property(o => o.Status)
             .HasColumnName("status")
             .HasConversion<string>()

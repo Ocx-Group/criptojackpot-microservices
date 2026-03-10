@@ -317,6 +317,8 @@ public class LotteryNumberService : ILotteryNumberService
         Guid lotteryGuid,
         List<CartItemDto> items,
         long userId,
+        string userEmail,
+        string userName,
         Guid? existingOrderId = null)
     {
         // Validation
@@ -370,6 +372,10 @@ public class LotteryNumberService : ILotteryNumberService
             OrderId = orderId,
             LotteryId = lotteryGuid,
             UserId = userId,
+            UserEmail = userEmail,
+            UserName = userName,
+            LotteryTitle = lottery.Title,
+            LotteryNo = lottery.LotteryNo,
             LotteryNumberIds = allReservations.Select(r => r.LotteryNumberGuid).ToList(),
             Numbers = allReservations.Select(r => r.Number).ToArray(),
             SeriesArray = allReservations.Select(r => r.Series).ToArray(),

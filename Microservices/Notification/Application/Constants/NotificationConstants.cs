@@ -7,6 +7,7 @@ public static class TemplateNames
     public const string PasswordReset = "PasswordResetTemplate";
     public const string ReferralNotification = "ReferralNotificationTemplate";
     public const string LotteryMarketing = "LotteryMarketingTemplate";
+    public const string PurchaseConfirmation = "PurchaseConfirmationTemplate";
 }
 
 public static class UrlPaths

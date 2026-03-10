@@ -119,7 +119,21 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
                 LotteryId = order.LotteryId,
                 UserId = order.UserId,
                 LotteryNumberIds = lotteryNumberIds,
-                TransactionId = request.TransactionId
+                TransactionId = request.TransactionId,
+                // Notification data
+                UserEmail = order.UserEmail,
+                UserName = order.UserName,
+                LotteryTitle = order.LotteryTitle,
+                LotteryNo = order.LotteryNo,
+                TotalAmount = order.TotalAmount,
+                Tickets = order.OrderDetails.Select(d => new PurchasedTicketItem
+                {
+                    Number = d.Number,
+                    Series = d.Series,
+                    Amount = d.Subtotal,
+                    IsGift = d.IsGift,
+                    GiftRecipientId = d.GiftRecipientId
+                }).ToList()
             });
 
             _logger.LogInformation(

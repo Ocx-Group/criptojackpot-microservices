@@ -3,6 +3,7 @@ using CryptoJackpot.Domain.Core.Constants;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Notification;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
 using CryptoJackpot.Notification.Application;
@@ -156,6 +157,7 @@ public static class IoCExtension
                 rider.AddConsumer<LotteryMarketingConsumer>();
                 rider.AddConsumer<SendMarketingEmailConsumer>();
                 rider.AddConsumer<MarketingUsersResponseConsumer>();
+                rider.AddConsumer<OrderCompletedConsumer>();
 
                 // Register producers for distributing events
                 rider.AddProducer<SendMarketingEmailEvent>(KafkaTopics.SendMarketingEmail);
@@ -222,6 +224,16 @@ public static class IoCExtension
                         e.CheckpointInterval = TimeSpan.FromSeconds(1);
                         // Enable concurrent message processing for higher throughput
                         e.ConcurrentMessageLimit = 10;
+                    });
+
+                // Order completed - send purchase confirmation email to buyer
+                kafka.TopicEndpoint<OrderCompletedEvent>(
+                    KafkaTopics.OrderCompleted,
+                    KafkaTopics.NotificationGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<OrderCompletedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
                     });
             });
     }
