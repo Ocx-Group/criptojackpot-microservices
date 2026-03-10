@@ -9,6 +9,7 @@ using CryptoJackpot.Order.Domain.Interfaces;
 using CryptoJackpot.Order.Domain.Models;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace CryptoJackpot.Order.Application.Handlers.Commands;
@@ -142,6 +143,25 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
                 order.OrderGuid, order.OrderDetails.Count, request.UserId, request.TransactionId);
 
             return Result.Ok(_mapper.Map<TicketDto>(firstTicket));
+        }
+        catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("23505") == true
+                                            || ex.InnerException?.Message.Contains("duplicate key") == true)
+        {
+            // Race condition: CoinPayments webhook retry hit another pod while this pod was
+            // already completing the same order. The first pod created the tickets and set
+            // the order to Completed. Return the existing ticket (idempotent).
+            _logger.LogWarning(
+                "Order {OrderId} concurrent completion detected (duplicate key). Returning existing ticket.",
+                request.OrderId);
+
+            var existingTickets = await _ticketRepository.GetByOrderIdAsync(order.Id);
+            var existingTicket = existingTickets.FirstOrDefault();
+
+            if (existingTicket is not null)
+                return Result.Ok(_mapper.Map<TicketDto>(existingTicket));
+
+            _logger.LogError(ex, "Order {OrderId} duplicate key but no existing ticket found", request.OrderId);
+            return Result.Fail<TicketDto>(new InternalServerError("Failed to complete order"));
         }
         catch (Exception ex)
         {

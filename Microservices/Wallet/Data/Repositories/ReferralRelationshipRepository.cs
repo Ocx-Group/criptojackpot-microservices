@@ -17,7 +17,6 @@ public class ReferralRelationshipRepository : IReferralRelationshipRepository
     public async Task<ReferralRelationship> AddAsync(ReferralRelationship relationship, CancellationToken cancellationToken = default)
     {
         var entry = await _context.ReferralRelationships.AddAsync(relationship, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
         return entry.Entity;
     }
 

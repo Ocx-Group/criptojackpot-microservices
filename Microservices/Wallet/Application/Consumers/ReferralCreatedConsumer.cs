@@ -18,15 +18,18 @@ public class ReferralCreatedConsumer : IConsumer<ReferralCreatedEvent>
 
     private readonly IWalletService _walletService;
     private readonly IReferralRelationshipRepository _referralRelationshipRepository;
+    private readonly IUnitOfWork _uow;
     private readonly ILogger<ReferralCreatedConsumer> _logger;
 
     public ReferralCreatedConsumer(
         IWalletService walletService,
         IReferralRelationshipRepository referralRelationshipRepository,
+        IUnitOfWork uow,
         ILogger<ReferralCreatedConsumer> logger)
     {
         _walletService = walletService;
         _referralRelationshipRepository = referralRelationshipRepository;
+        _uow = uow;
         _logger = logger;
     }
 
@@ -39,6 +42,8 @@ public class ReferralCreatedConsumer : IConsumer<ReferralCreatedEvent>
             message.ReferrerUserGuid, message.ReferredUserGuid, message.ReferralCode);
 
         // ── Persist referral relationship (idempotent) ──────────────────
+        // The entity is added to the EF change tracker. It will be persisted
+        // atomically when ApplyTransactionAsync calls SaveChangesAsync via UoW.
         var alreadyExists = await _referralRelationshipRepository
             .ExistsByReferredUserGuidAsync(message.ReferredUserGuid, context.CancellationToken);
 
@@ -50,10 +55,6 @@ public class ReferralCreatedConsumer : IConsumer<ReferralCreatedEvent>
                 ReferredUserGuid = message.ReferredUserGuid,
                 ReferralCode = message.ReferralCode
             }, context.CancellationToken);
-
-            _logger.LogInformation(
-                "Persisted referral relationship: {ReferredGuid} → {ReferrerGuid}",
-                message.ReferredUserGuid, message.ReferrerUserGuid);
         }
 
         // ── Credit referral bonus ───────────────────────────────────────
@@ -71,14 +72,26 @@ public class ReferralCreatedConsumer : IConsumer<ReferralCreatedEvent>
         if (result.IsSuccess)
         {
             _logger.LogInformation(
-                "Referral bonus of {Amount} USD credited to referrer {ReferrerGuid}. Transaction: {TxGuid}",
-                ReferralBonusAmount, message.ReferrerUserGuid, result.Value.TransactionGuid);
+                "Referral relationship and bonus persisted — Referred: {ReferredGuid} → Referrer: {ReferrerGuid}, Bonus: {Amount} USD, Tx: {TxGuid}",
+                message.ReferredUserGuid, message.ReferrerUserGuid, ReferralBonusAmount, result.Value.TransactionGuid);
         }
         else
         {
-            _logger.LogError(
-                "Failed to credit referral bonus to referrer {ReferrerGuid}. Errors: {Errors}",
-                message.ReferrerUserGuid, string.Join("; ", result.Errors.Select(e => e.Message)));
+            // ApplyTransactionAsync failed — still persist the relationship so commissions work
+            if (!alreadyExists)
+            {
+                await _uow.SaveChangesAsync(context.CancellationToken);
+                _logger.LogWarning(
+                    "Referral relationship persisted (fallback) for {ReferredGuid} → {ReferrerGuid}, but bonus credit failed: {Errors}",
+                    message.ReferredUserGuid, message.ReferrerUserGuid,
+                    string.Join("; ", result.Errors.Select(e => e.Message)));
+            }
+            else
+            {
+                _logger.LogError(
+                    "Failed to credit referral bonus to referrer {ReferrerGuid}. Errors: {Errors}",
+                    message.ReferrerUserGuid, string.Join("; ", result.Errors.Select(e => e.Message)));
+            }
         }
     }
 }
