@@ -482,7 +482,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
             SELECT * FROM lottery_numbers 
             WHERE lottery_id = {0} 
               AND number = {1} 
-              AND status = 'Available'
+              AND status = 0
               AND deleted_at IS NULL
             ORDER BY series ASC
             LIMIT {2}
