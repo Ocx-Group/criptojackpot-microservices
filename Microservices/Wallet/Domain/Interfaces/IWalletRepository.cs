@@ -23,6 +23,9 @@ public interface IWalletRepository
     /// <summary>Check whether a transaction with the given GUID already exists (idempotency guard).</summary>
     Task<bool> ExistsByGuidAsync(Guid transactionGuid, CancellationToken cancellationToken = default);
 
+    /// <summary>Find a transaction by its reference ID and type (idempotency guard for commission/bonus).</summary>
+    Task<WalletTransaction?> GetByReferenceIdAndTypeAsync(Guid referenceId, WalletTransactionType type, CancellationToken cancellationToken = default);
+
     /// <summary>Returns total and last-month referral earnings for a user.</summary>
     Task<(decimal TotalEarnings, decimal LastMonthEarnings)> GetReferralEarningsAsync(
         Guid userGuid, CancellationToken cancellationToken = default);

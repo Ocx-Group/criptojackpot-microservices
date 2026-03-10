@@ -15,6 +15,12 @@ public class Order : BaseEntity
     public Guid OrderGuid { get; set; } = Guid.NewGuid();
     
     public long UserId { get; set; }
+    
+    /// <summary>
+    /// Buyer's UserGuid (JWT sub claim) for cross-service identity resolution.
+    /// </summary>
+    public Guid UserGuid { get; set; }
+    
     public Guid LotteryId { get; set; }
     
     /// <summary>

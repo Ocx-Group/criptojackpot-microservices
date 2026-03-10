@@ -67,6 +67,7 @@ public class NumbersReservedConsumer : IConsumer<NumbersReservedEvent>
         {
             OrderGuid = message.OrderId,
             UserId = message.UserId,
+            UserGuid = message.UserGuid,
             UserEmail = message.UserEmail,
             UserName = message.UserName,
             LotteryId = message.LotteryId,

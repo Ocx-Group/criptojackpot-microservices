@@ -118,6 +118,7 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
                 TicketId = firstTicket!.TicketGuid,
                 LotteryId = order.LotteryId,
                 UserId = order.UserId,
+                BuyerUserGuid = order.UserGuid,
                 LotteryNumberIds = lotteryNumberIds,
                 TransactionId = request.TransactionId,
                 // Notification data

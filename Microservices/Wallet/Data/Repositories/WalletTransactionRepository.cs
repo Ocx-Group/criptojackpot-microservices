@@ -65,6 +65,14 @@ public class WalletTransactionRepository : IWalletRepository
             .AnyAsync(t => t.TransactionGuid == transactionGuid, cancellationToken);
     }
 
+    public async Task<WalletTransaction?> GetByReferenceIdAndTypeAsync(
+        Guid referenceId, WalletTransactionType type, CancellationToken cancellationToken = default)
+    {
+        return await _context.WalletTransactions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.ReferenceId == referenceId && t.Type == type, cancellationToken);
+    }
+
     public async Task<(decimal TotalEarnings, decimal LastMonthEarnings)> GetReferralEarningsAsync(
         Guid userGuid, CancellationToken cancellationToken = default)
     {

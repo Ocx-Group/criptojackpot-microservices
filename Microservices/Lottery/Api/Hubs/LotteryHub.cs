@@ -122,6 +122,7 @@ public class LotteryHub : Hub<ILotteryHubClient>
                 return;
             }
 
+            var userGuid = Context.User?.GetUserGuid() ?? Guid.Empty;
             var userEmail = Context.User?.GetEmail() ?? string.Empty;
             var userName = Context.User?.GetName() ?? string.Empty;
 
@@ -133,7 +134,7 @@ public class LotteryHub : Hub<ILotteryHubClient>
             }
 
             var result = await _lotteryNumberService.ReserveNumbersWithOrderAsync(
-                lotteryId, items, userId.Value, userEmail, userName, existingOrderId);
+                lotteryId, items, userId.Value, userGuid, userEmail, userName, existingOrderId);
 
             if (result.IsSuccess)
             {

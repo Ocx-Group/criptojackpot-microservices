@@ -27,6 +27,10 @@ public class OrderConfiguration : IEntityTypeConfiguration<Domain.Models.Order>
             .HasColumnName("user_id")
             .IsRequired();
 
+        builder.Property(o => o.UserGuid)
+            .HasColumnName("user_guid")
+            .IsRequired();
+
         builder.Property(o => o.LotteryId)
             .HasColumnName("lottery_id")
             .IsRequired();

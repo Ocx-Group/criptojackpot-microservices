@@ -24,6 +24,11 @@ public class NumbersReservedEvent : Event
     public long UserId { get; set; }
     
     /// <summary>
+    /// Buyer's UserGuid (JWT sub claim) for cross-service identity resolution.
+    /// </summary>
+    public Guid UserGuid { get; set; }
+    
+    /// <summary>
     /// User's email for purchase confirmation notification
     /// </summary>
     public string UserEmail { get; set; } = null!;

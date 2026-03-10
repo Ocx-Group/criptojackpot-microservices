@@ -317,6 +317,7 @@ public class LotteryNumberService : ILotteryNumberService
         Guid lotteryGuid,
         List<CartItemDto> items,
         long userId,
+        Guid userGuid,
         string userEmail,
         string userName,
         Guid? existingOrderId = null)
@@ -372,6 +373,7 @@ public class LotteryNumberService : ILotteryNumberService
             OrderId = orderId,
             LotteryId = lotteryGuid,
             UserId = userId,
+            UserGuid = userGuid,
             UserEmail = userEmail,
             UserName = userName,
             LotteryTitle = lottery.Title,

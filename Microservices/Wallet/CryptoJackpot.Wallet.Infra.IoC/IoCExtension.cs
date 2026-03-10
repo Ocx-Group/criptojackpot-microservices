@@ -3,6 +3,7 @@ using Asp.Versioning;
 using CryptoJackpot.Domain.Core.Behaviors;
 using CryptoJackpot.Domain.Core.Constants;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
 using CryptoJackpot.Wallet.Application;
@@ -221,6 +222,7 @@ public static class IoCExtension
         services.AddScoped<IUserCryptoWalletRepository, Data.Repositories.UserCryptoWalletRepository>();
         services.AddScoped<IWalletRepository, Data.Repositories.WalletTransactionRepository>();
         services.AddScoped<IWalletBalanceRepository, Data.Repositories.WalletBalanceRepository>();
+        services.AddScoped<IReferralRelationshipRepository, Data.Repositories.ReferralRelationshipRepository>();
         services.AddScoped<IUnitOfWork, Data.UnitOfWork>();
     }
 
@@ -250,8 +252,9 @@ public static class IoCExtension
             configuration,
             configureRider: rider =>
             {
-                // Register consumers for Identity events
+                // Register consumers
                 rider.AddConsumer<ReferralCreatedConsumer>();
+                rider.AddConsumer<OrderCompletedConsumer>();
             },
             configureBus: null,
             configureKafkaEndpoints: (context, kafka) =>
@@ -263,6 +266,16 @@ public static class IoCExtension
                     e =>
                     {
                         e.ConfigureConsumer<ReferralCreatedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // Order events - credit 1% referral purchase commission to the referrer
+                kafka.TopicEndpoint<OrderCompletedEvent>(
+                    KafkaTopics.OrderCompleted,
+                    KafkaTopics.WalletGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<OrderCompletedConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
             },

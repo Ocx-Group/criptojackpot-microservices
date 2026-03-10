@@ -13,6 +13,10 @@ public class OrderCompletedEvent : Event
     public Guid TicketId { get; set; }
     public Guid LotteryId { get; set; }
     public long UserId { get; set; }
+    
+    /// <summary>Buyer's UserGuid (from JWT sub claim) for cross-service identity resolution.</summary>
+    public Guid BuyerUserGuid { get; set; }
+    
     public List<Guid> LotteryNumberIds { get; set; } = [];
     public string TransactionId { get; set; } = null!;
     

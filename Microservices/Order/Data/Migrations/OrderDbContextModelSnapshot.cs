@@ -84,6 +84,10 @@ namespace CryptoJackpot.Order.Data.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("user_email");
 
+                    b.Property<Guid>("UserGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_guid");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
                         .HasColumnName("user_id");

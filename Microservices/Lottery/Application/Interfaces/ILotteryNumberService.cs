@@ -33,6 +33,7 @@ public interface ILotteryNumberService
     /// <param name="lotteryGuid">The lottery GUID (external identifier)</param>
     /// <param name="items">Cart items to reserve (each with number and quantity)</param>
     /// <param name="userId">The user making the reservation</param>
+    /// <param name="userGuid">The user's GUID (JWT sub claim) for cross-service identity resolution</param>
     /// <param name="userEmail">The user's email (for purchase confirmation notification)</param>
     /// <param name="userName">The user's display name (for purchase confirmation notification)</param>
     /// <param name="existingOrderId">Optional: existing pending order to add to</param>
@@ -41,6 +42,7 @@ public interface ILotteryNumberService
         Guid lotteryGuid, 
         List<CartItemDto> items, 
         long userId,
+        Guid userGuid,
         string userEmail,
         string userName,
         Guid? existingOrderId = null);
