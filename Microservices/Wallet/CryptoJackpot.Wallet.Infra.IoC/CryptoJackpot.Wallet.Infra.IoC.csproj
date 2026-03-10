@@ -20,6 +20,7 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
         <PackageReference Include="FluentValidation" Version="12.1.1" />
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+        <PackageReference Include="Grpc.Net.ClientFactory" Version="2.62.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Application\CryptoJackpot.Wallet.Application.csproj" />

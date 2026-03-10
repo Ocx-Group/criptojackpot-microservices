@@ -4,6 +4,7 @@ using CryptoJackpot.Domain.Core.Behaviors;
 using CryptoJackpot.Domain.Core.Constants;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
+using CryptoJackpot.Domain.Core.Protos;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
 using CryptoJackpot.Wallet.Application;
@@ -37,6 +38,7 @@ public static class IoCExtension
         AddControllers(services, configuration);
         AddRepositories(services);
         AddApplicationServices(services);
+        AddGrpcClients(services, configuration);
         AddRedisCache(services, configuration);
         AddInfrastructure(services, configuration);
     }
@@ -222,7 +224,6 @@ public static class IoCExtension
         services.AddScoped<IUserCryptoWalletRepository, Data.Repositories.UserCryptoWalletRepository>();
         services.AddScoped<IWalletRepository, Data.Repositories.WalletTransactionRepository>();
         services.AddScoped<IWalletBalanceRepository, Data.Repositories.WalletBalanceRepository>();
-        services.AddScoped<IReferralRelationshipRepository, Data.Repositories.ReferralRelationshipRepository>();
         services.AddScoped<IUnitOfWork, Data.UnitOfWork>();
     }
 
@@ -242,6 +243,29 @@ public static class IoCExtension
         // AutoMapper
         services.AddAutoMapper(assembly);
         services.AddScoped<IWalletService, WalletService>();
+    }
+
+    private static void AddGrpcClients(IServiceCollection services, IConfiguration configuration)
+    {
+        var identityGrpcAddress = configuration["GrpcServices:IdentityAddress"]
+                                  ?? "http://identity-api:80";
+
+        services.AddGrpcClient<ReferralGrpcService.ReferralGrpcServiceClient>(options =>
+            {
+                options.Address = new Uri(identityGrpcAddress);
+            })
+            .ConfigureChannel(channel =>
+            {
+                // Deadline for all calls — prevents hanging if Identity is unresponsive
+                channel.HttpHandler = new SocketsHttpHandler
+                {
+                    EnableMultipleHttp2Connections = true,
+                    KeepAlivePingDelay = TimeSpan.FromSeconds(60),
+                    KeepAlivePingTimeout = TimeSpan.FromSeconds(30)
+                };
+            });
+
+        services.AddScoped<IReferralGrpcClient, ReferralGrpcClient>();
     }
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)

@@ -10,6 +10,7 @@ namespace CryptoJackpot.Wallet.Application.Consumers;
 /// Consumes <see cref="OrderCompletedEvent"/> from Order service via Kafka.
 /// Credits 1% of the ticket purchase amount to the referrer's wallet
 /// as a <see cref="WalletTransactionType.ReferralPurchaseCommission"/>.
+/// Resolves the referrer via gRPC call to Identity (single source of truth).
 /// If the buyer has no referrer, the event is silently skipped.
 /// </summary>
 public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
@@ -17,18 +18,18 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
     /// <summary>Commission rate applied to the total order amount.</summary>
     private const decimal CommissionRate = 0.01m; // 1%
 
-    private readonly IReferralRelationshipRepository _referralRelationshipRepository;
+    private readonly IReferralGrpcClient _referralGrpcClient;
     private readonly IWalletService _walletService;
     private readonly IWalletRepository _walletRepository;
     private readonly ILogger<OrderCompletedConsumer> _logger;
 
     public OrderCompletedConsumer(
-        IReferralRelationshipRepository referralRelationshipRepository,
+        IReferralGrpcClient referralGrpcClient,
         IWalletService walletService,
         IWalletRepository walletRepository,
         ILogger<OrderCompletedConsumer> logger)
     {
-        _referralRelationshipRepository = referralRelationshipRepository;
+        _referralGrpcClient = referralGrpcClient;
         _walletService = walletService;
         _walletRepository = walletRepository;
         _logger = logger;
@@ -42,11 +43,11 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
             "Received OrderCompletedEvent — OrderId: {OrderId}, Buyer: {BuyerGuid}, Amount: {Amount}",
             message.OrderId, message.BuyerUserGuid, message.TotalAmount);
 
-        // ── 1. Look up the referrer for this buyer ──────────────────────
-        var relationship = await _referralRelationshipRepository
-            .GetByReferredUserGuidAsync(message.BuyerUserGuid, context.CancellationToken);
+        // ── 1. Query Identity (source of truth) for the referrer ────────
+        var referrerUserGuid = await _referralGrpcClient
+            .GetReferrerUserGuidAsync(message.BuyerUserGuid, context.CancellationToken);
 
-        if (relationship is null)
+        if (referrerUserGuid is null)
         {
             _logger.LogDebug(
                 "Buyer {BuyerGuid} has no referrer. Skipping commission for order {OrderId}",
@@ -81,7 +82,7 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
         var description = $"Referral commission (1%) — {message.UserName} purchased tickets in {message.LotteryTitle}";
 
         var result = await _walletService.ApplyTransactionAsync(
-            userGuid: relationship.ReferrerUserGuid,
+            userGuid: referrerUserGuid.Value,
             amount: commission,
             direction: WalletTransactionDirection.Credit,
             type: WalletTransactionType.ReferralPurchaseCommission,
@@ -93,13 +94,13 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
         {
             _logger.LogInformation(
                 "Referral commission of {Commission} USD credited to referrer {ReferrerGuid} for order {OrderId}. Transaction: {TxGuid}",
-                commission, relationship.ReferrerUserGuid, message.OrderId, result.Value.TransactionGuid);
+                commission, referrerUserGuid.Value, message.OrderId, result.Value.TransactionGuid);
         }
         else
         {
             _logger.LogError(
                 "Failed to credit referral commission to referrer {ReferrerGuid} for order {OrderId}. Errors: {Errors}",
-                relationship.ReferrerUserGuid, message.OrderId,
+                referrerUserGuid.Value, message.OrderId,
                 string.Join("; ", result.Errors.Select(e => e.Message)));
         }
     }

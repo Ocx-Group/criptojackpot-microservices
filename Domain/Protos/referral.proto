@@ -1,0 +1,21 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "CryptoJackpot.Domain.Core.Protos";
+
+package referral;
+
+// Service exposed by Identity to resolve referral relationships.
+service ReferralGrpcService {
+  // Returns the referrer's UserGuid for a given referred user, or not_found if unregistered.
+  rpc GetReferrer (GetReferrerRequest) returns (GetReferrerResponse);
+}
+
+message GetReferrerRequest {
+  string referred_user_guid = 1;
+}
+
+message GetReferrerResponse {
+  bool found = 1;
+  string referrer_user_guid = 2; // Empty when found == false
+}
+
