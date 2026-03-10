@@ -15,4 +15,5 @@ public static class UrlPaths
     public const string ConfirmEmail = "/user_confirm_email";
     public const string ReferralProgram = "/referal-program";
     public const string LotteryDetails = "/lottery";
+    public const string MyTickets = "/my-tickets";
 }

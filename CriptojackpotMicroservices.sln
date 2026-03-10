@@ -329,6 +329,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "secrets", "secrets", "{5555
 		infrastructure\k8s\overlays\prod\secrets\brevo-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\brevo-secrets.yaml
 		infrastructure\k8s\overlays\prod\secrets\redis-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\redis-secrets.yaml
 		infrastructure\k8s\overlays\prod\secrets\grafana-cloud-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\grafana-cloud-secrets.yaml
+		infrastructure\k8s\overlays\prod\secrets\google-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\google-secrets.yaml
+		infrastructure\k8s\overlays\prod\secrets\coinpayments-secrets.yaml = infrastructure\k8s\overlays\prod\secrets\coinpayments-secrets.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "patches", "patches", "{55555555-5555-5555-5555-55555555555E}"

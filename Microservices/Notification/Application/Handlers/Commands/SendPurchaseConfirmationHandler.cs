@@ -45,7 +45,7 @@ public class SendPurchaseConfirmationHandler : IRequestHandler<SendPurchaseConfi
         }
 
         var ticketRowsHtml = BuildTicketRowsHtml(request.Tickets);
-        var lotteryUrl = $"{_config.Brevo!.BaseUrl}{UrlPaths.LotteryDetails}";
+        var lotteryUrl = $"{_config.Brevo!.BaseUrl}{UrlPaths.MyTickets}";
 
         var body = template
             .Replace("{UserName}", request.UserName)

@@ -9,22 +9,26 @@ using Microsoft.Extensions.Logging;
 namespace CryptoJackpot.Lottery.Application.Consumers;
 
 /// <summary>
-/// Consumes OrderCompletedEvent to mark lottery numbers as sold permanently.
+/// Consumes OrderCompletedEvent to mark lottery numbers as sold permanently
+/// and increment the SoldTickets counter on the LotteryDraw.
 /// Broadcasts the sale via SignalR to all connected clients.
 /// Includes idempotency checks to handle edge cases (e.g., payment arriving after timeout).
 /// </summary>
 public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
 {
     private readonly ILotteryNumberRepository _lotteryNumberRepository;
+    private readonly ILotteryDrawRepository _lotteryDrawRepository;
     private readonly ILotteryNotificationService _notificationService;
     private readonly ILogger<OrderCompletedConsumer> _logger;
 
     public OrderCompletedConsumer(
         ILotteryNumberRepository lotteryNumberRepository,
+        ILotteryDrawRepository lotteryDrawRepository,
         ILotteryNotificationService notificationService,
         ILogger<OrderCompletedConsumer> logger)
     {
         _lotteryNumberRepository = lotteryNumberRepository;
+        _lotteryDrawRepository = lotteryDrawRepository;
         _notificationService = notificationService;
         _logger = logger;
     }
@@ -103,6 +107,9 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
 
         if (success)
         {
+            // Atomically increment SoldTickets on the LotteryDraw
+            await _lotteryDrawRepository.IncrementSoldTicketsAsync(message.LotteryId, reservedNumbers.Count);
+
             // Broadcast via SignalR
             var soldNumbers = reservedNumbers.Select(n => new NumberStatusDto
             {
