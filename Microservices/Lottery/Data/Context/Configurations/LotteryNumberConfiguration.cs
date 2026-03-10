@@ -17,7 +17,8 @@ public class LotteryNumberConfiguration : IEntityTypeConfiguration<LotteryNumber
         builder.Property(e => e.Number).IsRequired();
         builder.Property(e => e.Series).IsRequired();
         builder.Property(e => e.Status)
-            .HasConversion<string>()
+            .HasConversion<int>()
+            .HasColumnType("smallint")
             .IsRequired();
         builder.Property(e => e.OrderId);
         builder.Property(e => e.TicketId);
