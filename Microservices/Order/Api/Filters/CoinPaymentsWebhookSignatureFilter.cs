@@ -101,8 +101,12 @@ public class CoinPaymentsWebhookSignatureFilter : IAsyncActionFilter
         request.Body.Position = 0;
 
         // 4. Get the webhook secret (falls back to ClientSecret if WebhookSecret not configured)
-        var webhookSecret = _configuration[CoinPaymentsConfigKeys.WebhookSecret]
-                            ?? _configuration[CoinPaymentsConfigKeys.ClientSecret];
+        // Note: JSON null values are stored as empty strings by .NET's JsonConfigurationProvider,
+        // so we must use IsNullOrEmpty instead of null-coalescing to properly fall back.
+        var configuredWebhookSecret = _configuration[CoinPaymentsConfigKeys.WebhookSecret];
+        var webhookSecret = !string.IsNullOrEmpty(configuredWebhookSecret)
+            ? configuredWebhookSecret
+            : _configuration[CoinPaymentsConfigKeys.ClientSecret];
 
         if (string.IsNullOrEmpty(webhookSecret))
         {
