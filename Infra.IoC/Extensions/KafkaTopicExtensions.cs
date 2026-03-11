@@ -24,13 +24,24 @@ public static class KafkaTopicExtensions
         var replicationFactor = configuration.GetValue("Kafka:DefaultReplicationFactor", 1);
 
         endpoint.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
-        
+
         // Auto-create topic if it doesn't exist
         endpoint.CreateIfMissing(t =>
         {
             t.NumPartitions = (ushort)partitions;
             t.ReplicationFactor = (short)replicationFactor;
         });
+
+        var retryLimit = configuration.GetValue("Kafka:Retry:Limit", 6);
+        var minIntervalSeconds = configuration.GetValue("Kafka:Retry:MinIntervalSeconds", 1);
+        var maxIntervalSeconds = configuration.GetValue("Kafka:Retry:MaxIntervalSeconds", 60);
+        var intervalDeltaSeconds = configuration.GetValue("Kafka:Retry:IntervalDeltaSeconds", 5);
+
+        endpoint.UseMessageRetry(r => r.Exponential(
+            retryLimit,
+            TimeSpan.FromSeconds(minIntervalSeconds),
+            TimeSpan.FromSeconds(maxIntervalSeconds),
+            TimeSpan.FromSeconds(intervalDeltaSeconds)));
     }
 
     /// <summary>
@@ -48,13 +59,19 @@ public static class KafkaTopicExtensions
         where TValue : class
     {
         endpoint.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
-        
+
         // Auto-create topic if it doesn't exist
         endpoint.CreateIfMissing(t =>
         {
             t.NumPartitions = (ushort)partitions;
             t.ReplicationFactor = replicationFactor;
         });
+
+        endpoint.UseMessageRetry(r => r.Exponential(
+            6,
+            TimeSpan.FromSeconds(1),
+            TimeSpan.FromSeconds(60),
+            TimeSpan.FromSeconds(5)));
     }
 }
 
