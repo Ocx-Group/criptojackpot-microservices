@@ -356,6 +356,7 @@ configMapGenerator:
       - KAFKA_BOOTSTRAP_SERVERS=redpanda.criptojackpot.svc.cluster.local:9092
       - OpenTelemetry__Endpoint=http://otel-collector.monitoring.svc.cluster.local:4317
       - OpenTelemetry__Enabled=true
+      - GrpcServices__IdentityAddress=http://identity-api:80
 
 generatorOptions:
   disableNameSuffixHash: true
