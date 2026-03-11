@@ -155,6 +155,7 @@ public static class IoCExtension
                 rider.AddConsumer<UserRegisteredConsumer>();
                 rider.AddConsumer<PasswordResetRequestedConsumer>();
                 rider.AddConsumer<ReferralCreatedConsumer>();
+                rider.AddConsumer<ReferralBonusCreditedConsumer>();
                 rider.AddConsumer<LotteryMarketingConsumer>();
                 rider.AddConsumer<SendMarketingEmailConsumer>();
                 rider.AddConsumer<MarketingUsersResponseConsumer>();
@@ -245,6 +246,16 @@ public static class IoCExtension
                     e =>
                     {
                         e.ConfigureConsumer<WithdrawalVerificationRequestedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // Referral bonus credited — send earnings confirmation email to referrer
+                kafka.TopicEndpoint<ReferralBonusCreditedEvent>(
+                    KafkaTopics.ReferralBonusCredited,
+                    KafkaTopics.NotificationGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<ReferralBonusCreditedConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
             });

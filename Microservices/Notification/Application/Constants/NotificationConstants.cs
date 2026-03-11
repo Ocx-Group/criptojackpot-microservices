@@ -6,6 +6,7 @@ public static class TemplateNames
     public const string WelcomeEmail = "WelcomeEmailTemplate";
     public const string PasswordReset = "PasswordResetTemplate";
     public const string ReferralNotification = "ReferralNotificationTemplate";
+    public const string ReferralBonusCredited = "ReferralBonusCreditedTemplate";
     public const string LotteryMarketing = "LotteryMarketingTemplate";
     public const string PurchaseConfirmation = "PurchaseConfirmationTemplate";
     public const string WithdrawalVerification = "WithdrawalVerificationTemplate";
@@ -17,4 +18,6 @@ public static class UrlPaths
     public const string ReferralProgram = "/referal-program";
     public const string LotteryDetails = "/lottery";
     public const string MyTickets = "/my-tickets";
+    public const string MyWallet = "/my-wallet";
+    public const string Transactions = "/transaction";
 }

@@ -37,6 +37,7 @@ public static class KafkaTopics
     
     // Wallet Events
     public const string WithdrawalVerificationRequested = "withdrawal-verification-requested";
+    public const string ReferralBonusCredited = "referral-bonus-credited";
     
     // Audit Events
     public const string AuditLog = "audit-log";

@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referral Bonus Credited</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+
+<div style="background-color: #f4f4f4; padding: 40px 0; font-family: Arial, sans-serif;">
+
+    <div style="background-color: #ffffff; margin: 0 auto; max-width: 600px; color: #333333; border-radius: 4px; overflow: hidden;">
+
+        <!-- Header -->
+        <div style="background-color: #000000; padding: 24px 20px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px; color: #FFA500;">Criptojackpot</h1>
+        </div>
+
+        <!-- Hero Banner -->
+        <div style="background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); padding: 30px 20px; text-align: center;">
+            <p style="margin: 0 0 8px; font-size: 42px;">💰</p>
+            <h2 style="margin: 0; font-size: 24px; color: #FFA500;">Referral Bonus Credited!</h2>
+            <p style="margin: 8px 0 0; font-size: 15px; color: #cccccc;">Your reward has been added to your wallet</p>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 30px 24px; text-align: left; line-height: 1.6;">
+
+            <p style="margin: 0 0 16px; font-size: 16px;">Hi <strong>{ReferrerName}</strong>,</p>
+            <p style="margin: 0 0 20px; font-size: 16px;">
+                Great news! <strong>{ReferredName}</strong> signed up using your referral code
+                <strong style="color: #FFA500;">{ReferralCode}</strong> and we've credited your bonus right away.
+            </p>
+
+            <!-- Bonus Highlight Box -->
+            <div style="background-color: #fff8e1; border: 2px solid #FFA500; border-radius: 8px; padding: 20px; margin: 0 0 24px; text-align: center;">
+                <p style="margin: 0 0 6px; font-size: 14px; color: #777777; text-transform: uppercase; letter-spacing: 1px;">Bonus Credited</p>
+                <p style="margin: 0; font-size: 40px; font-weight: bold; color: #FFA500;">$<span>{BonusAmount}</span></p>
+                <p style="margin: 8px 0 0; font-size: 14px; color: #555555;">Added to your Criptojackpot wallet</p>
+            </div>
+
+            <!-- Transaction Details -->
+            <div style="background-color: #f9f9f9; border-left: 4px solid #FFA500; border-radius: 0 4px 4px 0; padding: 16px 20px; margin: 0 0 24px;">
+                <p style="margin: 0 0 8px; font-size: 15px; font-weight: bold; color: #333333;">Transaction Details</p>
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <tr>
+                        <td style="padding: 4px 0; color: #777777; width: 45%;">New Member:</td>
+                        <td style="padding: 4px 0; color: #333333; font-weight: bold;">{ReferredName}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; color: #777777;">Referral Code:</td>
+                        <td style="padding: 4px 0; color: #FFA500; font-weight: bold;">{ReferralCode}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; color: #777777;">Amount:</td>
+                        <td style="padding: 4px 0; color: #333333; font-weight: bold;">$<span>{BonusAmount}</span> USD</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; color: #777777;">New Balance:</td>
+                        <td style="padding: 4px 0; color: #333333; font-weight: bold;">$<span>{BalanceAfter}</span> USD</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; color: #777777;">Transaction ID:</td>
+                        <td style="padding: 4px 0; color: #333333; font-family: monospace;">{TransactionId}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; color: #777777;">Date:</td>
+                        <td style="padding: 4px 0; color: #333333;">{CreditedAt}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div style="text-align: center; margin: 24px 0 16px;">
+                <a href="{TransactionUrl}"
+                   style="background-color: #FFA500; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 4px; display: inline-block; font-size: 16px; font-weight: bold; margin: 0 6px 10px;">
+                    View My Commissions
+                </a>
+                <a href="{WalletUrl}"
+                   style="background-color: #333333; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 4px; display: inline-block; font-size: 16px; margin: 0 6px 10px;">
+                    View My Wallet
+                </a>
+                <a href="{ReferralsUrl}"
+                   style="background-color: #1a1a1a; color: #FFA500; border: 1px solid #FFA500; text-decoration: none; padding: 14px 28px; border-radius: 4px; display: inline-block; font-size: 16px; margin: 0 6px 10px;">
+                    Invite More Friends
+                </a>
+            </div>
+
+            <p style="margin: 20px 0 0; font-size: 14px; color: #777777; text-align: center;">
+                Keep sharing your referral code to keep earning. Every new member = more rewards for you!
+            </p>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #000000; padding: 16px 20px; text-align: center; font-size: 12px; color: #cccccc;">
+            © 2026 Criptojackpot. All rights reserved.<br>
+            <span style="color: #777777;">You are receiving this email because a referral bonus was credited to your account.</span>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
+

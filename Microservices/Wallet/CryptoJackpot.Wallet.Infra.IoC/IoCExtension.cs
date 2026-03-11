@@ -299,6 +299,7 @@ public static class IoCExtension
 
                 // Register producers
                 rider.AddProducer<WithdrawalVerificationRequestedEvent>(KafkaTopics.WithdrawalVerificationRequested);
+                rider.AddProducer<ReferralBonusCreditedEvent>(KafkaTopics.ReferralBonusCredited);
             },
             configureBus: null,
             configureKafkaEndpoints: (context, kafka) =>
