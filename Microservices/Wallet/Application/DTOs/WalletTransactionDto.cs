@@ -5,6 +5,7 @@ namespace CryptoJackpot.Wallet.Application.DTOs;
 public class WalletTransactionDto
 {
     public Guid TransactionGuid { get; set; }
+    public Guid UserGuid { get; set; }
     public decimal Amount { get; set; }
     public WalletTransactionDirection Direction { get; set; }
     public WalletTransactionType Type { get; set; }

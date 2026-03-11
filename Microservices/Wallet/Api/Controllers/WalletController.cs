@@ -71,5 +71,24 @@ public class WalletController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
         return result.ToActionResult();
     }
+    
+    [HttpGet("admin/transactions")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> GetAllTransactions(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] WalletTransactionType? type = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetAllTransactionsQuery
+        {
+            Page = page,
+            PageSize = pageSize,
+            Type = type
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
+        return result.ToActionResult();
+    }
 }
 

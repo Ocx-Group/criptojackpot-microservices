@@ -29,4 +29,11 @@ public interface IWalletRepository
     /// <summary>Returns total and last-month referral earnings for a user.</summary>
     Task<(decimal TotalEarnings, decimal LastMonthEarnings)> GetReferralEarningsAsync(
         Guid userGuid, CancellationToken cancellationToken = default);
+
+    /// <summary>Paginated list of ALL transactions (admin use).</summary>
+    Task<PagedList<WalletTransaction>> GetAllAsync(
+        int page,
+        int pageSize,
+        WalletTransactionType? type = null,
+        CancellationToken cancellationToken = default);
 }

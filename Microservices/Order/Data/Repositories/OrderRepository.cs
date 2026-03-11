@@ -1,3 +1,4 @@
+using CryptoJackpot.Domain.Core.Models;
 using CryptoJackpot.Order.Data.Context;
 using CryptoJackpot.Order.Domain.Enums;
 using CryptoJackpot.Order.Domain.Interfaces;
@@ -74,5 +75,36 @@ public class OrderRepository : IOrderRepository
 
     public async Task SaveChangesAsync()
         => await _context.SaveChangesAsync();
+
+    public async Task<PagedList<Domain.Models.Order>> GetAllAsync(
+        int page,
+        int pageSize,
+        OrderStatus? status = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.Orders
+            .AsNoTracking()
+            .Include(o => o.OrderDetails)
+            .AsQueryable();
+
+        if (status.HasValue)
+            query = query.Where(o => o.Status == status.Value);
+
+        query = query.OrderByDescending(o => o.CreatedAt);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PagedList<Domain.Models.Order>
+        {
+            Items = items,
+            TotalItems = totalCount,
+            PageNumber = page,
+            PageSize = pageSize
+        };
+    }
 }
 

@@ -7,7 +7,11 @@ public class OrderDto
     public long Id { get; set; }
     public Guid OrderGuid { get; set; }
     public long UserId { get; set; }
+    public Guid UserGuid { get; set; }
+    public string UserEmail { get; set; } = null!;
+    public string UserName { get; set; } = null!;
     public Guid LotteryId { get; set; }
+    public string LotteryTitle { get; set; } = null!;
     public decimal TotalAmount { get; set; }
     public int TotalItems { get; set; }
     public OrderStatus Status { get; set; }

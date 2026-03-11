@@ -4,6 +4,7 @@ using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Order.Application.Commands;
 using CryptoJackpot.Order.Application.Queries;
 using CryptoJackpot.Order.Application.Requests;
+using CryptoJackpot.Order.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -75,6 +76,28 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> GetCurrencies()
     {
         var result = await _mediator.Send(new GetCurrenciesQuery());
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Returns all orders with details (admin only). Supports pagination and status filter.
+    /// </summary>
+    [HttpGet("admin/all")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> GetAllOrders(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] OrderStatus? status = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetAllOrdersQuery
+        {
+            Page = page,
+            PageSize = pageSize,
+            Status = status
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
         return result.ToActionResult();
     }
 
