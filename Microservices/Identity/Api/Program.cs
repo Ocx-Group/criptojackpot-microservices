@@ -3,8 +3,17 @@ using CryptoJackpot.Identity.Api.Services;
 using CryptoJackpot.Identity.Data.Context;
 using CryptoJackpot.Identity.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// gRPC requires HTTP/2. Without TLS, Http1AndHttp2 falls back to HTTP/1.1 only
+// (Kestrel needs ALPN/TLS for protocol negotiation). Solution: dedicated HTTP/2 port.
+var grpcPort = builder.Configuration.GetValue("Kestrel:GrpcPort", 5001);
+builder.WebHost.ConfigureKestrel(kestrel =>
+{
+    kestrel.ListenAnyIP(grpcPort, o => o.Protocols = HttpProtocols.Http2);
+});
 
 // Single point of DI configuration
 builder.Services.AddIdentityServices(builder.Configuration);

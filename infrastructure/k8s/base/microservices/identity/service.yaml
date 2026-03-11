@@ -9,7 +9,11 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 80
+    - name: http
+      port: 80
       targetPort: 8080
+    - name: grpc
+      port: 5001
+      targetPort: 5001
   selector:
     app: identity-api
