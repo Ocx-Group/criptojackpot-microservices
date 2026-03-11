@@ -244,6 +244,7 @@ public static class IoCExtension
         services.AddScoped<IUserReferralRepository, UserReferralRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IRecoveryCodeRepository, RecoveryCodeRepository>();
+        services.AddScoped<IWishListRepository, WishListRepository>();
     }
 
     private static void AddApplicationServices(IServiceCollection services)

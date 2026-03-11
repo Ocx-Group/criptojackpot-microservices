@@ -48,5 +48,8 @@ public class IdentityMappingProfile : Profile
         
         // UserReferral mappings
         CreateMap<UserReferralWithStats, UserReferralDto>();
+
+        // WishList mappings
+        CreateMap<WishListItem, WishListItemDto>();
     }
 }
