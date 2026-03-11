@@ -9,9 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // gRPC requires HTTP/2. Without TLS, Http1AndHttp2 falls back to HTTP/1.1 only
 // (Kestrel needs ALPN/TLS for protocol negotiation). Solution: dedicated HTTP/2 port.
+// Note: ConfigureKestrel overrides ASPNETCORE_URLS, so we must bind both ports explicitly.
+var httpPort = builder.Configuration.GetValue("Kestrel:HttpPort", 8080);
 var grpcPort = builder.Configuration.GetValue("Kestrel:GrpcPort", 5001);
 builder.WebHost.ConfigureKestrel(kestrel =>
 {
+    kestrel.ListenAnyIP(httpPort);
     kestrel.ListenAnyIP(grpcPort, o => o.Protocols = HttpProtocols.Http2);
 });
 
