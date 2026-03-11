@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Referral Bonus Credited</title>
+    <title>Referral Commission Credited</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f4f4f4; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
 
@@ -18,9 +18,9 @@
 
         <!-- Hero Banner -->
         <div style="background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); padding: 30px 20px; text-align: center;">
-            <p style="margin: 0 0 8px; font-size: 42px;">💰</p>
-            <h2 style="margin: 0; font-size: 24px; color: #FFA500;">Referral Bonus Credited!</h2>
-            <p style="margin: 8px 0 0; font-size: 15px; color: #cccccc;">Your reward has been added to your wallet</p>
+            <p style="margin: 0 0 8px; font-size: 42px;">🎉</p>
+            <h2 style="margin: 0; font-size: 24px; color: #FFA500;">Referral Commission Earned!</h2>
+            <p style="margin: 8px 0 0; font-size: 15px; color: #cccccc;">You earned a 1% commission from a referral purchase</p>
         </div>
 
         <!-- Body -->
@@ -28,14 +28,14 @@
 
             <p style="margin: 0 0 16px; font-size: 16px;">Hi <strong>{ReferrerName}</strong>,</p>
             <p style="margin: 0 0 20px; font-size: 16px;">
-                Great news! <strong>{ReferredName}</strong> signed up using your referral code
-                <strong style="color: #FFA500;">{ReferralCode}</strong> and we've credited your bonus right away.
+                Great news! <strong>{BuyerName}</strong> purchased tickets in
+                <strong style="color: #FFA500;">{LotteryTitle}</strong> and you've earned a 1% commission.
             </p>
 
-            <!-- Bonus Highlight Box -->
+            <!-- Commission Highlight Box -->
             <div style="background-color: #fff8e1; border: 2px solid #FFA500; border-radius: 8px; padding: 20px; margin: 0 0 24px; text-align: center;">
-                <p style="margin: 0 0 6px; font-size: 14px; color: #777777; text-transform: uppercase; letter-spacing: 1px;">Bonus Credited</p>
-                <p style="margin: 0; font-size: 40px; font-weight: bold; color: #FFA500;">$<span>{BonusAmount}</span></p>
+                <p style="margin: 0 0 6px; font-size: 14px; color: #777777; text-transform: uppercase; letter-spacing: 1px;">Commission Earned</p>
+                <p style="margin: 0; font-size: 40px; font-weight: bold; color: #FFA500;">$<span>{CommissionAmount}</span></p>
                 <p style="margin: 8px 0 0; font-size: 14px; color: #555555;">Added to your Criptojackpot wallet</p>
             </div>
 
@@ -44,16 +44,16 @@
                 <p style="margin: 0 0 8px; font-size: 15px; font-weight: bold; color: #333333;">Transaction Details</p>
                 <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                     <tr>
-                        <td style="padding: 4px 0; color: #777777; width: 45%;">New Member:</td>
-                        <td style="padding: 4px 0; color: #333333; font-weight: bold;">{ReferredName}</td>
+                        <td style="padding: 4px 0; color: #777777; width: 45%;">Buyer:</td>
+                        <td style="padding: 4px 0; color: #333333; font-weight: bold;">{BuyerName}</td>
                     </tr>
                     <tr>
-                        <td style="padding: 4px 0; color: #777777;">Referral Code:</td>
-                        <td style="padding: 4px 0; color: #FFA500; font-weight: bold;">{ReferralCode}</td>
+                        <td style="padding: 4px 0; color: #777777;">Lottery:</td>
+                        <td style="padding: 4px 0; color: #FFA500; font-weight: bold;">{LotteryTitle}</td>
                     </tr>
                     <tr>
-                        <td style="padding: 4px 0; color: #777777;">Amount:</td>
-                        <td style="padding: 4px 0; color: #333333; font-weight: bold;">$<span>{BonusAmount}</span> USD</td>
+                        <td style="padding: 4px 0; color: #777777;">Commission (1%):</td>
+                        <td style="padding: 4px 0; color: #333333; font-weight: bold;">$<span>{CommissionAmount}</span> USD</td>
                     </tr>
                     <tr>
                         <td style="padding: 4px 0; color: #777777;">New Balance:</td>
@@ -62,6 +62,10 @@
                     <tr>
                         <td style="padding: 4px 0; color: #777777;">Transaction ID:</td>
                         <td style="padding: 4px 0; color: #333333; font-family: monospace;">{TransactionId}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 4px 0; color: #777777;">Order ID:</td>
+                        <td style="padding: 4px 0; color: #333333; font-family: monospace;">{OrderId}</td>
                     </tr>
                     <tr>
                         <td style="padding: 4px 0; color: #777777;">Date:</td>
@@ -87,15 +91,15 @@
             </div>
 
             <p style="margin: 20px 0 0; font-size: 14px; color: #777777; text-align: center;">
-                Keep sharing your referral code to keep earning. Every new member = more rewards for you!
+                You earn 1% commission every time your referrals purchase tickets. Keep sharing!
             </p>
 
         </div>
 
         <!-- Footer -->
         <div style="background-color: #000000; padding: 16px 20px; text-align: center; font-size: 12px; color: #cccccc;">
-            © 2026 Criptojackpot. All rights reserved.<br>
-            <span style="color: #777777;">You are receiving this email because a referral bonus was credited to your account.</span>
+            &copy; 2026 Criptojackpot. All rights reserved.<br>
+            <span style="color: #777777;">You are receiving this email because a referral commission was credited to your account.</span>
         </div>
 
     </div>

@@ -154,8 +154,7 @@ public static class IoCExtension
                 // Register consumers in Kafka Rider
                 rider.AddConsumer<UserRegisteredConsumer>();
                 rider.AddConsumer<PasswordResetRequestedConsumer>();
-                rider.AddConsumer<ReferralCreatedConsumer>();
-                rider.AddConsumer<ReferralBonusCreditedConsumer>();
+                rider.AddConsumer<ReferralCommissionCreditedConsumer>();
                 rider.AddConsumer<LotteryMarketingConsumer>();
                 rider.AddConsumer<SendMarketingEmailConsumer>();
                 rider.AddConsumer<MarketingUsersResponseConsumer>();
@@ -187,14 +186,6 @@ public static class IoCExtension
                         e.ConfigureTopicDefaults(configuration);
                     });
 
-                kafka.TopicEndpoint<ReferralCreatedEvent>(
-                    KafkaTopics.ReferralCreated,
-                    KafkaTopics.NotificationGroup,
-                    e =>
-                    {
-                        e.ConfigureConsumer<ReferralCreatedConsumer>(context);
-                        e.ConfigureTopicDefaults(configuration);
-                    });
 
                 kafka.TopicEndpoint<LotteryCreatedEvent>(
                     KafkaTopics.LotteryCreated,
@@ -248,14 +239,14 @@ public static class IoCExtension
                         e.ConfigureConsumer<WithdrawalVerificationRequestedConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
-
-                // Referral bonus credited — send earnings confirmation email to referrer
-                kafka.TopicEndpoint<ReferralBonusCreditedEvent>(
-                    KafkaTopics.ReferralBonusCredited,
+                
+                // Referral commission credited — send 1% purchase commission email to referrer
+                kafka.TopicEndpoint<ReferralCommissionCreditedEvent>(
+                    KafkaTopics.ReferralCommissionCredited,
                     KafkaTopics.NotificationGroup,
                     e =>
                     {
-                        e.ConfigureConsumer<ReferralBonusCreditedConsumer>(context);
+                        e.ConfigureConsumer<ReferralCommissionCreditedConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
             });

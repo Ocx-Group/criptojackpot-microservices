@@ -1,4 +1,6 @@
-﻿using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
+﻿using CryptoJackpot.Domain.Core.Bus;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
 using CryptoJackpot.Wallet.Domain.Enums;
 using CryptoJackpot.Wallet.Domain.Interfaces;
 using MassTransit;
@@ -19,19 +21,25 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
     private const decimal CommissionRate = 0.01m; // 1%
 
     private readonly IReferralGrpcClient _referralGrpcClient;
+    private readonly IUserVerificationGrpcClient _userVerificationGrpcClient;
     private readonly IWalletService _walletService;
     private readonly IWalletRepository _walletRepository;
+    private readonly IEventBus _eventBus;
     private readonly ILogger<OrderCompletedConsumer> _logger;
 
     public OrderCompletedConsumer(
         IReferralGrpcClient referralGrpcClient,
+        IUserVerificationGrpcClient userVerificationGrpcClient,
         IWalletService walletService,
         IWalletRepository walletRepository,
+        IEventBus eventBus,
         ILogger<OrderCompletedConsumer> logger)
     {
         _referralGrpcClient = referralGrpcClient;
+        _userVerificationGrpcClient = userVerificationGrpcClient;
         _walletService = walletService;
         _walletRepository = walletRepository;
+        _eventBus = eventBus;
         _logger = logger;
     }
 
@@ -95,6 +103,48 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
             _logger.LogInformation(
                 "Referral commission of {Commission} USD credited to referrer {ReferrerGuid} for order {OrderId}. Transaction: {TxGuid}",
                 commission, referrerUserGuid.Value, message.OrderId, result.Value.TransactionGuid);
+
+            // ── 5. Notify referrer via email ────────────────────────────
+            try
+            {
+                var referrerInfo = await _userVerificationGrpcClient
+                    .GetUserInfoAsync(referrerUserGuid.Value, context.CancellationToken);
+
+                if (referrerInfo is not null)
+                {
+                    await _eventBus.Publish(new ReferralCommissionCreditedEvent
+                    {
+                        ReferrerUserGuid = referrerUserGuid.Value,
+                        ReferrerEmail    = referrerInfo.Email,
+                        ReferrerName     = referrerInfo.Name,
+                        ReferrerLastName = referrerInfo.LastName,
+                        BuyerName        = message.UserName,
+                        LotteryTitle     = message.LotteryTitle,
+                        CommissionAmount = commission,
+                        BalanceAfter     = result.Value.BalanceAfter,
+                        TransactionGuid  = result.Value.TransactionGuid,
+                        OrderId          = message.OrderId,
+                        CreditedAt       = DateTime.UtcNow
+                    });
+
+                    _logger.LogInformation(
+                        "ReferralCommissionCreditedEvent published for referrer {ReferrerGuid}",
+                        referrerUserGuid.Value);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Could not resolve referrer info via gRPC for {ReferrerGuid}. Commission was credited but notification skipped",
+                        referrerUserGuid.Value);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Non-critical: wallet credit already succeeded; log and continue.
+                _logger.LogError(ex,
+                    "Failed to publish ReferralCommissionCreditedEvent for referrer {ReferrerGuid}",
+                    referrerUserGuid.Value);
+            }
         }
         else
         {
@@ -105,4 +155,3 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
         }
     }
 }
-

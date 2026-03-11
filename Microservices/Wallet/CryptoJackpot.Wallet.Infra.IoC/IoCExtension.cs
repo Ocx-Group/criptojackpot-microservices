@@ -2,7 +2,6 @@
 using Asp.Versioning;
 using CryptoJackpot.Domain.Core.Behaviors;
 using CryptoJackpot.Domain.Core.Constants;
-using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
 using CryptoJackpot.Domain.Core.Protos;
@@ -294,25 +293,15 @@ public static class IoCExtension
             configureRider: rider =>
             {
                 // Register consumers
-                rider.AddConsumer<ReferralCreatedConsumer>();
                 rider.AddConsumer<OrderCompletedConsumer>();
 
                 // Register producers
                 rider.AddProducer<WithdrawalVerificationRequestedEvent>(KafkaTopics.WithdrawalVerificationRequested);
-                rider.AddProducer<ReferralBonusCreditedEvent>(KafkaTopics.ReferralBonusCredited);
+                rider.AddProducer<ReferralCommissionCreditedEvent>(KafkaTopics.ReferralCommissionCredited);
             },
             configureBus: null,
             configureKafkaEndpoints: (context, kafka) =>
             {
-                // Identity events - credit referral bonus when a referral is created
-                kafka.TopicEndpoint<ReferralCreatedEvent>(
-                    KafkaTopics.ReferralCreated,
-                    KafkaTopics.WalletGroup,
-                    e =>
-                    {
-                        e.ConfigureConsumer<ReferralCreatedConsumer>(context);
-                        e.ConfigureTopicDefaults(configuration);
-                    });
 
                 // Order events - credit 1% referral purchase commission to the referrer
                 kafka.TopicEndpoint<OrderCompletedEvent>(
