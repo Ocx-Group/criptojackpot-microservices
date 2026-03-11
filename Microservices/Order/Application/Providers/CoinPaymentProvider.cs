@@ -64,6 +64,8 @@ public class CoinPaymentProvider : ICoinPaymentProvider
                 Total = totalAmount
             },
             Description = description,
+            SuccessUrl = "https://criptojackpot.com/my-tickets",
+            CancelUrl = "https://criptojackpot.com/",
             Webhooks = !string.IsNullOrEmpty(notificationsUrl)
                 ? [
                     new InvoiceWebhook

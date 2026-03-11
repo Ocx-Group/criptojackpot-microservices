@@ -91,6 +91,12 @@ public class CreateInvoiceRequest
 
     [JsonPropertyName("customData")]
     public Dictionary<string, string>? CustomData { get; set; }
+
+    [JsonPropertyName("successUrl")]
+    public string? SuccessUrl { get; set; }
+
+    [JsonPropertyName("cancelUrl")]
+    public string? CancelUrl { get; set; }
 }
 
 public class InvoiceItem
