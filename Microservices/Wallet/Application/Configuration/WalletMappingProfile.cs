@@ -12,11 +12,16 @@ public class WalletMappingProfile : Profile
     {
         // Request to Command mappings
         CreateMap<CreateUserCryptoWalletRequest, CreateUserCryptoWalletCommand>();
+        CreateMap<CreateWithdrawalRequestRequest, CreateWithdrawalRequestCommand>();
 
         // UserCryptoWallet mappings
         CreateMap<UserCryptoWallet, UserCryptoWalletDto>();
 
         // WalletTransaction mappings
         CreateMap<WalletTransaction, WalletTransactionDto>();
+
+        // WithdrawalRequest mappings
+        CreateMap<WithdrawalRequest, WithdrawalRequestDto>()
+            .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()));
     }
 }

@@ -4,6 +4,7 @@ using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Notification;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
 using CryptoJackpot.Notification.Application;
@@ -158,6 +159,7 @@ public static class IoCExtension
                 rider.AddConsumer<SendMarketingEmailConsumer>();
                 rider.AddConsumer<MarketingUsersResponseConsumer>();
                 rider.AddConsumer<OrderCompletedConsumer>();
+                rider.AddConsumer<WithdrawalVerificationRequestedConsumer>();
 
                 // Register producers for distributing events
                 rider.AddProducer<SendMarketingEmailEvent>(KafkaTopics.SendMarketingEmail);
@@ -233,6 +235,16 @@ public static class IoCExtension
                     e =>
                     {
                         e.ConfigureConsumer<OrderCompletedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // Withdrawal verification - send security code email
+                kafka.TopicEndpoint<WithdrawalVerificationRequestedEvent>(
+                    KafkaTopics.WithdrawalVerificationRequested,
+                    KafkaTopics.NotificationGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<WithdrawalVerificationRequestedConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
             });

@@ -35,6 +35,9 @@ public static class KafkaTopics
     public const string NotificationFailed = "notification-failed";
     public const string SendMarketingEmail = "send-marketing-email";
     
+    // Wallet Events
+    public const string WithdrawalVerificationRequested = "withdrawal-verification-requested";
+    
     // Audit Events
     public const string AuditLog = "audit-log";
     

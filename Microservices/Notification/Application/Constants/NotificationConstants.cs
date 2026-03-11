@@ -8,6 +8,7 @@ public static class TemplateNames
     public const string ReferralNotification = "ReferralNotificationTemplate";
     public const string LotteryMarketing = "LotteryMarketingTemplate";
     public const string PurchaseConfirmation = "PurchaseConfirmationTemplate";
+    public const string WithdrawalVerification = "WithdrawalVerificationTemplate";
 }
 
 public static class UrlPaths

@@ -4,6 +4,7 @@ using CryptoJackpot.Domain.Core.Behaviors;
 using CryptoJackpot.Domain.Core.Constants;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
 using CryptoJackpot.Domain.Core.Protos;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
@@ -224,6 +225,7 @@ public static class IoCExtension
         services.AddScoped<IUserCryptoWalletRepository, Data.Repositories.UserCryptoWalletRepository>();
         services.AddScoped<IWalletRepository, Data.Repositories.WalletTransactionRepository>();
         services.AddScoped<IWalletBalanceRepository, Data.Repositories.WalletBalanceRepository>();
+        services.AddScoped<IWithdrawalRequestRepository, Data.Repositories.WithdrawalRequestRepository>();
         services.AddScoped<IUnitOfWork, Data.UnitOfWork>();
     }
 
@@ -265,7 +267,22 @@ public static class IoCExtension
                 };
             });
 
+        services.AddGrpcClient<UserVerificationGrpcService.UserVerificationGrpcServiceClient>(options =>
+            {
+                options.Address = new Uri(identityGrpcAddress);
+            })
+            .ConfigureChannel(channel =>
+            {
+                channel.HttpHandler = new SocketsHttpHandler
+                {
+                    EnableMultipleHttp2Connections = true,
+                    KeepAlivePingDelay = TimeSpan.FromSeconds(60),
+                    KeepAlivePingTimeout = TimeSpan.FromSeconds(30)
+                };
+            });
+
         services.AddScoped<IReferralGrpcClient, ReferralGrpcClient>();
+        services.AddScoped<IUserVerificationGrpcClient, UserVerificationGrpcClient>();
     }
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)
@@ -279,6 +296,9 @@ public static class IoCExtension
                 // Register consumers
                 rider.AddConsumer<ReferralCreatedConsumer>();
                 rider.AddConsumer<OrderCompletedConsumer>();
+
+                // Register producers
+                rider.AddProducer<WithdrawalVerificationRequestedEvent>(KafkaTopics.WithdrawalVerificationRequested);
             },
             configureBus: null,
             configureKafkaEndpoints: (context, kafka) =>

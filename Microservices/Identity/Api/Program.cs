@@ -49,6 +49,7 @@ app.MapControllers();
 
 // gRPC endpoints — internal cluster communication only
 app.MapGrpcService<ReferralGrpcServiceImpl>();
+app.MapGrpcService<UserVerificationGrpcServiceImpl>();
 
 // Apply migrations in development
 await app.ApplyMigrationsAsync<IdentityDbContext>();

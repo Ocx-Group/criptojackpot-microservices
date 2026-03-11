@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="..\..\..\Domain\Protos\referral.proto" GrpcServices="Server" Link="Protos\referral.proto" />
+    <Protobuf Include="..\..\..\Domain\Protos\user_verification.proto" GrpcServices="Server" Link="Protos\user_verification.proto" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CryptoJackpot.Identity.Infra.IoC\CryptoJackpot.Identity.Infra.IoC.csproj" />

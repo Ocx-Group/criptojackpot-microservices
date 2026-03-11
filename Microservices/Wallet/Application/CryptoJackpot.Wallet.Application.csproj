@@ -18,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include="..\..\..\Domain\Protos\referral.proto" GrpcServices="Client" Link="Protos\referral.proto" />
+    <Protobuf Include="..\..\..\Domain\Protos\user_verification.proto" GrpcServices="Client" Link="Protos\user_verification.proto" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Domain\CryptoJackpot.Wallet.Domain.csproj" />

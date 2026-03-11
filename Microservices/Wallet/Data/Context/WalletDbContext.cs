@@ -13,6 +13,7 @@ public class WalletDbContext : DbContext
     public DbSet<UserCryptoWallet> UserCryptoWallets { get; set; } = null!;
     public DbSet<WalletTransaction> WalletTransactions { get; set; } = null!;
     public DbSet<WalletBalance> WalletBalances { get; set; } = null!;
+    public DbSet<WithdrawalRequest> WithdrawalRequests { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
