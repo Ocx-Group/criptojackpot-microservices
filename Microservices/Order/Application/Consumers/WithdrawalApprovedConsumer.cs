@@ -1,5 +1,6 @@
 using CryptoJackpot.Domain.Core.Bus;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
+using CryptoJackpot.Domain.Core.Responses;
 using CryptoJackpot.Order.Application.DTOs.CoinPayments;
 using CryptoJackpot.Order.Domain.Interfaces;
 using CryptoJackpot.Order.Domain.Models;
@@ -129,11 +130,16 @@ public class WithdrawalApprovedConsumer : IConsumer<WithdrawalApprovedEvent>
 
     /// <summary>
     /// Resolves the CoinPayments merchant wallet ID and currency ID for the given currency symbol.
-    /// Uses the merchant wallets API which returns currencySymbol directly.
+    /// If no wallet exists, creates one automatically.
     /// </summary>
     private async Task<(string? WalletId, string? CurrencyId)> ResolveMerchantWalletAsync(
         string currencySymbol, CancellationToken cancellationToken)
     {
+        // First, resolve the currencyId from the symbol (needed for wallet creation)
+        var currencyId = await ResolveCurrencyIdAsync(currencySymbol, cancellationToken);
+        if (currencyId is null)
+            return (null, null);
+
         var walletsResponse = await _coinPaymentProvider.GetMerchantWalletsAsync(cancellationToken);
         if (!walletsResponse.IsSuccessStatusCode)
         {
@@ -142,51 +148,130 @@ public class WithdrawalApprovedConsumer : IConsumer<WithdrawalApprovedEvent>
             return (null, null);
         }
 
-        // Try deserializing as paginated response with "items" wrapper
-        if (!walletsResponse.TryDeserialize<CoinPaymentsApiResponse<MerchantWalletResult>>(out var walletsResult)
-            || walletsResult?.Items is null || walletsResult.Items.Count == 0)
+        var wallets = ParseMerchantWallets(walletsResponse);
+
+        if (wallets is not null && wallets.Count > 0)
         {
-            // Try deserializing as a raw array
-            if (!walletsResponse.TryDeserialize<MerchantWalletResult[]>(out var walletsArray)
-                || walletsArray is null || walletsArray.Length == 0)
+            // Match by currencySymbol directly (the API returns it)
+            var wallet = wallets.FirstOrDefault(w =>
+                w.CurrencySymbol.Equals(currencySymbol, StringComparison.OrdinalIgnoreCase)
+                && w.IsActive && !w.IsLocked);
+
+            // Fallback: try without active/locked filter
+            wallet ??= wallets.FirstOrDefault(w =>
+                w.CurrencySymbol.Equals(currencySymbol, StringComparison.OrdinalIgnoreCase));
+
+            if (wallet is not null)
             {
-                _logger.LogError(
-                    "Failed to parse merchant wallets response. Raw content: {Content}",
-                    walletsResponse.Content);
-                return (null, null);
+                _logger.LogInformation(
+                    "Resolved existing merchant wallet {WalletId} for {Symbol} (currencyId: {CurrencyId})",
+                    wallet.WalletId, currencySymbol, wallet.CurrencyId);
+                return (wallet.WalletId, wallet.CurrencyId);
             }
 
-            // Use the raw array
-            walletsResult = new CoinPaymentsApiResponse<MerchantWalletResult>
-            {
-                Items = walletsArray.ToList()
-            };
+            _logger.LogWarning(
+                "No merchant wallet for {Symbol} among {Count} wallets: [{Wallets}]",
+                currencySymbol, wallets.Count,
+                string.Join(", ", wallets.Select(w =>
+                    $"{w.CurrencySymbol}(id:{w.WalletId}, active:{w.IsActive})")));
+        }
+        else
+        {
+            _logger.LogWarning("No merchant wallets found at all. Will create one for {Symbol}.", currencySymbol);
         }
 
-        // Match by currencySymbol directly (the API returns it)
-        var wallet = walletsResult.Items.FirstOrDefault(w =>
-            w.CurrencySymbol.Equals(currencySymbol, StringComparison.OrdinalIgnoreCase)
-            && w.IsActive && !w.IsLocked);
+        // Auto-create the wallet
+        return await CreateMerchantWalletAsync(currencyId, currencySymbol, cancellationToken);
+    }
 
-        // Fallback: try without active/locked filter
-        wallet ??= walletsResult.Items.FirstOrDefault(w =>
-            w.CurrencySymbol.Equals(currencySymbol, StringComparison.OrdinalIgnoreCase));
-
-        if (wallet is null)
+    /// <summary>
+    /// Resolves the CoinPayments currency ID from a symbol (e.g. "LTCT" → "1002").
+    /// </summary>
+    private async Task<string?> ResolveCurrencyIdAsync(string currencySymbol, CancellationToken cancellationToken)
+    {
+        var currenciesResponse = await _coinPaymentProvider.GetCurrenciesAsync(cancellationToken);
+        if (!currenciesResponse.IsSuccessStatusCode)
         {
-            _logger.LogWarning(
-                "No merchant wallet found for currency {Symbol}. Available wallets: [{Wallets}]",
-                currencySymbol,
-                string.Join(", ", walletsResult.Items.Select(w =>
-                    $"{w.CurrencySymbol}(id:{w.WalletId}, currId:{w.CurrencyId}, active:{w.IsActive})")));
+            _logger.LogError("Failed to fetch currencies: {StatusCode} - {Content}",
+                currenciesResponse.StatusCode, currenciesResponse.Content);
+            return null;
+        }
+
+        if (!currenciesResponse.TryDeserialize<CurrencyResult[]>(out var currencies) || currencies is null)
+        {
+            _logger.LogError("Failed to parse currencies response");
+            return null;
+        }
+
+        var currency = currencies.FirstOrDefault(c =>
+            c.Symbol.Equals(currencySymbol, StringComparison.OrdinalIgnoreCase));
+
+        if (currency is null)
+        {
+            _logger.LogError("Currency {Symbol} not found in CoinPayments", currencySymbol);
+            return null;
+        }
+
+        return currency.Id;
+    }
+
+    /// <summary>
+    /// Creates a new merchant wallet for the given currency via the CoinPayments API.
+    /// </summary>
+    private async Task<(string? WalletId, string? CurrencyId)> CreateMerchantWalletAsync(
+        string currencyId, string currencySymbol, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation(
+            "Creating merchant wallet for {Symbol} (currencyId: {CurrencyId})",
+            currencySymbol, currencyId);
+
+        var createResponse = await _coinPaymentProvider.CreateMerchantWalletAsync(
+            currencyId, $"CriptoJackpot {currencySymbol}", cancellationToken);
+
+        if (!createResponse.IsSuccessStatusCode)
+        {
+            _logger.LogError(
+                "Failed to create merchant wallet for {Symbol}: {StatusCode} - {Content}",
+                currencySymbol, createResponse.StatusCode, createResponse.Content);
+            return (null, null);
+        }
+
+        if (!createResponse.TryDeserialize<CreateMerchantWalletResult>(out var walletResult)
+            || walletResult is null || string.IsNullOrEmpty(walletResult.WalletId))
+        {
+            _logger.LogError(
+                "Failed to parse create wallet response for {Symbol}: {Content}",
+                currencySymbol, createResponse.Content);
             return (null, null);
         }
 
         _logger.LogInformation(
-            "Resolved merchant wallet {WalletId} for currency {Symbol} (currencyId: {CurrencyId})",
-            wallet.WalletId, currencySymbol, wallet.CurrencyId);
+            "Created merchant wallet {WalletId} for {Symbol} (address: {Address})",
+            walletResult.WalletId, currencySymbol, walletResult.Address);
 
-        return (wallet.WalletId, wallet.CurrencyId);
+        return (walletResult.WalletId, currencyId);
+    }
+
+    /// <summary>
+    /// Parses the merchant wallets API response (handles both array and items-wrapper formats).
+    /// </summary>
+    private static List<MerchantWalletResult>? ParseMerchantWallets(RestResponse response)
+    {
+        // Try as paginated { items: [...] }
+        if (response.TryDeserialize<CoinPaymentsApiResponse<MerchantWalletResult>>(out var wrapped)
+            && wrapped?.Items is not null && wrapped.Items.Count > 0)
+        {
+            return wrapped.Items;
+        }
+
+        // Try as raw array [...]
+        if (response.TryDeserialize<MerchantWalletResult[]>(out var array)
+            && array is not null && array.Length > 0)
+        {
+            return array.ToList();
+        }
+
+        return null;
     }
 
     private async Task PublishFailure(WithdrawalApprovedEvent message, string reason)

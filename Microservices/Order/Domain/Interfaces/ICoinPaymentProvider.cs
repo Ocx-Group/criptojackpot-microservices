@@ -35,6 +35,18 @@ public interface ICoinPaymentProvider
     Task<RestResponse> GetMerchantWalletsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Creates a new merchant wallet for the given currency.
+    /// POST /merchant/wallets
+    /// </summary>
+    /// <param name="currencyId">CoinPayments currency ID (e.g. "1002" for LTCT).</param>
+    /// <param name="label">Optional wallet label.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<RestResponse> CreateMerchantWalletAsync(
+        string currencyId,
+        string? label = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates a spend request (withdrawal or conversion) from a merchant wallet.
     /// Returns a transaction preview including fees. Confirm with the confirm spend request endpoint.
     /// POST /merchant/wallets/{id}/spend/request

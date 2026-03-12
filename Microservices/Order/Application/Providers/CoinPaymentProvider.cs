@@ -108,6 +108,20 @@ public class CoinPaymentProvider : ICoinPaymentProvider
     public Task<RestResponse> GetMerchantWalletsAsync(CancellationToken cancellationToken = default) =>
         SendAsync(HttpMethod.Get, CoinPaymentsEndpoints.GetMerchantWallets, null, cancellationToken);
 
+    public Task<RestResponse> CreateMerchantWalletAsync(
+        string currencyId,
+        string? label = null,
+        CancellationToken cancellationToken = default)
+    {
+        var body = new CreateMerchantWalletRequest
+        {
+            Currency = currencyId,
+            Label = label
+        };
+
+        return SendAsync(HttpMethod.Post, CoinPaymentsEndpoints.GetMerchantWallets, body, cancellationToken);
+    }
+
     public Task<RestResponse> CreateSpendRequestAsync(
         string walletId,
         SpendRequestParams @params,

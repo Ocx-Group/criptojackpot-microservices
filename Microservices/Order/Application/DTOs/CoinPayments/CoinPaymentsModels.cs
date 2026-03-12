@@ -330,6 +330,41 @@ public class ConfirmSpendRequest
     public string SpendRequestId { get; set; } = string.Empty;
 }
 
+// ── Create merchant wallet (POST /merchant/wallets) ─────────────────
+
+/// <summary>
+/// Request body to create a new merchant wallet.
+/// </summary>
+public class CreateMerchantWalletRequest
+{
+    [JsonPropertyName("currency")]
+    public string Currency { get; set; } = string.Empty;
+
+    [JsonPropertyName("label")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Label { get; set; }
+
+    [JsonPropertyName("webhookUrl")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? WebhookUrl { get; set; }
+
+    [JsonPropertyName("usePermanentAddresses")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? UsePermanentAddresses { get; set; }
+}
+
+/// <summary>
+/// Response from creating a new merchant wallet.
+/// </summary>
+public class CreateMerchantWalletResult
+{
+    [JsonPropertyName("walletId")]
+    public string WalletId { get; set; } = string.Empty;
+
+    [JsonPropertyName("address")]
+    public string? Address { get; set; }
+}
+
 // ── Merchant wallets (GET /merchant/wallets) ────────────────────────
 
 /// <summary>
