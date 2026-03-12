@@ -1,3 +1,4 @@
+using CryptoJackpot.Domain.Core.Models;
 using CryptoJackpot.Wallet.Data.Context;
 using CryptoJackpot.Wallet.Domain.Enums;
 using CryptoJackpot.Wallet.Domain.Interfaces;
@@ -44,6 +45,31 @@ public class WithdrawalRequestRepository : IWithdrawalRequestRepository
             .AnyAsync(r => r.UserGuid == userGuid
                         && r.Status == WithdrawalRequestStatus.Pending
                         && r.DeletedAt == null, ct);
+    }
+
+    public async Task<PagedList<WithdrawalRequest>> GetAllAsync(int page, int pageSize, WithdrawalRequestStatus? status = null, CancellationToken ct = default)
+    {
+        var query = _context.WithdrawalRequests
+            .Where(r => r.DeletedAt == null);
+
+        if (status.HasValue)
+            query = query.Where(r => r.Status == status.Value);
+
+        var totalItems = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(r => r.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return new PagedList<WithdrawalRequest>
+        {
+            Items = items,
+            TotalItems = totalItems,
+            PageNumber = page,
+            PageSize = pageSize,
+        };
     }
 
     public async Task<WithdrawalRequest> AddAsync(WithdrawalRequest request, CancellationToken ct = default)

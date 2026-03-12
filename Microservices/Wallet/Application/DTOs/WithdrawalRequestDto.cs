@@ -3,6 +3,7 @@ namespace CryptoJackpot.Wallet.Application.DTOs;
 public class WithdrawalRequestDto
 {
     public Guid RequestGuid { get; set; }
+    public Guid UserGuid { get; set; }
     public decimal Amount { get; set; }
     public string Status { get; set; } = null!;
     public string WalletAddress { get; set; } = null!;

@@ -1,7 +1,9 @@
 using AutoMapper;
 using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Wallet.Application.Commands;
+using CryptoJackpot.Wallet.Application.Queries;
 using CryptoJackpot.Wallet.Application.Requests;
+using CryptoJackpot.Wallet.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -62,6 +64,72 @@ public class WithdrawalController : ControllerBase
             WalletGuid = request.WalletGuid,
             TwoFactorCode = request.TwoFactorCode,
             EmailVerificationCode = request.EmailVerificationCode,
+        };
+
+        var result = await _mediator.Send(command, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    // ── Admin endpoints ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Lists all withdrawal requests with optional status filter. Admin only.
+    /// </summary>
+    [HttpGet("admin")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> GetAllWithdrawalRequests(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] WithdrawalRequestStatus? status = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetAllWithdrawalRequestsQuery
+        {
+            Page = page,
+            PageSize = pageSize,
+            Status = status,
+        };
+
+        var result = await _mediator.Send(query, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Approves a pending withdrawal request. Admin only.
+    /// </summary>
+    [HttpPost("admin/{requestGuid:guid}/approve")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> ApproveWithdrawal(
+        Guid requestGuid,
+        [FromBody] ProcessWithdrawalRequestRequest? request,
+        CancellationToken cancellationToken)
+    {
+        var command = new ProcessWithdrawalRequestCommand
+        {
+            RequestGuid = requestGuid,
+            Approve = true,
+            AdminNotes = request?.AdminNotes,
+        };
+
+        var result = await _mediator.Send(command, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Rejects a pending withdrawal request and refunds the blocked funds. Admin only.
+    /// </summary>
+    [HttpPost("admin/{requestGuid:guid}/reject")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> RejectWithdrawal(
+        Guid requestGuid,
+        [FromBody] ProcessWithdrawalRequestRequest? request,
+        CancellationToken cancellationToken)
+    {
+        var command = new ProcessWithdrawalRequestCommand
+        {
+            RequestGuid = requestGuid,
+            Approve = false,
+            AdminNotes = request?.AdminNotes,
         };
 
         var result = await _mediator.Send(command, cancellationToken);
