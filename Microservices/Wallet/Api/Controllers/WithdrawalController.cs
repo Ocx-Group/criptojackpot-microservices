@@ -1,4 +1,3 @@
-using AutoMapper;
 using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Wallet.Application.Commands;
 using CryptoJackpot.Wallet.Application.Queries;
@@ -16,12 +15,10 @@ namespace CryptoJackpot.Wallet.Api.Controllers;
 public class WithdrawalController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IMapper _mapper;
 
-    public WithdrawalController(IMediator mediator, IMapper mapper)
+    public WithdrawalController(IMediator mediator)
     {
         _mediator = mediator;
-        _mapper = mapper;
     }
 
     /// <summary>
