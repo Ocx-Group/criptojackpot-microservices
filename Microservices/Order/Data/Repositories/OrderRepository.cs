@@ -106,5 +106,35 @@ public class OrderRepository : IOrderRepository
             PageSize = pageSize
         };
     }
+
+    public async Task<int> CountCompletedAsync(DateTime? from = null, DateTime? to = null)
+    {
+        var query = _context.Orders.Where(o => o.Status == OrderStatus.Completed);
+        if (from.HasValue) query = query.Where(o => o.CreatedAt >= from.Value);
+        if (to.HasValue) query = query.Where(o => o.CreatedAt < to.Value);
+        return await query.CountAsync();
+    }
+
+    public async Task<int> CountAllAsync(DateTime? from = null, DateTime? to = null)
+    {
+        var query = _context.Orders.AsQueryable();
+        if (from.HasValue) query = query.Where(o => o.CreatedAt >= from.Value);
+        if (to.HasValue) query = query.Where(o => o.CreatedAt < to.Value);
+        return await query.CountAsync();
+    }
+
+    public async Task<decimal> SumRevenueAsync(DateTime? from = null, DateTime? to = null)
+    {
+        var query = _context.Orders
+            .Where(o => o.Status == OrderStatus.Completed)
+            .Include(o => o.OrderDetails)
+            .AsQueryable();
+        if (from.HasValue) query = query.Where(o => o.CreatedAt >= from.Value);
+        if (to.HasValue) query = query.Where(o => o.CreatedAt < to.Value);
+        
+        return await query
+            .SelectMany(o => o.OrderDetails)
+            .SumAsync(d => d.Subtotal);
+    }
 }
 

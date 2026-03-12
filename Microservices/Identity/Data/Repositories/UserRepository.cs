@@ -97,4 +97,15 @@ public class UserRepository : IUserRepository
 
         return await query.ToListAsync();
     }
+
+    public async Task<int> CountAsync()
+    {
+        return await _context.Users.CountAsync();
+    }
+
+    public async Task<int> CountByDateRangeAsync(DateTime from, DateTime to)
+    {
+        return await _context.Users
+            .CountAsync(u => u.CreatedAt >= from && u.CreatedAt < to);
+    }
 }

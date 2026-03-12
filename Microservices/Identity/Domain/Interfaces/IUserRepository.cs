@@ -15,4 +15,14 @@ public interface IUserRepository
     Task<User> CreateAsync(User user);
     Task<User> UpdateAsync(User user);
     Task<IEnumerable<User>> GetAllAsync(long? excludeUserId = null);
+    
+    /// <summary>
+    /// Gets the total count of active users.
+    /// </summary>
+    Task<int> CountAsync();
+    
+    /// <summary>
+    /// Gets the count of users created within a date range.
+    /// </summary>
+    Task<int> CountByDateRangeAsync(DateTime from, DateTime to);
 }

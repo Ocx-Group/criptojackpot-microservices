@@ -15,5 +15,20 @@ public interface IOrderRepository
     Task<PagedList<Models.Order>> GetAllAsync(int page, int pageSize, OrderStatus? status = null, CancellationToken cancellationToken = default);
     Task<Models.Order> UpdateAsync(Models.Order order);
     Task SaveChangesAsync();
+    
+    /// <summary>
+    /// Gets count of completed orders within a date range.
+    /// </summary>
+    Task<int> CountCompletedAsync(DateTime? from = null, DateTime? to = null);
+    
+    /// <summary>
+    /// Gets count of all orders (any status) within a date range.
+    /// </summary>
+    Task<int> CountAllAsync(DateTime? from = null, DateTime? to = null);
+    
+    /// <summary>
+    /// Gets sum of revenue from completed orders within a date range.
+    /// </summary>
+    Task<decimal> SumRevenueAsync(DateTime? from = null, DateTime? to = null);
 }
 

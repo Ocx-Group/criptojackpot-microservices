@@ -57,5 +57,21 @@ public class TicketRepository : ITicketRepository
         await _context.SaveChangesAsync();
         return ticket;
     }
+
+    public async Task<int> CountAsync(DateTime? from = null, DateTime? to = null)
+    {
+        var query = _context.Tickets.AsQueryable();
+        if (from.HasValue) query = query.Where(t => t.CreatedAt >= from.Value);
+        if (to.HasValue) query = query.Where(t => t.CreatedAt < to.Value);
+        return await query.CountAsync();
+    }
+
+    public async Task<decimal> SumRevenueAsync(DateTime? from = null, DateTime? to = null)
+    {
+        var query = _context.Tickets.AsQueryable();
+        if (from.HasValue) query = query.Where(t => t.CreatedAt >= from.Value);
+        if (to.HasValue) query = query.Where(t => t.CreatedAt < to.Value);
+        return await query.SumAsync(t => t.PurchaseAmount);
+    }
 }
 
