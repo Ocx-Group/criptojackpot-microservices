@@ -337,11 +337,23 @@ public class ConfirmSpendRequest
 /// </summary>
 public class MerchantWalletResult
 {
-    [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("walletId")]
+    public string WalletId { get; set; } = string.Empty;
+
+    [JsonPropertyName("walletType")]
+    public string? WalletType { get; set; }
 
     [JsonPropertyName("currencyId")]
     public string CurrencyId { get; set; } = string.Empty;
+
+    [JsonPropertyName("currencySymbol")]
+    public string CurrencySymbol { get; set; } = string.Empty;
+
+    [JsonPropertyName("isActive")]
+    public bool IsActive { get; set; }
+
+    [JsonPropertyName("isLocked")]
+    public bool IsLocked { get; set; }
 
     [JsonPropertyName("label")]
     public string? Label { get; set; }
@@ -350,9 +362,9 @@ public class MerchantWalletResult
     public string? DepositAddress { get; set; }
 
     [JsonPropertyName("confirmedBalance")]
-    public string? ConfirmedBalance { get; set; }
+    public object? ConfirmedBalance { get; set; }
 
     [JsonPropertyName("unconfirmedBalance")]
-    public string? UnconfirmedBalance { get; set; }
+    public object? UnconfirmedBalance { get; set; }
 }
 
