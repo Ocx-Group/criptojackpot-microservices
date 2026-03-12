@@ -48,6 +48,8 @@ public static class CoinPaymentsDefaults
     public const int HttpClientTimeoutSeconds = 30;
     public const string HttpClientName = "CoinPayments";
     public const string DefaultInvoiceCurrency = "5057";
+    public const string SuccessUrl = "https://criptojackpot.com/my-tickets"; 
+    public const string CancelUrl = "https://criptojackpot.com/";
 }
 
 public static class CoinPaymentsEndpoints
@@ -55,10 +57,9 @@ public static class CoinPaymentsEndpoints
     public const string CreateInvoice = "v2/merchant/invoices";
     public const string GetInvoiceById = "v2/merchant/invoices/{0}";
     public const string GetCurrencies = "v2/currencies";
-    /// <summary>
-    /// POST /merchant/clients/{clientId}/webhooks — Register a webhook for a client integration
-    /// </summary>
     public const string RegisterWebhook = "v2/merchant/clients/{0}/webhooks";
+    public const string CreateSpendRequest = "v2/merchant/wallets/{0}/spend/request";
+    public const string ConfirmSpendRequest = "v2/merchant/wallets/{0}/spend/confirmation";
 }
 
 public static class CoinPaymentsResilience

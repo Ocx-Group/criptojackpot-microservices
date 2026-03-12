@@ -187,3 +187,146 @@ public class InvoiceAmountResponse
     [JsonPropertyName("value")]
     public string Value { get; set; } = string.Empty;
 }
+
+// ── Spend request (POST /merchant/wallets/:id/spend/request) ────────
+
+/// <summary>
+/// Request body for creating a spend request (withdrawal or conversion) from a merchant wallet.
+/// </summary>
+public class CreateSpendRequest
+{
+    /// <summary>
+    /// Address which client wants to send funds to.
+    /// </summary>
+    [JsonPropertyName("toAddress")]
+    public string ToAddress { get; set; } = string.Empty;
+
+    /// <summary>
+    /// ID of the currency of the spend destination.
+    /// For anything except conversion it is equal to the wallet's currency.
+    /// </summary>
+    [JsonPropertyName("toCurrency")]
+    public string ToCurrency { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The amount of money as decimal to send to the recipient address.
+    /// </summary>
+    [JsonPropertyName("amount")]
+    public string Amount { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Currency of the amount field in {CurrencyId}:{ContractAddress} format.
+    /// Optional — when omitted the wallet's native currency is assumed.
+    /// </summary>
+    [JsonPropertyName("amountCurrency")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? AmountCurrency { get; set; }
+
+    /// <summary>
+    /// Overrides the system-suggested blockchain fee (within 10 % range).
+    /// </summary>
+    [JsonPropertyName("blockchainFeeOverride")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? BlockchainFeeOverride { get; set; }
+
+    /// <summary>
+    /// Decimal representation of the blockchain fee override.
+    /// </summary>
+    [JsonPropertyName("blockchainFeeOverrideDecimal")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? BlockchainFeeOverrideDecimal { get; set; }
+
+    /// <summary>
+    /// Optional user-defined note for the spend.
+    /// </summary>
+    [JsonPropertyName("memo")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Memo { get; set; }
+
+    /// <summary>
+    /// When true the receiver pays the fee; when false (default) fees are added on top
+    /// and deducted from the sender balance.
+    /// </summary>
+    [JsonPropertyName("receiverPaysFee")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? ReceiverPaysFee { get; set; }
+}
+
+/// <summary>
+/// Response from the create spend request endpoint — a preview of the pending transaction.
+/// Call the confirm endpoint with <see cref="SpendRequestId"/> to submit to the blockchain.
+/// </summary>
+public class SpendRequestResult
+{
+    /// <summary>
+    /// ID of this spend request. Pass this to the confirm endpoint.
+    /// </summary>
+    [JsonPropertyName("spendRequestId")]
+    public string SpendRequestId { get; set; } = string.Empty;
+
+    [JsonPropertyName("fromWalletId")]
+    public string FromWalletId { get; set; } = string.Empty;
+
+    [JsonPropertyName("toAddress")]
+    public string ToAddress { get; set; } = string.Empty;
+
+    [JsonPropertyName("fromCurrencyId")]
+    public string FromCurrencyId { get; set; } = string.Empty;
+
+    [JsonPropertyName("fromCurrencySymbol")]
+    public string FromCurrencySymbol { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Amount of funds being spent (from the sender's perspective).
+    /// </summary>
+    [JsonPropertyName("fromAmount")]
+    public string FromAmount { get; set; } = string.Empty;
+
+    [JsonPropertyName("toCurrencyId")]
+    public string ToCurrencyId { get; set; } = string.Empty;
+
+    [JsonPropertyName("toCurrencySymbol")]
+    public string ToCurrencySymbol { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Amount of funds being received at the destination.
+    /// </summary>
+    [JsonPropertyName("toAmount")]
+    public string ToAmount { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Blockchain fee required to perform the transfer.
+    /// </summary>
+    [JsonPropertyName("blockchainFee")]
+    public string BlockchainFee { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Fee withheld by CoinPayments for the service.
+    /// </summary>
+    [JsonPropertyName("coinpaymentsFee")]
+    public string CoinpaymentsFee { get; set; } = string.Empty;
+
+    [JsonPropertyName("memo")]
+    public string? Memo { get; set; }
+
+    /// <summary>
+    /// Populated when the spend request is a currency conversion.
+    /// </summary>
+    [JsonPropertyName("conversionPreview")]
+    public object? ConversionPreview { get; set; }
+}
+
+// ── Spend confirmation (POST /merchant/wallets/:id/spend/confirmation) ──
+
+/// <summary>
+/// Body payload for confirming a pending spend request.
+/// </summary>
+public class ConfirmSpendRequest
+{
+    /// <summary>
+    /// ID of the spend request returned by the create spend request endpoint.
+    /// </summary>
+    [JsonPropertyName("spendRequestId")]
+    public string SpendRequestId { get; set; } = string.Empty;
+}
+

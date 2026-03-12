@@ -64,8 +64,8 @@ public class CoinPaymentProvider : ICoinPaymentProvider
                 Total = totalAmount
             },
             Description = description,
-            SuccessUrl = "https://criptojackpot.com/my-tickets",
-            CancelUrl = "https://criptojackpot.com/",
+            SuccessUrl = CoinPaymentsDefaults.SuccessUrl,
+            CancelUrl = CoinPaymentsDefaults.CancelUrl,
             Webhooks = !string.IsNullOrEmpty(notificationsUrl)
                 ? [
                     new InvoiceWebhook
@@ -102,6 +102,37 @@ public class CoinPaymentProvider : ICoinPaymentProvider
         };
 
         var endpoint = string.Format(CoinPaymentsEndpoints.RegisterWebhook, _clientId);
+        return SendAsync(HttpMethod.Post, endpoint, body, cancellationToken);
+    }
+    
+    public Task<RestResponse> CreateSpendRequestAsync(
+        string walletId,
+        SpendRequestParams @params,
+        CancellationToken cancellationToken = default)
+    {
+        var body = new CreateSpendRequest
+        {
+            ToAddress = @params.ToAddress,
+            ToCurrency = @params.ToCurrency,
+            Amount = @params.Amount,
+            AmountCurrency = @params.AmountCurrency,
+            BlockchainFeeOverride = @params.BlockchainFeeOverride,
+            BlockchainFeeOverrideDecimal = @params.BlockchainFeeOverrideDecimal,
+            Memo = @params.Memo,
+            ReceiverPaysFee = @params.ReceiverPaysFee
+        };
+
+        var endpoint = string.Format(CoinPaymentsEndpoints.CreateSpendRequest, walletId);
+        return SendAsync(HttpMethod.Post, endpoint, body, cancellationToken);
+    }
+    
+    public Task<RestResponse> ConfirmSpendRequestAsync(
+        string walletId,
+        string spendRequestId,
+        CancellationToken cancellationToken = default)
+    {
+        var body = new ConfirmSpendRequest { SpendRequestId = spendRequestId };
+        var endpoint = string.Format(CoinPaymentsEndpoints.ConfirmSpendRequest, walletId);
         return SendAsync(HttpMethod.Post, endpoint, body, cancellationToken);
     }
 

@@ -27,5 +27,30 @@ public interface ICoinPaymentProvider
         string notificationsUrl,
         List<string> notifications,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a spend request (withdrawal or conversion) from a merchant wallet.
+    /// Returns a transaction preview including fees. Confirm with the confirm spend request endpoint.
+    /// POST /merchant/wallets/{id}/spend/request
+    /// </summary>
+    /// <param name="walletId">Path parameter — ID of the wallet to spend from.</param>
+    /// <param name="params">Body payload with destination, amount and optional overrides.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<RestResponse> CreateSpendRequestAsync(
+        string walletId,
+        SpendRequestParams @params,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Confirms a pending spend request, publishing the transaction to the blockchain.
+    /// POST /merchant/wallets/{id}/spend/confirmation
+    /// </summary>
+    /// <param name="walletId">Path parameter — ID of the wallet to spend from.</param>
+    /// <param name="spendRequestId">ID returned by <see cref="CreateSpendRequestAsync"/>.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<RestResponse> ConfirmSpendRequestAsync(
+        string walletId,
+        string spendRequestId,
+        CancellationToken cancellationToken = default);
 }
 
