@@ -294,10 +294,13 @@ public static class IoCExtension
             {
                 // Register consumers
                 rider.AddConsumer<OrderCompletedConsumer>();
+                rider.AddConsumer<WithdrawalCompletedConsumer>();
+                rider.AddConsumer<WithdrawalFailedConsumer>();
 
                 // Register producers
                 rider.AddProducer<WithdrawalVerificationRequestedEvent>(KafkaTopics.WithdrawalVerificationRequested);
                 rider.AddProducer<ReferralCommissionCreditedEvent>(KafkaTopics.ReferralCommissionCredited);
+                rider.AddProducer<WithdrawalApprovedEvent>(KafkaTopics.WithdrawalApproved);
             },
             configureBus: null,
             configureKafkaEndpoints: (context, kafka) =>
@@ -310,6 +313,26 @@ public static class IoCExtension
                     e =>
                     {
                         e.ConfigureConsumer<OrderCompletedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // Withdrawal completed - mark request as Completed after CoinPayments spend
+                kafka.TopicEndpoint<WithdrawalCompletedEvent>(
+                    KafkaTopics.WithdrawalCompleted,
+                    KafkaTopics.WalletGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<WithdrawalCompletedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // Withdrawal failed - revert request to Pending after CoinPayments spend failure
+                kafka.TopicEndpoint<WithdrawalFailedEvent>(
+                    KafkaTopics.WithdrawalFailed,
+                    KafkaTopics.WalletGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<WithdrawalFailedConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
             },

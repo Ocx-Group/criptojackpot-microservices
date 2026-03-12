@@ -39,6 +39,9 @@ public static class KafkaTopics
     // Wallet Events
     public const string WithdrawalVerificationRequested = "withdrawal-verification-requested";
     public const string ReferralCommissionCredited = "referral-commission-credited";
+    public const string WithdrawalApproved = "withdrawal-approved";
+    public const string WithdrawalCompleted = "withdrawal-completed";
+    public const string WithdrawalFailed = "withdrawal-failed";
     
     // Audit Events
     public const string AuditLog = "audit-log";

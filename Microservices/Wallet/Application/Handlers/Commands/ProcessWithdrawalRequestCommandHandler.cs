@@ -1,4 +1,6 @@
 using AutoMapper;
+using CryptoJackpot.Domain.Core.Bus;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
 using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Wallet.Application.Commands;
 using CryptoJackpot.Wallet.Application.DTOs;
@@ -17,6 +19,7 @@ public class ProcessWithdrawalRequestCommandHandler
     private readonly IWalletService _walletService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IEventBus _eventBus;
     private readonly ILogger<ProcessWithdrawalRequestCommandHandler> _logger;
 
     public ProcessWithdrawalRequestCommandHandler(
@@ -24,12 +27,14 @@ public class ProcessWithdrawalRequestCommandHandler
         IWalletService walletService,
         IUnitOfWork unitOfWork,
         IMapper mapper,
+        IEventBus eventBus,
         ILogger<ProcessWithdrawalRequestCommandHandler> logger)
     {
         _withdrawalRequestRepository = withdrawalRequestRepository;
         _walletService = walletService;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _eventBus = eventBus;
         _logger = logger;
     }
 
@@ -47,44 +52,72 @@ public class ProcessWithdrawalRequestCommandHandler
             return Result.Fail(new BadRequestError("Only pending withdrawal requests can be processed."));
 
         if (request.Approve)
+            return await HandleApproval(withdrawalRequest, request.AdminNotes, cancellationToken);
+
+        return await HandleRejection(withdrawalRequest, request.AdminNotes, cancellationToken);
+    }
+
+    private async Task<Result<WithdrawalRequestDto>> HandleApproval(
+        Domain.Models.WithdrawalRequest withdrawalRequest,
+        string? adminNotes,
+        CancellationToken cancellationToken)
+    {
+        withdrawalRequest.Status = WithdrawalRequestStatus.Approved;
+        withdrawalRequest.AdminNotes = adminNotes;
+        withdrawalRequest.ProcessedAt = DateTime.UtcNow;
+
+        _withdrawalRequestRepository.Update(withdrawalRequest);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Publish event for Order microservice to process the CoinPayments spend
+        await _eventBus.Publish(new WithdrawalApprovedEvent
         {
-            withdrawalRequest.Status = WithdrawalRequestStatus.Approved;
-            withdrawalRequest.AdminNotes = request.AdminNotes;
-            withdrawalRequest.ProcessedAt = DateTime.UtcNow;
+            RequestGuid = withdrawalRequest.RequestGuid,
+            UserGuid = withdrawalRequest.UserGuid,
+            Amount = withdrawalRequest.Amount,
+            WalletAddress = withdrawalRequest.WalletAddress,
+            CurrencySymbol = withdrawalRequest.CurrencySymbol,
+            CurrencyName = withdrawalRequest.CurrencyName,
+            AdminNotes = adminNotes
+        });
 
-            _withdrawalRequestRepository.Update(withdrawalRequest);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation(
+            "Withdrawal request {RequestGuid} approved for user {UserGuid}: ${Amount} to {Address}. Event published.",
+            withdrawalRequest.RequestGuid, withdrawalRequest.UserGuid,
+            withdrawalRequest.Amount, withdrawalRequest.WalletAddress);
 
-            _logger.LogInformation(
-                "Withdrawal request {RequestGuid} approved for user {UserGuid}: ${Amount}",
-                withdrawalRequest.RequestGuid, withdrawalRequest.UserGuid, withdrawalRequest.Amount);
-        }
-        else
-        {
-            withdrawalRequest.Status = WithdrawalRequestStatus.Rejected;
-            withdrawalRequest.AdminNotes = request.AdminNotes;
-            withdrawalRequest.ProcessedAt = DateTime.UtcNow;
+        var dto = _mapper.Map<WithdrawalRequestDto>(withdrawalRequest);
+        return Result.Ok(dto);
+    }
 
-            // Refund blocked funds
-            var refundResult = await _walletService.ApplyTransactionAsync(
-                withdrawalRequest.UserGuid,
-                withdrawalRequest.Amount,
-                WalletTransactionDirection.Credit,
-                WalletTransactionType.WithdrawalRefund,
-                withdrawalRequest.RequestGuid,
-                $"Refund for rejected withdrawal request",
-                cancellationToken);
+    private async Task<Result<WithdrawalRequestDto>> HandleRejection(
+        Domain.Models.WithdrawalRequest withdrawalRequest,
+        string? adminNotes,
+        CancellationToken cancellationToken)
+    {
+        withdrawalRequest.Status = WithdrawalRequestStatus.Rejected;
+        withdrawalRequest.AdminNotes = adminNotes;
+        withdrawalRequest.ProcessedAt = DateTime.UtcNow;
 
-            if (refundResult.IsFailed)
-                return refundResult.ToResult<WithdrawalRequestDto>();
+        // Refund blocked funds
+        var refundResult = await _walletService.ApplyTransactionAsync(
+            withdrawalRequest.UserGuid,
+            withdrawalRequest.Amount,
+            WalletTransactionDirection.Credit,
+            WalletTransactionType.WithdrawalRefund,
+            withdrawalRequest.RequestGuid,
+            "Refund for rejected withdrawal request",
+            cancellationToken);
 
-            _withdrawalRequestRepository.Update(withdrawalRequest);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        if (refundResult.IsFailed)
+            return refundResult.ToResult<WithdrawalRequestDto>();
 
-            _logger.LogInformation(
-                "Withdrawal request {RequestGuid} rejected for user {UserGuid}: ${Amount}. Funds refunded.",
-                withdrawalRequest.RequestGuid, withdrawalRequest.UserGuid, withdrawalRequest.Amount);
-        }
+        _withdrawalRequestRepository.Update(withdrawalRequest);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Withdrawal request {RequestGuid} rejected for user {UserGuid}: ${Amount}. Funds refunded.",
+            withdrawalRequest.RequestGuid, withdrawalRequest.UserGuid, withdrawalRequest.Amount);
 
         var dto = _mapper.Map<WithdrawalRequestDto>(withdrawalRequest);
         return Result.Ok(dto);

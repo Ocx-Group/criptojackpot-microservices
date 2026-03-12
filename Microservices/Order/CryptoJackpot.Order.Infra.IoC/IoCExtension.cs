@@ -5,6 +5,7 @@ using CryptoJackpot.Domain.Core.Constants;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Audit;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
 using CryptoJackpot.Order.Application;
@@ -340,9 +341,12 @@ public static class IoCExtension
                 rider.AddProducer<OrderExpiredEvent>(KafkaTopics.OrderExpired);
                 rider.AddProducer<OrderCancelledEvent>(KafkaTopics.OrderCancelled);
                 rider.AddProducer<AuditLogEvent>(KafkaTopics.AuditLog);
+                rider.AddProducer<WithdrawalCompletedEvent>(KafkaTopics.WithdrawalCompleted);
+                rider.AddProducer<WithdrawalFailedEvent>(KafkaTopics.WithdrawalFailed);
 
-                // Register consumer for NumbersReserved events from Lottery
+                // Register consumers
                 rider.AddConsumer<NumbersReservedConsumer>();
+                rider.AddConsumer<WithdrawalApprovedConsumer>();
             },
             configureKafkaEndpoints: (context, kafka) =>
             {
@@ -353,6 +357,16 @@ public static class IoCExtension
                     e =>
                     {
                         e.ConfigureConsumer<NumbersReservedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // WithdrawalApproved - process CoinPayments spend for approved withdrawals
+                kafka.TopicEndpoint<WithdrawalApprovedEvent>(
+                    KafkaTopics.WithdrawalApproved,
+                    KafkaTopics.OrderGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<WithdrawalApprovedConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
             });
