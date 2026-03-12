@@ -40,4 +40,15 @@ public interface ILotteryNumberRepository
     /// Gets available series count for a specific number.
     /// </summary>
     Task<int> GetAvailableSeriesCountAsync(long lotteryId, int number);
+    
+    /// <summary>
+    /// Gets status counts (sold, reserved) grouped by number for the board view.
+    /// Returns only numbers that have at least one non-available record.
+    /// </summary>
+    Task<Dictionary<int, (int Sold, int Reserved)>> GetStatusCountsPerNumberAsync(long lotteryId);
+    
+    /// <summary>
+    /// Gets all lottery number records for a specific number (all series).
+    /// </summary>
+    Task<List<LotteryNumber>> GetSeriesForNumberAsync(long lotteryId, int number);
 }

@@ -519,4 +519,36 @@ public class LotteryNumberRepository : ILotteryNumberRepository
                             n.Number == number && 
                             n.Status == NumberStatus.Available);
     }
+
+    /// <summary>
+    /// Gets status counts (sold, reserved) grouped by number for the board view.
+    /// Uses GROUP BY at the DB level for efficiency.
+    /// </summary>
+    public async Task<Dictionary<int, (int Sold, int Reserved)>> GetStatusCountsPerNumberAsync(long lotteryId)
+    {
+        var counts = await _context.LotteryNumbers
+            .Where(x => x.LotteryId == lotteryId && x.Status != NumberStatus.Available)
+            .GroupBy(x => x.Number)
+            .Select(g => new
+            {
+                Number = g.Key,
+                Sold = g.Count(x => x.Status == NumberStatus.Sold),
+                Reserved = g.Count(x => x.Status == NumberStatus.Reserved)
+            })
+            .ToListAsync();
+
+        return counts.ToDictionary(c => c.Number, c => (c.Sold, c.Reserved));
+    }
+
+    /// <summary>
+    /// Gets all lottery number records for a specific number (all series).
+    /// </summary>
+    public async Task<List<LotteryNumber>> GetSeriesForNumberAsync(long lotteryId, int number)
+    {
+        return await _context.LotteryNumbers
+            .AsNoTracking()
+            .Where(x => x.LotteryId == lotteryId && x.Number == number)
+            .OrderBy(x => x.Series)
+            .ToListAsync();
+    }
 }
