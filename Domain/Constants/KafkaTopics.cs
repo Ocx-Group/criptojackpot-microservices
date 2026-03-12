@@ -9,6 +9,7 @@ public static class KafkaTopics
     // Identity Events
     public const string UserRegistered = "user-registered";
     public const string UserLoggedIn = "user-logged-in";
+    public const string UserLoggedOut = "user-logged-out";
     public const string PasswordResetRequested = "password-reset-requested";
     public const string ReferralCreated = "referral-created";
     public const string GetUsersForMarketingRequest = "get-users-for-marketing-request";

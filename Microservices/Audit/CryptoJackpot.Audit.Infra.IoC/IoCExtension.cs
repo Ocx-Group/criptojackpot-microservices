@@ -237,6 +237,7 @@ public static class IoCExtension
                 // Register consumers for audit events
                 rider.AddConsumer<AuditLogEventConsumer>();
                 rider.AddConsumer<UserLoggedInEventConsumer>();
+                rider.AddConsumer<UserLoggedOutEventConsumer>();
             },
             configureKafkaEndpoints: (context, kafka) =>
             {
@@ -257,6 +258,16 @@ public static class IoCExtension
                     e =>
                     {
                         e.ConfigureConsumer<UserLoggedInEventConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // Subscribe to user logout events for auditing
+                kafka.TopicEndpoint<Ignore, UserLoggedOutEvent>(
+                    KafkaTopics.UserLoggedOut,
+                    KafkaTopics.AuditGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<UserLoggedOutEventConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
             });

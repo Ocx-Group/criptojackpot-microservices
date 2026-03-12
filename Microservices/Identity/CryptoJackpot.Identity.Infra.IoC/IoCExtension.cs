@@ -296,6 +296,7 @@ public static class IoCExtension
                 rider.AddProducer<PasswordResetRequestedEvent>(KafkaTopics.PasswordResetRequested);
                 rider.AddProducer<ReferralCreatedEvent>(KafkaTopics.ReferralCreated);
                 rider.AddProducer<UserLoggedInEvent>(KafkaTopics.UserLoggedIn);
+                rider.AddProducer<UserLoggedOutEvent>(KafkaTopics.UserLoggedOut);
                 rider.AddProducer<GetUsersForMarketingResponseEvent>(KafkaTopics.GetUsersForMarketingResponse);
                 rider.AddProducer<UserLockedOutEvent>(KafkaTopics.UserLockedOut);
                 rider.AddProducer<SecurityAlertEvent>(KafkaTopics.SecurityAlert);

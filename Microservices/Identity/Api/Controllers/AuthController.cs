@@ -106,7 +106,12 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(refreshToken))
             return Unauthorized(new { success = false, message = "Refresh token not found." });
         
-        var command = new LogoutCommand { RefreshToken = refreshToken };
+        var command = new LogoutCommand
+        {
+            RefreshToken = refreshToken,
+            IpAddress = Request.GetClientIpAddress(),
+            UserAgent = Request.GetUserAgent()
+        };
         await _mediator.Send(command);
 
         Response.ClearAuthCookies(_cookieConfig);
