@@ -60,6 +60,7 @@ public static class CoinPaymentsEndpoints
     public const string RegisterWebhook = "v2/merchant/clients/{0}/webhooks";
     public const string CreateSpendRequest = "v2/merchant/wallets/{0}/spend/request";
     public const string ConfirmSpendRequest = "v2/merchant/wallets/{0}/spend/confirmation";
+    public const string GetMerchantWallets = "v2/merchant/wallets";
 }
 
 public static class CoinPaymentsResilience

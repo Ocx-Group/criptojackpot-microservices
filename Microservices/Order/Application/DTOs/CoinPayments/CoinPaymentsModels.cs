@@ -330,3 +330,29 @@ public class ConfirmSpendRequest
     public string SpendRequestId { get; set; } = string.Empty;
 }
 
+// ── Merchant wallets (GET /merchant/wallets) ────────────────────────
+
+/// <summary>
+/// A merchant wallet returned by the CoinPayments merchant wallets endpoint.
+/// </summary>
+public class MerchantWalletResult
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [JsonPropertyName("currencyId")]
+    public string CurrencyId { get; set; } = string.Empty;
+
+    [JsonPropertyName("label")]
+    public string? Label { get; set; }
+
+    [JsonPropertyName("depositAddress")]
+    public string? DepositAddress { get; set; }
+
+    [JsonPropertyName("confirmedBalance")]
+    public string? ConfirmedBalance { get; set; }
+
+    [JsonPropertyName("unconfirmedBalance")]
+    public string? UnconfirmedBalance { get; set; }
+}
+

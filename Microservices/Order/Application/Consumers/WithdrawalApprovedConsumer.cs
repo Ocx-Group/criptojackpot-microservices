@@ -42,21 +42,18 @@ public class WithdrawalApprovedConsumer : IConsumer<WithdrawalApprovedEvent>
 
         try
         {
-            var merchantWalletId = _configuration[$"CoinPayments:MerchantWallets:{message.CurrencySymbol}"];
-            if (string.IsNullOrWhiteSpace(merchantWalletId))
+            // 1. Discover the merchant wallet for this currency
+            var (walletId, currencyId) = await ResolveMerchantWalletAsync(
+                message.CurrencySymbol, context.CancellationToken);
+
+            if (walletId is null || currencyId is null)
             {
-                await PublishFailure(message, $"No CoinPayments merchant wallet configured for {message.CurrencySymbol}.");
+                await PublishFailure(message,
+                    $"No merchant wallet found for currency {message.CurrencySymbol}.");
                 return;
             }
 
-            var currencyId = _configuration[$"CoinPayments:CurrencyIds:{message.CurrencySymbol}"];
-            if (string.IsNullOrWhiteSpace(currencyId))
-            {
-                await PublishFailure(message, $"No CoinPayments currency ID configured for {message.CurrencySymbol}.");
-                return;
-            }
-
-            // 1. Create spend request
+            // 2. Create spend request
             var spendParams = new SpendRequestParams
             {
                 ToAddress = message.WalletAddress,
@@ -67,7 +64,7 @@ public class WithdrawalApprovedConsumer : IConsumer<WithdrawalApprovedEvent>
             };
 
             var spendResponse = await _coinPaymentProvider.CreateSpendRequestAsync(
-                merchantWalletId, spendParams, context.CancellationToken);
+                walletId, spendParams, context.CancellationToken);
 
             if (!spendResponse.IsSuccessStatusCode)
             {
@@ -78,7 +75,7 @@ public class WithdrawalApprovedConsumer : IConsumer<WithdrawalApprovedEvent>
                 return;
             }
 
-            // 2. Parse spend request result
+            // 3. Parse spend request result
             if (!spendResponse.TryDeserialize<CoinPaymentsApiResponse<SpendRequestResult>>(out var spendResult)
                 || spendResult?.FirstResult is null)
             {
@@ -95,9 +92,9 @@ public class WithdrawalApprovedConsumer : IConsumer<WithdrawalApprovedEvent>
                 "CoinPayments spend request created for {RequestGuid}: spendRequestId={SpendRequestId}",
                 message.RequestGuid, spendRequestId);
 
-            // 3. Confirm the spend request (publish to blockchain)
+            // 4. Confirm the spend request (publish to blockchain)
             var confirmResponse = await _coinPaymentProvider.ConfirmSpendRequestAsync(
-                merchantWalletId, spendRequestId, context.CancellationToken);
+                walletId, spendRequestId, context.CancellationToken);
 
             if (!confirmResponse.IsSuccessStatusCode)
             {
@@ -108,7 +105,7 @@ public class WithdrawalApprovedConsumer : IConsumer<WithdrawalApprovedEvent>
                 return;
             }
 
-            // 4. Publish success event back to Wallet
+            // 5. Publish success event back to Wallet
             await _eventBus.Publish(new WithdrawalCompletedEvent
             {
                 RequestGuid = message.RequestGuid,
@@ -128,6 +125,71 @@ public class WithdrawalApprovedConsumer : IConsumer<WithdrawalApprovedEvent>
                 message.RequestGuid);
             await PublishFailure(message, $"Unexpected error: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Resolves the CoinPayments merchant wallet ID and currency ID for the given currency symbol.
+    /// Calls the merchant wallets API and the currencies API to find the match.
+    /// </summary>
+    private async Task<(string? WalletId, string? CurrencyId)> ResolveMerchantWalletAsync(
+        string currencySymbol, CancellationToken cancellationToken)
+    {
+        // Get currencies to map symbol → currency ID
+        var currenciesResponse = await _coinPaymentProvider.GetCurrenciesAsync(cancellationToken);
+        if (!currenciesResponse.IsSuccessStatusCode)
+        {
+            _logger.LogError("Failed to fetch CoinPayments currencies: {Content}", currenciesResponse.Content);
+            return (null, null);
+        }
+
+        if (!currenciesResponse.TryDeserialize<CurrencyResult[]>(out var currencies) || currencies is null)
+        {
+            _logger.LogError("Failed to parse CoinPayments currencies response");
+            return (null, null);
+        }
+
+        var currency = currencies.FirstOrDefault(c =>
+            c.Symbol.Equals(currencySymbol, StringComparison.OrdinalIgnoreCase));
+
+        if (currency is null)
+        {
+            _logger.LogError("Currency {Symbol} not found in CoinPayments", currencySymbol);
+            return (null, null);
+        }
+
+        var currencyId = currency.Id;
+
+        // Get merchant wallets and find the one matching this currency
+        var walletsResponse = await _coinPaymentProvider.GetMerchantWalletsAsync(cancellationToken);
+        if (!walletsResponse.IsSuccessStatusCode)
+        {
+            _logger.LogError("Failed to fetch merchant wallets: {Content}", walletsResponse.Content);
+            return (null, null);
+        }
+
+        if (!walletsResponse.TryDeserialize<CoinPaymentsApiResponse<MerchantWalletResult>>(out var walletsResult)
+            || walletsResult?.Items is null)
+        {
+            _logger.LogError("Failed to parse merchant wallets response: {Content}", walletsResponse.Content);
+            return (null, null);
+        }
+
+        var wallet = walletsResult.Items.FirstOrDefault(w => w.CurrencyId == currencyId);
+
+        if (wallet is null)
+        {
+            _logger.LogWarning(
+                "No merchant wallet found for currency {Symbol} (ID: {CurrencyId}). Available wallets: {Wallets}",
+                currencySymbol, currencyId,
+                string.Join(", ", walletsResult.Items.Select(w => $"{w.CurrencyId}:{w.Id}")));
+            return (null, null);
+        }
+
+        _logger.LogInformation(
+            "Resolved merchant wallet {WalletId} for currency {Symbol} (ID: {CurrencyId})",
+            wallet.Id, currencySymbol, currencyId);
+
+        return (wallet.Id, currencyId);
     }
 
     private async Task PublishFailure(WithdrawalApprovedEvent message, string reason)

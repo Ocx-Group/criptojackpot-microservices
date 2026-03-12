@@ -29,6 +29,12 @@ public interface ICoinPaymentProvider
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves a list of the merchant's wallets.
+    /// GET /merchant/wallets
+    /// </summary>
+    Task<RestResponse> GetMerchantWalletsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates a spend request (withdrawal or conversion) from a merchant wallet.
     /// Returns a transaction preview including fees. Confirm with the confirm spend request endpoint.
     /// POST /merchant/wallets/{id}/spend/request

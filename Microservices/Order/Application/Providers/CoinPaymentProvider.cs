@@ -105,6 +105,9 @@ public class CoinPaymentProvider : ICoinPaymentProvider
         return SendAsync(HttpMethod.Post, endpoint, body, cancellationToken);
     }
     
+    public Task<RestResponse> GetMerchantWalletsAsync(CancellationToken cancellationToken = default) =>
+        SendAsync(HttpMethod.Get, CoinPaymentsEndpoints.GetMerchantWallets, null, cancellationToken);
+
     public Task<RestResponse> CreateSpendRequestAsync(
         string walletId,
         SpendRequestParams @params,
