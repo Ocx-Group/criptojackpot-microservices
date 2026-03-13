@@ -76,9 +76,21 @@ public class WithdrawalApprovedConsumer : IConsumer<WithdrawalApprovedEvent>
                 return;
             }
 
-            // 3. Parse spend request result
-            if (!spendResponse.TryDeserialize<CoinPaymentsApiResponse<SpendRequestResult>>(out var spendResult)
-                || spendResult?.FirstResult is null)
+            // 3. Parse spend request result (response is a direct object, not wrapped)
+            SpendRequestResult? spendData = null;
+
+            if (spendResponse.TryDeserialize<SpendRequestResult>(out var directResult)
+                && !string.IsNullOrEmpty(directResult?.SpendRequestId))
+            {
+                spendData = directResult;
+            }
+            else if (spendResponse.TryDeserialize<CoinPaymentsApiResponse<SpendRequestResult>>(out var wrappedResult)
+                && wrappedResult?.FirstResult is not null)
+            {
+                spendData = wrappedResult.FirstResult;
+            }
+
+            if (spendData is null)
             {
                 _logger.LogError(
                     "Failed to parse CoinPayments spend response for {RequestGuid}: {Content}",
@@ -87,7 +99,7 @@ public class WithdrawalApprovedConsumer : IConsumer<WithdrawalApprovedEvent>
                 return;
             }
 
-            var spendRequestId = spendResult.FirstResult.SpendRequestId;
+            var spendRequestId = spendData.SpendRequestId;
 
             _logger.LogInformation(
                 "CoinPayments spend request created for {RequestGuid}: spendRequestId={SpendRequestId}",
