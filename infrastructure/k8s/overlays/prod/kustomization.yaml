@@ -357,6 +357,7 @@ configMapGenerator:
       - OpenTelemetry__Endpoint=http://otel-collector.monitoring.svc.cluster.local:4317
       - OpenTelemetry__Enabled=true
       - GrpcServices__IdentityAddress=http://identity-api:5001
+      - GrpcServices__OrderAddress=http://order-api:5051
 
 generatorOptions:
   disableNameSuffixHash: true

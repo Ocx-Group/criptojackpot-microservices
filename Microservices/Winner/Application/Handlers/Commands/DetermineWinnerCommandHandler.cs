@@ -5,7 +5,9 @@ using CryptoJackpot.Winner.Application.DTOs;
 using CryptoJackpot.Winner.Domain.Interfaces;
 using CryptoJackpot.Winner.Domain.Models;
 using FluentResults;
+using Grpc.Core;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace CryptoJackpot.Winner.Application.Handlers.Commands;
 
@@ -13,13 +15,16 @@ public class DetermineWinnerCommandHandler : IRequestHandler<DetermineWinnerComm
 {
     private readonly IWinnerRepository _winnerRepository;
     private readonly ITicketSearchGrpcClient _ticketSearchClient;
+    private readonly ILogger<DetermineWinnerCommandHandler> _logger;
 
     public DetermineWinnerCommandHandler(
         IWinnerRepository winnerRepository,
-        ITicketSearchGrpcClient ticketSearchClient)
+        ITicketSearchGrpcClient ticketSearchClient,
+        ILogger<DetermineWinnerCommandHandler> logger)
     {
         _winnerRepository = winnerRepository;
         _ticketSearchClient = ticketSearchClient;
+        _logger = logger;
     }
 
     public async Task<Result<WinnerDto>> Handle(DetermineWinnerCommand request, CancellationToken cancellationToken)
@@ -33,8 +38,18 @@ public class DetermineWinnerCommandHandler : IRequestHandler<DetermineWinnerComm
                 new ConflictError("Ya existe un ganador registrado con ese número y serie para esta lotería"));
 
         // Verify the ticket was sold via gRPC call to Order service
-        var ticket = await _ticketSearchClient.SearchTicketAsync(
-            request.LotteryId, request.Number, request.Series, cancellationToken);
+        TicketSearchResult? ticket;
+        try
+        {
+            ticket = await _ticketSearchClient.SearchTicketAsync(
+                request.LotteryId, request.Number, request.Series, cancellationToken);
+        }
+        catch (RpcException ex)
+        {
+            _logger.LogError(ex, "gRPC call to Order service failed: {Status}", ex.StatusCode);
+            return Result.Fail<WinnerDto>(
+                new BadRequestError("No se pudo verificar el boleto. El servicio de órdenes no está disponible."));
+        }
 
         if (ticket is null)
             return Result.Fail<WinnerDto>(
