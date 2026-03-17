@@ -73,5 +73,10 @@ public class TicketRepository : ITicketRepository
         if (to.HasValue) query = query.Where(t => t.CreatedAt < to.Value);
         return await query.SumAsync(t => t.PurchaseAmount);
     }
+
+    public async Task<Ticket?> GetByLotteryNumberSeriesAsync(Guid lotteryId, int number, int series)
+        => await _context.Tickets
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.LotteryId == lotteryId && t.Number == number && t.Series == series);
 }
 

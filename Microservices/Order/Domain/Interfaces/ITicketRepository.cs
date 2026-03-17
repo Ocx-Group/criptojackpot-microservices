@@ -20,5 +20,11 @@ public interface ITicketRepository
     /// Gets sum of purchase amounts within a date range.
     /// </summary>
     Task<decimal> SumRevenueAsync(DateTime? from = null, DateTime? to = null);
+
+    /// <summary>
+    /// Searches for a ticket by lottery, number and series.
+    /// Used by admin to verify if a ticket was sold before determining a winner.
+    /// </summary>
+    Task<Ticket?> GetByLotteryNumberSeriesAsync(Guid lotteryId, int number, int series);
 }
 

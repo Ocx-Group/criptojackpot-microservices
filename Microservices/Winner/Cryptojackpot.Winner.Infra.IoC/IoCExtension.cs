@@ -1,6 +1,12 @@
-using System.Text;
-using CryptoJackpot.Winner.Data.Context;
+﻿using System.Text;
+using CryptoJackpot.Domain.Core.Protos;
 using CryptoJackpot.Infra.IoC;
+using CryptoJackpot.Winner.Application;
+using CryptoJackpot.Winner.Application.Services;
+using CryptoJackpot.Winner.Data;
+using CryptoJackpot.Winner.Data.Context;
+using CryptoJackpot.Winner.Data.Repositories;
+using CryptoJackpot.Winner.Domain.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -8,12 +14,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
+namespace Cryptojackpot.Winner.Infra.IoC;
 
-namespace CryptoJackpot.Winner.Application;
-
-public static class DependencyInjection
+public static class IoCExtension
 {
-    public static IServiceCollection AddWinnerServices(
+    public static void AddWinnerServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
@@ -24,11 +29,10 @@ public static class DependencyInjection
         AddControllers(services, configuration);
         AddRepositories(services);
         AddApplicationServices(services);
+        AddGrpcClients(services, configuration);
         AddInfrastructure(services, configuration);
-
-        return services;
     }
-    
+
     private static void AddAuthentication(IServiceCollection services, IConfiguration configuration)
     {
         // JWT authentication
@@ -65,8 +69,7 @@ public static class DependencyInjection
                 {
                     OnMessageReceived = context =>
                     {
-                        if (context.Request.Cookies.TryGetValue(accessTokenCookieName, out var cookieToken) 
-                            && !string.IsNullOrEmpty(cookieToken))
+                        if (context.Request.Cookies.TryGetValue(accessTokenCookieName, out var cookieToken) && !string.IsNullOrEmpty(cookieToken))
                         {
                             context.Token = cookieToken;
                         }
@@ -74,6 +77,7 @@ public static class DependencyInjection
                         {
                             context.NoResult();
                         }
+
                         return Task.CompletedTask;
                     }
                 };
@@ -172,13 +176,37 @@ public static class DependencyInjection
 
     private static void AddRepositories(IServiceCollection services)
     {
-        // Add repositories here
+        services.AddScoped<IWinnerRepository, WinnerRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
     }
 
     private static void AddApplicationServices(IServiceCollection services)
     {
+        var assembly = typeof(IAssemblyReference).Assembly;
         // MediatR
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+    }
+
+    private static void AddGrpcClients(IServiceCollection services, IConfiguration configuration)
+    {
+        var orderGrpcAddress = configuration["GrpcServices:OrderAddress"]
+                               ?? "http://order-api:80";
+
+        services.AddGrpcClient<TicketSearchGrpcService.TicketSearchGrpcServiceClient>(options =>
+            {
+                options.Address = new Uri(orderGrpcAddress);
+            })
+            .ConfigureChannel(channel =>
+            {
+                channel.HttpHandler = new SocketsHttpHandler
+                {
+                    EnableMultipleHttp2Connections = true,
+                    KeepAlivePingDelay = TimeSpan.FromSeconds(60),
+                    KeepAlivePingTimeout = TimeSpan.FromSeconds(30)
+                };
+            });
+
+        services.AddScoped<ITicketSearchGrpcClient, TicketSearchGrpcClient>();
     }
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)
