@@ -77,6 +77,8 @@ public class TicketRepository : ITicketRepository
     public async Task<Ticket?> GetByLotteryNumberSeriesAsync(Guid lotteryId, int number, int series)
         => await _context.Tickets
             .AsNoTracking()
+            .Include(t => t.OrderDetail)
+                .ThenInclude(od => od.Order)
             .FirstOrDefaultAsync(t => t.LotteryId == lotteryId && t.Number == number && t.Series == series);
 }
 

@@ -50,7 +50,9 @@ public class TicketSearchGrpcServiceImpl : TicketSearchGrpcService.TicketSearchG
             Status = ticket.Status.ToString(),
             PurchaseAmount = ticket.PurchaseAmount.ToString("F2"),
             PurchaseDate = ticket.PurchaseDate.ToString("O"),
-            TransactionId = ticket.TransactionId ?? string.Empty
+            TransactionId = ticket.TransactionId ?? string.Empty,
+            UserName = ticket.OrderDetail?.Order?.UserName ?? string.Empty,
+            UserEmail = ticket.OrderDetail?.Order?.UserEmail ?? string.Empty
         };
     }
 }
