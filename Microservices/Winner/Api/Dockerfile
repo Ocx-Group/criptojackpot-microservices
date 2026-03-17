@@ -15,6 +15,7 @@ COPY ["Infra.IoC/CryptoJackpot.Infra.IoC.csproj", "Infra.IoC/"]
 COPY ["Microservices/Winner/Domain/CryptoJackpot.Winner.Domain.csproj", "Microservices/Winner/Domain/"]
 COPY ["Microservices/Winner/Data/CryptoJackpot.Winner.Data.csproj", "Microservices/Winner/Data/"]
 COPY ["Microservices/Winner/Application/CryptoJackpot.Winner.Application.csproj", "Microservices/Winner/Application/"]
+COPY ["Microservices/Winner/CryptoJackpot.Winner.Infra.IoC/CryptoJackpot.Winner.Infra.IoC.csproj", "Microservices/Winner/CryptoJackpot.Winner.Infra.IoC/"]
 COPY ["Microservices/Winner/Api/CryptoJackpot.Winner.Api.csproj", "Microservices/Winner/Api/"]
 
 # Restaurar dependencias con cache mount
