@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using CryptoJackpot.Domain.Core.Constants;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Winner;
 using CryptoJackpot.Domain.Core.Protos;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Winner.Application;
@@ -8,6 +10,7 @@ using CryptoJackpot.Winner.Data;
 using CryptoJackpot.Winner.Data.Context;
 using CryptoJackpot.Winner.Data.Repositories;
 using CryptoJackpot.Winner.Domain.Interfaces;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -218,9 +221,10 @@ public static class IoCExtension
         DependencyContainer.RegisterServicesWithKafka<WinnerDbContext>(
             services,
             configuration,
-            configureRider: _ =>
+            configureRider: rider =>
             {
-                // Register producers/consumers for events here
+                // Produce WinnerDeterminedEvent so Notification service can send the winner email
+                rider.AddProducer<WinnerDeterminedEvent>(KafkaTopics.WinnerDetermined);
             },
             configureBus: null,
             configureKafkaEndpoints: null,

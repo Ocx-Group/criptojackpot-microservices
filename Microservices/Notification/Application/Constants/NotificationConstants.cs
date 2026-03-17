@@ -9,6 +9,7 @@ public static class TemplateNames
     public const string LotteryMarketing = "LotteryMarketingTemplate";
     public const string PurchaseConfirmation = "PurchaseConfirmationTemplate";
     public const string WithdrawalVerification = "WithdrawalVerificationTemplate";
+    public const string WinnerNotification = "WinnerNotificationTemplate";
 }
 
 public static class UrlPaths

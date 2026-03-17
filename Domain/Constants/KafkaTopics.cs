@@ -43,6 +43,9 @@ public static class KafkaTopics
     public const string WithdrawalCompleted = "withdrawal-completed";
     public const string WithdrawalFailed = "withdrawal-failed";
     
+    // Winner Events
+    public const string WinnerDetermined = "winner-determined";
+    
     // Audit Events
     public const string AuditLog = "audit-log";
     
@@ -54,5 +57,6 @@ public static class KafkaTopics
     public const string IdentityGroup = "identity-group";
     public const string AuditGroup = "audit-group";
     public const string WalletGroup = "wallet-group";
+    public const string WinnerGroup = "winner-group";
 }
 

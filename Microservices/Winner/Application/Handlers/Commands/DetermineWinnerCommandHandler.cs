@@ -1,5 +1,7 @@
 using AutoMapper;
+using CryptoJackpot.Domain.Core.Bus;
 using CryptoJackpot.Domain.Core.Extensions;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Winner;
 using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Winner.Application.Commands;
 using CryptoJackpot.Winner.Application.DTOs;
@@ -16,17 +18,20 @@ public class DetermineWinnerCommandHandler : IRequestHandler<DetermineWinnerComm
 {
     private readonly IWinnerRepository _winnerRepository;
     private readonly ITicketSearchGrpcClient _ticketSearchClient;
+    private readonly IEventBus _eventBus;
     private readonly IMapper _mapper;
     private readonly ILogger<DetermineWinnerCommandHandler> _logger;
 
     public DetermineWinnerCommandHandler(
         IWinnerRepository winnerRepository,
         ITicketSearchGrpcClient ticketSearchClient,
+        IEventBus eventBus,
         IMapper mapper,
         ILogger<DetermineWinnerCommandHandler> logger)
     {
         _winnerRepository = winnerRepository;
         _ticketSearchClient = ticketSearchClient;
+        _eventBus = eventBus;
         _mapper = mapper;
         _logger = logger;
     }
@@ -81,6 +86,35 @@ public class DetermineWinnerCommandHandler : IRequestHandler<DetermineWinnerComm
         };
 
         var created = await _winnerRepository.CreateAsync(winner);
+
+        try
+        {
+            await _eventBus.Publish(new WinnerDeterminedEvent
+            {
+                WinnerGuid = created.WinnerGuid,
+                LotteryId = created.LotteryId,
+                LotteryTitle = created.LotteryTitle,
+                Number = created.Number,
+                Series = created.Series,
+                UserId = created.UserId,
+                UserName = created.UserName,
+                UserEmail = created.UserEmail,
+                PrizeName = created.PrizeName,
+                PrizeEstimatedValue = created.PrizeEstimatedValue,
+                PrizeImageUrl = created.PrizeImageUrl,
+                PurchaseAmount = created.PurchaseAmount,
+                WonAt = created.WonAt
+            });
+            _logger.LogInformation(
+                "WinnerDeterminedEvent published for winner {WinnerGuid}, lottery {LotteryId}",
+                created.WinnerGuid, created.LotteryId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to publish WinnerDeterminedEvent for winner {WinnerGuid}",
+                created.WinnerGuid);
+        }
 
         return ResultExtensions.Created(_mapper.Map<WinnerDto>(created));
     }
