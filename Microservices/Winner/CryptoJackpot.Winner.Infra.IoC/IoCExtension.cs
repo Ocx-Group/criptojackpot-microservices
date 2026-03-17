@@ -2,6 +2,7 @@
 using CryptoJackpot.Domain.Core.Protos;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Winner.Application;
+using CryptoJackpot.Winner.Application.Configuration;
 using CryptoJackpot.Winner.Application.Services;
 using CryptoJackpot.Winner.Data;
 using CryptoJackpot.Winner.Data.Context;
@@ -185,6 +186,8 @@ public static class IoCExtension
         var assembly = typeof(IAssemblyReference).Assembly;
         // MediatR
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+        // AutoMapper
+        services.AddAutoMapper(typeof(WinnerMappingProfile).Assembly);
     }
 
     private static void AddGrpcClients(IServiceCollection services, IConfiguration configuration)

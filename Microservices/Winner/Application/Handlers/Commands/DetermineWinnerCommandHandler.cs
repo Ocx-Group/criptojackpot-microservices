@@ -1,3 +1,4 @@
+using AutoMapper;
 using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Winner.Application.Commands;
@@ -15,15 +16,18 @@ public class DetermineWinnerCommandHandler : IRequestHandler<DetermineWinnerComm
 {
     private readonly IWinnerRepository _winnerRepository;
     private readonly ITicketSearchGrpcClient _ticketSearchClient;
+    private readonly IMapper _mapper;
     private readonly ILogger<DetermineWinnerCommandHandler> _logger;
 
     public DetermineWinnerCommandHandler(
         IWinnerRepository winnerRepository,
         ITicketSearchGrpcClient ticketSearchClient,
+        IMapper mapper,
         ILogger<DetermineWinnerCommandHandler> logger)
     {
         _winnerRepository = winnerRepository;
         _ticketSearchClient = ticketSearchClient;
+        _mapper = mapper;
         _logger = logger;
     }
 
@@ -78,27 +82,6 @@ public class DetermineWinnerCommandHandler : IRequestHandler<DetermineWinnerComm
 
         var created = await _winnerRepository.CreateAsync(winner);
 
-        var dto = MapToDto(created);
-        return ResultExtensions.Created(dto);
+        return ResultExtensions.Created(_mapper.Map<WinnerDto>(created));
     }
-
-    private static WinnerDto MapToDto(LotteryWinner winner) => new()
-    {
-        WinnerGuid = winner.WinnerGuid,
-        LotteryId = winner.LotteryId,
-        LotteryTitle = winner.LotteryTitle,
-        Number = winner.Number,
-        Series = winner.Series,
-        TicketGuid = winner.TicketGuid,
-        PurchaseAmount = winner.PurchaseAmount,
-        UserId = winner.UserId,
-        UserName = winner.UserName,
-        UserEmail = winner.UserEmail,
-        PrizeName = winner.PrizeName,
-        PrizeEstimatedValue = winner.PrizeEstimatedValue,
-        PrizeImageUrl = winner.PrizeImageUrl,
-        Status = winner.Status,
-        WonAt = winner.WonAt,
-        CreatedAt = winner.CreatedAt
-    };
 }
