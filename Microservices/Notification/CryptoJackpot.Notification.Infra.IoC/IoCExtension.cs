@@ -5,6 +5,7 @@ using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Notification;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Winner;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
 using CryptoJackpot.Notification.Application;
@@ -160,6 +161,7 @@ public static class IoCExtension
                 rider.AddConsumer<MarketingUsersResponseConsumer>();
                 rider.AddConsumer<OrderCompletedConsumer>();
                 rider.AddConsumer<WithdrawalVerificationRequestedConsumer>();
+                rider.AddConsumer<WinnerDeterminedConsumer>();
 
                 // Register producers for distributing events
                 rider.AddProducer<SendMarketingEmailEvent>(KafkaTopics.SendMarketingEmail);
@@ -247,6 +249,16 @@ public static class IoCExtension
                     e =>
                     {
                         e.ConfigureConsumer<ReferralCommissionCreditedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+                
+                // Winner determined — send congratulations email to the winner
+                kafka.TopicEndpoint<WinnerDeterminedEvent>(
+                    KafkaTopics.WinnerDetermined,
+                    KafkaTopics.NotificationGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<WinnerDeterminedConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
             });
