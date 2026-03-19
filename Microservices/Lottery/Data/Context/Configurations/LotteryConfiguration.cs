@@ -31,8 +31,8 @@ public class LotteryConfiguration : IEntityTypeConfiguration<LotteryDraw>
         builder.Property(e => e.HasAgeRestriction).IsRequired();
         builder.Property(e => e.MinimumAge);
         
-        builder.Property(e => e.CryptoCurrencyId).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(20);
-        builder.Property(e => e.CryptoCurrencySymbol).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(20);
+        builder.Property(e => e.CryptoCurrencyId).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(100);
+        builder.Property(e => e.CryptoCurrencySymbol).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(100);
         
         builder.Property(e => e.RestrictedCountries).HasColumnType(ColumnTypes.Jsonb);
         builder.Property(e => e.CreatedAt).IsRequired();
