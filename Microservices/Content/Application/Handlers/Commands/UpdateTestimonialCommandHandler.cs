@@ -43,7 +43,7 @@ public class UpdateTestimonialCommandHandler : IRequestHandler<UpdateTestimonial
             testimonial.SortOrder = request.SortOrder;
 
             if (request.Date.HasValue)
-                testimonial.Date = request.Date.Value;
+                testimonial.Date = DateTime.SpecifyKind(request.Date.Value, DateTimeKind.Utc);
 
             var updated = await _testimonialRepository.UpdateAsync(testimonial);
 

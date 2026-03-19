@@ -21,7 +21,10 @@ public class ContentMappingProfile : Profile
         // Command to Entity
         CreateMap<CreateTestimonialCommand, Testimonial>()
             .ForMember(dest => dest.TestimonialGuid, opt => opt.MapFrom(_ => Guid.NewGuid()))
-            .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date ?? DateTime.UtcNow));
+            .ForMember(dest => dest.Date, opt => opt.MapFrom(src =>
+                src.Date.HasValue
+                    ? DateTime.SpecifyKind(src.Date.Value, DateTimeKind.Utc)
+                    : DateTime.UtcNow));
 
         // PagedList mapping
         CreateMap<PagedList<Testimonial>, PagedList<TestimonialDto>>()
