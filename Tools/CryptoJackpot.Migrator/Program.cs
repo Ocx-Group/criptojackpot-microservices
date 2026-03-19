@@ -5,6 +5,7 @@ using CryptoJackpot.Order.Data.Context;
 using CryptoJackpot.Order.Data.Extensions;
 using CryptoJackpot.Wallet.Data.Context;
 using CryptoJackpot.Winner.Data.Context;
+using CryptoJackpot.Content.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ RegisterDbContext<OrderDbContext>(builder, "ORDER_DB_CONNECTION");
 RegisterDbContext<WalletDbContext>(builder, "WALLET_DB_CONNECTION");
 RegisterDbContext<WinnerDbContext>(builder, "WINNER_DB_CONNECTION");
 RegisterDbContext<NotificationDbContext>(builder, "NOTIFICATION_DB_CONNECTION");
+RegisterDbContext<ContentDbContext>(builder, "CONTENT_DB_CONNECTION");
 
 var host = builder.Build();
 
@@ -53,6 +55,7 @@ try
         ("Wallet", () => scope.ServiceProvider.GetRequiredService<WalletDbContext>()),
         ("Winner", () => scope.ServiceProvider.GetRequiredService<WinnerDbContext>()),
         ("Notification", () => scope.ServiceProvider.GetRequiredService<NotificationDbContext>()),
+        ("Content", () => scope.ServiceProvider.GetRequiredService<ContentDbContext>()),
     };
 
     foreach (var (name, contextFactory) in contexts)

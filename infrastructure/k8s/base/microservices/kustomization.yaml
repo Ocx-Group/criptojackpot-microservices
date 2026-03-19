@@ -11,3 +11,4 @@ resources:
   - winner
   - notification
   - audit
+  - content

@@ -460,6 +460,69 @@ patches:
               name: kafka-secrets
               key: KAFKA_SECURITY_PROTOCOL
 
+  # Content API
+  - target:
+      kind: Deployment
+      name: content-api
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 2
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslUsername
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_USERNAME
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslPassword
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_PASSWORD
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SaslMechanism
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SASL_MECHANISM
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Kafka__SecurityProtocol
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: KAFKA_SECURITY_PROTOCOL
+
   # BFF Gateway - único punto de entrada externo
   - target:
       kind: Deployment
@@ -572,6 +635,9 @@ images:
     newTag: qa
   - name: cryptojackpot/audit-api
     newName: registry.digitalocean.com/criptojackpot/audit-api
+    newTag: qa
+  - name: cryptojackpot/content-api
+    newName: registry.digitalocean.com/criptojackpot/content-api
     newTag: qa
 
 labels:

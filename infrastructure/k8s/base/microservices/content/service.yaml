@@ -1,0 +1,15 @@
+# Content API - Base Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: content-api
+  namespace: criptojackpot
+  labels:
+    app: content-api
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: content-api

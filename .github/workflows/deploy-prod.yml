@@ -214,6 +214,21 @@ jobs:
           cache-from: type=registry,ref=${{ env.REGISTRY }}/audit-api:latest
           cache-to: type=inline
 
+      # -----------------------------------------------------------------------
+      # Content
+      # -----------------------------------------------------------------------
+      - name: Build & Push Content
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Microservices/Content/Api/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/content-api:latest
+            ${{ env.REGISTRY }}/content-api:${{ steps.meta.outputs.tag }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/content-api:latest
+          cache-to: type=inline
+
   # ---------------------------------------------------------------------------
   # Terraform — actualiza infra Prod y despliega manifiestos K8s
   # Requiere aprobación manual (configura environment "production" en GitHub)

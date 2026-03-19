@@ -55,6 +55,10 @@ build:
       context: .
       docker:
         dockerfile: Microservices/Audit/Api/Dockerfile
+    - image: cryptojackpot/content-api
+      context: .
+      docker:
+        dockerfile: Microservices/Content/Api/Dockerfile
 
 # Default manifests using Kustomize (local overlay)
 manifests:
@@ -129,6 +133,11 @@ profiles:
         namespace: cryptojackpot
         port: 80
         localPort: 5007
+      - resourceType: service
+        resourceName: content-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5008
       - resourceType: service
         resourceName: postgres
         namespace: cryptojackpot
@@ -239,6 +248,11 @@ profiles:
         namespace: cryptojackpot
         port: 80
         localPort: 5007
+      - resourceType: service
+        resourceName: content-api
+        namespace: cryptojackpot
+        port: 80
+        localPort: 5008
 
   # ============================================
   # QA Environment

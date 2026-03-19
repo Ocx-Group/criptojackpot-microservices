@@ -236,6 +236,37 @@ patches:
             memory: "512Mi"
             cpu: "500m"
 
+  # Content API
+  - target:
+      kind: Deployment
+      name: content-api
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 2
+      - op: add
+        path: /spec/template/spec/securityContext
+        value:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
   # BFF Gateway
   - target:
       kind: Deployment
@@ -389,6 +420,9 @@ images:
     newTag: prod-aef911d
   - name: cryptojackpot/audit-api
     newName: registry.digitalocean.com/criptojackpot/audit-api
+    newTag: prod-aef911d
+  - name: cryptojackpot/content-api
+    newName: registry.digitalocean.com/criptojackpot/content-api
     newTag: prod-aef911d
 
 labels:
