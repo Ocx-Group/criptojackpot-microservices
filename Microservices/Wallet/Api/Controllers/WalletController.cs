@@ -1,5 +1,8 @@
+using AutoMapper;
 using CryptoJackpot.Domain.Core.Extensions;
+using CryptoJackpot.Wallet.Application.Commands;
 using CryptoJackpot.Wallet.Application.Queries;
+using CryptoJackpot.Wallet.Application.Requests;
 using CryptoJackpot.Wallet.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -13,10 +16,12 @@ namespace CryptoJackpot.Wallet.Api.Controllers;
 public class WalletController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IMapper _mapper;
 
-    public WalletController(IMediator mediator)
+    public WalletController(IMediator mediator, IMapper mapper)
     {
         _mediator = mediator;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -88,6 +93,17 @@ public class WalletController : ControllerBase
         };
 
         var result = await _mediator.Send(query, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [HttpPost("admin/credit")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> AdminCredit(
+        [FromBody] AdminCreditRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = _mapper.Map<AdminCreditCommand>(request);
+        var result = await _mediator.Send(command, cancellationToken);
         return result.ToActionResult();
     }
 }

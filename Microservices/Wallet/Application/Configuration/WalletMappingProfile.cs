@@ -13,6 +13,7 @@ public class WalletMappingProfile : Profile
         // Request to Command mappings
         CreateMap<CreateUserCryptoWalletRequest, CreateUserCryptoWalletCommand>();
         CreateMap<CreateWithdrawalRequestRequest, CreateWithdrawalRequestCommand>();
+        CreateMap<AdminCreditRequest, AdminCreditCommand>();
 
         // UserCryptoWallet mappings
         CreateMap<UserCryptoWallet, UserCryptoWalletDto>();
