@@ -65,7 +65,7 @@ public class PayOrderCommandHandler : IRequestHandler<PayOrderCommand, Result<Pa
         {
             var invoiceItems = order.OrderDetails.Select(detail => new InvoiceLineItem
             {
-                Name = $"Lottery Ticket #{detail.Number}-{detail.Series}",
+                Name = $"Lottery Ticket #{detail.Number}-{detail.Series.ToString().PadLeft(2, '0')}",
                 Quantity = detail.Quantity,
                 Amount = detail.UnitPrice
             }).ToList();

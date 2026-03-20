@@ -53,7 +53,7 @@ public class SendWinnerNotificationHandler : IRequestHandler<SendWinnerNotificat
             .Replace("{LotteryTitle}", request.LotteryTitle)
             .Replace("{WinnerRef}", request.WinnerGuid.ToString()[..8].ToUpper())
             .Replace("{Number}", request.Number.ToString())
-            .Replace("{Series}", request.Series.ToString())
+            .Replace("{Series}", request.Series.ToString().PadLeft(2, '0'))
             .Replace("{PrizeName}", request.PrizeName ?? "Grand Prize")
             .Replace("{PrizeEstimatedValue}", prizeValue)
             .Replace("{PurchaseAmount}", request.PurchaseAmount.ToString("F2"))

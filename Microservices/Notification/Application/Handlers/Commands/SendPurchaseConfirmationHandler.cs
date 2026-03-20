@@ -97,7 +97,7 @@ public class SendPurchaseConfirmationHandler : IRequestHandler<SendPurchaseConfi
             sb.AppendLine($"""
                 <tr>
                     <td style="padding:10px 15px;border-bottom:1px solid #eee;text-align:center;font-size:18px;font-weight:bold;">{ticket.Number}</td>
-                    <td style="padding:10px 15px;border-bottom:1px solid #eee;text-align:center;">{ticket.Series}{giftBadge}</td>
+                    <td style="padding:10px 15px;border-bottom:1px solid #eee;text-align:center;">{ticket.Series.ToString().PadLeft(2, '0')}{giftBadge}</td>
                     <td style="padding:10px 15px;border-bottom:1px solid #eee;text-align:right;">${ticket.Amount:F2}</td>
                 </tr>
             """);
