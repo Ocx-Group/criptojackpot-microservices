@@ -132,4 +132,27 @@ public class OrderController : ControllerBase
         var result = await _mediator.Send(new GetOrderStatsQuery());
         return result.ToActionResult();
     }
+
+    /// <summary>
+    /// Pays for a pending order using the user's internal wallet balance.
+    /// Debits the wallet and creates tickets instantly (no external payment gateway).
+    /// </summary>
+    [HttpPost("{orderId:guid}/pay-with-balance")]
+    public async Task<IActionResult> PayOrderWithBalance([FromRoute] Guid orderId)
+    {
+        var userId = User.GetUserId();
+        var userGuid = User.GetUserGuid();
+        if (userId is null || userGuid is null)
+            return Unauthorized();
+
+        var command = new PayOrderWithBalanceCommand
+        {
+            OrderId = orderId,
+            UserId = userId.Value,
+            UserGuid = userGuid.Value
+        };
+
+        var result = await _mediator.Send(command);
+        return result.ToActionResult();
+    }
 }

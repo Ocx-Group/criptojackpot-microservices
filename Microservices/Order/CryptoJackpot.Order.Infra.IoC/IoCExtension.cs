@@ -6,6 +6,7 @@ using CryptoJackpot.Domain.Core.IntegrationEvents.Audit;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
+using CryptoJackpot.Domain.Core.Protos;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
 using CryptoJackpot.Order.Application;
@@ -46,6 +47,7 @@ public static class IoCExtension
         AddRepositories(services);
         AddApplicationServices(services);
         AddCoinPayments(services, configuration);
+        AddGrpcClients(services, configuration);
         services.AddDistributedMemoryCache();
         AddQuartzScheduler(services, configuration);
         AddInfrastructure(services, configuration);
@@ -324,6 +326,28 @@ public static class IoCExtension
             .CircuitBreakerAsync(
                 Domain.Constants.CoinPaymentsResilience.CircuitBreakerFailureThreshold,
                 TimeSpan.FromSeconds(Domain.Constants.CoinPaymentsResilience.CircuitBreakerDurationSeconds));
+    }
+
+    private static void AddGrpcClients(IServiceCollection services, IConfiguration configuration)
+    {
+        var walletGrpcAddress = configuration["GrpcServices:WalletAddress"]
+                                ?? "http://wallet-api:5052";
+
+        services.AddGrpcClient<WalletDebitGrpcService.WalletDebitGrpcServiceClient>(options =>
+            {
+                options.Address = new Uri(walletGrpcAddress);
+            })
+            .ConfigureChannel(channel =>
+            {
+                channel.HttpHandler = new SocketsHttpHandler
+                {
+                    EnableMultipleHttp2Connections = true,
+                    KeepAlivePingDelay = TimeSpan.FromSeconds(60),
+                    KeepAlivePingTimeout = TimeSpan.FromSeconds(30)
+                };
+            });
+
+        services.AddScoped<IWalletDebitGrpcClient, WalletDebitGrpcClient>();
     }
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)

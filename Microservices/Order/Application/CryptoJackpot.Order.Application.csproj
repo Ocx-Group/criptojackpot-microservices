@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.26.1" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.62.0" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.62.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.62.0" PrivateAssets="All" />
     <PackageReference Include="MassTransit.Kafka" Version="8.1.3" />
     <PackageReference Include="MediatR" Version="12.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
@@ -15,6 +19,9 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="Quartz" Version="3.8.1"/>
+  </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="..\..\..\Domain\Protos\wallet_debit.proto" GrpcServices="Client" Link="Protos\wallet_debit.proto" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Data\CryptoJackpot.Order.Data.csproj" />
