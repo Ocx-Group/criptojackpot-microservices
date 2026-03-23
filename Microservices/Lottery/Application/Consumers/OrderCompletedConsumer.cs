@@ -42,7 +42,7 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
             message.OrderId, message.LotteryNumberIds.Count);
 
         // IDEMPOTENCY CHECK: Verify numbers are still in Reserved status before confirming sale
-        // Edge case: Payment arrives at second 301 (after 5 min timeout released the numbers)
+        // Edge case: Payment arrives at second 3901 (after 65 min timeout released the numbers)
         var numbers = await _lotteryNumberRepository.GetByGuidsAsync(message.LotteryNumberIds);
         
         if (numbers.Count == 0)

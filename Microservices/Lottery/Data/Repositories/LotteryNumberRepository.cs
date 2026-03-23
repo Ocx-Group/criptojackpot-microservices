@@ -279,7 +279,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
         {
             number.Status = NumberStatus.Reserved;
             number.OrderId = orderId;
-            number.ReservationExpiresAt = now.AddMinutes(5);
+            number.ReservationExpiresAt = now.AddMinutes(65);
             number.UpdatedAt = now;
         }
 
@@ -395,7 +395,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
         {
             number.Status = NumberStatus.Reserved;
             number.OrderId = orderId;
-            number.ReservationExpiresAt = now.AddMinutes(5);
+            number.ReservationExpiresAt = now.AddMinutes(65);
             number.UpdatedAt = now;
         }
 

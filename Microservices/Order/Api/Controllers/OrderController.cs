@@ -29,7 +29,7 @@ public class OrderController : ControllerBase
     /// <summary>
     /// Completes an order after successful payment.
     /// Creates a ticket (confirmed purchase) from the order.
-    /// Must be called within 5 minutes of order creation.
+    /// Must be called within 65 minutes of order creation.
     /// </summary>
     [HttpPost("{orderId:guid}/complete")]
     public async Task<IActionResult> CompleteOrder([FromRoute] Guid orderId, [FromBody] CompleteOrderRequest request)

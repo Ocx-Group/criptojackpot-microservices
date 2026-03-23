@@ -5,7 +5,7 @@ namespace CryptoJackpot.Order.Domain.Models;
 
 /// <summary>
 /// Representa un intento de compra / carrito.
-/// Tiene un countdown de 5 minutos para completar el pago.
+/// Tiene un countdown de 65 minutos para completar el pago.
 /// </summary>
 public class Order : BaseEntity
 {
@@ -51,7 +51,7 @@ public class Order : BaseEntity
     public string? InvoiceId { get; set; }
     
     /// <summary>
-    /// Expiration time for pending orders (5 minutes from creation)
+    /// Expiration time for pending orders (65 minutes from creation)
     /// </summary>
     public DateTime ExpiresAt { get; set; }
     
