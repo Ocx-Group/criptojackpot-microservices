@@ -37,12 +37,13 @@ public class DigitalOceanStorageService : IStorageService
         long userId, 
         string fileName, 
         string contentType, 
-        int expirationMinutes = 15)
+        int expirationMinutes = 15,
+        string folder = "profile-photos")
     {
         var extension = Path.GetExtension(fileName).ToLower();
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var randomSuffix = Guid.NewGuid().ToString("N")[..8];
-        var key = $"profile-photos/{userId}/user-{userId}-{timestamp}-{randomSuffix}{extension}";
+        var key = $"{folder}/{userId}/{userId}-{timestamp}-{randomSuffix}{extension}";
 
         var request = new GetPreSignedUrlRequest
         {

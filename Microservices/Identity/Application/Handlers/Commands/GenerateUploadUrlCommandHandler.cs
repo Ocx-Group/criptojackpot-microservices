@@ -38,7 +38,8 @@ public class GenerateUploadUrlCommandHandler : IRequestHandler<GenerateUploadUrl
             request.UserId,
             request.FileName,
             request.ContentType,
-            request.ExpirationMinutes);
+            request.ExpirationMinutes,
+            request.Folder);
 
         var response = new UploadUrlDto
         {

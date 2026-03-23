@@ -12,7 +12,8 @@ public interface IStorageService
         long userId, 
         string fileName, 
         string contentType, 
-        int expirationMinutes = 15);
+        int expirationMinutes = 15,
+        string folder = "profile-photos");
 
     /// <summary>
     /// Generates a presigned URL for downloading/viewing a file

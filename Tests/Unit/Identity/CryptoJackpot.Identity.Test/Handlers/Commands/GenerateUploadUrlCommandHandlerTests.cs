@@ -59,7 +59,7 @@ public class GenerateUploadUrlCommandHandlerTests
             .Which.Should().BeOfType<NotFoundError>();
 
         _storageService.DidNotReceive().GeneratePresignedUploadUrl(
-            Arg.Any<long>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>());
+            Arg.Any<long>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<string>());
     }
 
     // ═════════════════════════════════════════════════════════════════
@@ -100,7 +100,7 @@ public class GenerateUploadUrlCommandHandlerTests
         var user = new User { Id = 1, Email = "user@test.com", Name = "John", LastName = "Doe" };
         _userRepository.GetByIdAsync(1).Returns(user);
         _storageService.IsValidFileExtension("avatar.jpg").Returns(true);
-        _storageService.GeneratePresignedUploadUrl(1, "avatar.jpg", "image/jpeg")
+        _storageService.GeneratePresignedUploadUrl(1, "avatar.jpg", "image/jpeg", 15, "profile-photos")
             .Returns((expectedUrl, expectedKey));
 
         var command = CreateCommand();
@@ -125,7 +125,7 @@ public class GenerateUploadUrlCommandHandlerTests
         var user = new User { Id = 5, Email = "user@test.com", Name = "John", LastName = "Doe" };
         _userRepository.GetByIdAsync(5).Returns(user);
         _storageService.IsValidFileExtension(Arg.Any<string>()).Returns(true);
-        _storageService.GeneratePresignedUploadUrl(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
+        _storageService.GeneratePresignedUploadUrl(Arg.Any<long>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<string>())
             .Returns(("url", "key"));
 
         var command = CreateCommand(userId: 5, fileName: "photo.png", contentType: "image/png", expirationMinutes: 30);
@@ -134,7 +134,7 @@ public class GenerateUploadUrlCommandHandlerTests
         await _sut.Handle(command, CancellationToken.None);
 
         // Assert
-        _storageService.Received(1).GeneratePresignedUploadUrl(5, "photo.png", "image/png", 30);
+        _storageService.Received(1).GeneratePresignedUploadUrl(5, "photo.png", "image/png", 30, "profile-photos");
     }
 }
 
