@@ -83,10 +83,22 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
         });
 
         // Handle event types (case-insensitive as recommended by CoinPayments)
-        if (eventType.Equals(CoinPaymentsWebhookEvents.InvoicePaid, StringComparison.OrdinalIgnoreCase) ||
-            eventType.Equals(CoinPaymentsWebhookEvents.InvoiceCompleted, StringComparison.OrdinalIgnoreCase))
+        // ── Optimistic credit: complete order on InvoicePending (payment detected on blockchain)
+        if (eventType.Equals(CoinPaymentsWebhookEvents.InvoicePending, StringComparison.OrdinalIgnoreCase))
+        {
+            return await HandleInvoicePending(order, request, cancellationToken);
+        }
+
+        // ── Confirmation: InvoicePaid means enough confirmations, idempotent if already completed
+        if (eventType.Equals(CoinPaymentsWebhookEvents.InvoicePaid, StringComparison.OrdinalIgnoreCase))
         {
             return await HandleInvoicePaid(order, request, cancellationToken);
+        }
+
+        // ── Final validation: InvoiceCompleted is the final settlement signal
+        if (eventType.Equals(CoinPaymentsWebhookEvents.InvoiceCompleted, StringComparison.OrdinalIgnoreCase))
+        {
+            return await HandleInvoiceCompleted(order, request, cancellationToken);
         }
 
         if (eventType.Equals(CoinPaymentsWebhookEvents.InvoiceCancelled, StringComparison.OrdinalIgnoreCase))
@@ -99,7 +111,7 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
             return await HandleInvoiceTimedOut(order, cancellationToken);
         }
 
-        // Informational events: InvoiceCreated, InvoicePending, InvoicePaymentCreated, InvoicePaymentTimedOut
+        // Informational events: InvoiceCreated, InvoicePaymentCreated, InvoicePaymentTimedOut
         _logger.LogInformation(
             "Informational webhook received. EventType: {EventType}, OrderId: {OrderId}, InvoiceId: {InvoiceId}",
             request.EventType, order.OrderGuid, coinPaymentsInvoiceId);
@@ -107,39 +119,174 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
         return Result.Ok();
     }
 
-    private async Task<Result> HandleInvoicePaid(
+    /// <summary>
+    /// Optimistic credit: completes the order as soon as payment is detected on the blockchain.
+    /// InvoicePending means CoinPayments detected a transaction — the user DID send money.
+    /// This eliminates the wait for full confirmations (which can take 30-90+ min for BTC).
+    /// If the payment later fails (InvoiceTimedOut/Cancelled), we revoke the tickets.
+    /// </summary>
+    private async Task<Result> HandleInvoicePending(
         Domain.Models.Order order,
         ProcessWebhookCommand request,
         CancellationToken cancellationToken)
     {
-        // Idempotency: if already completed, skip
+        // Idempotency: if already completed, skip (duplicate InvoicePending webhook)
         if (order.Status == OrderStatus.Completed)
         {
             _logger.LogInformation(
-                "Order {OrderId} already completed. Skipping duplicate invoicePaid/invoiceCompleted webhook",
+                "Order {OrderId} already completed. Skipping duplicate InvoicePending webhook",
                 order.OrderGuid);
             return Result.Ok();
         }
 
-        // Cannot complete if not in Pending status
+        // Edge case: order expired before InvoicePending arrived — resurrect it
+        if (order.Status == OrderStatus.Expired)
+        {
+            _logger.LogWarning(
+                "Order {OrderId} was expired but payment detected (InvoicePending). Resurrecting order.",
+                order.OrderGuid);
+            order.Status = OrderStatus.Pending;
+            order.ExpiresAt = DateTime.UtcNow.AddMinutes(60);
+            await _orderRepository.UpdateAsync(order);
+        }
+
+        // Cannot complete if not in Pending status (e.g. already Cancelled)
         if (order.Status != OrderStatus.Pending)
         {
             _logger.LogWarning(
-                "Order {OrderId} is in status {Status}. Cannot complete from webhook",
+                "Order {OrderId} is in status {Status}. Cannot complete from InvoicePending webhook",
                 order.OrderGuid, order.Status);
             return Result.Fail(new BadRequestError(
                 $"Order cannot be completed. Current status: {order.Status}"));
         }
 
-        // Extract transaction ID from payment details
-        // Use the payment ID as the transaction reference; fall back to invoice ID
+        return await CompleteOrderFromWebhook(order, request, cancellationToken);
+    }
+
+    /// <summary>
+    /// InvoicePaid means the payment has enough confirmations. Since we already completed
+    /// on InvoicePending, this is typically idempotent. Acts as fallback if InvoicePending
+    /// was missed.
+    /// </summary>
+    private async Task<Result> HandleInvoicePaid(
+        Domain.Models.Order order,
+        ProcessWebhookCommand request,
+        CancellationToken cancellationToken)
+    {
+        // Idempotency: if already completed (from InvoicePending), skip
+        if (order.Status == OrderStatus.Completed)
+        {
+            _logger.LogInformation(
+                "Order {OrderId} already completed (from InvoicePending). " +
+                "InvoicePaid confirmation received — payment fully confirmed.",
+                order.OrderGuid);
+            return Result.Ok();
+        }
+
+        // Fallback: if InvoicePending was missed, complete now
+        if (order.Status == OrderStatus.Expired)
+        {
+            _logger.LogWarning(
+                "Order {OrderId} was expired but InvoicePaid received. Resurrecting order.",
+                order.OrderGuid);
+            order.Status = OrderStatus.Pending;
+            order.ExpiresAt = DateTime.UtcNow.AddMinutes(60);
+            await _orderRepository.UpdateAsync(order);
+        }
+
+        if (order.Status != OrderStatus.Pending)
+        {
+            _logger.LogWarning(
+                "Order {OrderId} is in status {Status}. Cannot complete from InvoicePaid webhook",
+                order.OrderGuid, order.Status);
+            return Result.Fail(new BadRequestError(
+                $"Order cannot be completed. Current status: {order.Status}"));
+        }
+
+        return await CompleteOrderFromWebhook(order, request, cancellationToken);
+    }
+
+    /// <summary>
+    /// InvoiceCompleted is the final settlement signal from CoinPayments.
+    /// If the order is already completed (from InvoicePending), this is a no-op confirmation.
+    /// If somehow the order is still Pending, complete it as fallback.
+    /// If the payment amount is insufficient, revoke the tickets.
+    /// </summary>
+    private async Task<Result> HandleInvoiceCompleted(
+        Domain.Models.Order order,
+        ProcessWebhookCommand request,
+        CancellationToken cancellationToken)
+    {
+        // If order was already completed (optimistic from InvoicePending), validate payment
+        if (order.Status == OrderStatus.Completed)
+        {
+            // Check if the payment amount matches the order total
+            var invoiceTotal = request.Payload.Invoice?.Amount?.Total;
+            
+            if (invoiceTotal.HasValue && invoiceTotal.Value < order.TotalAmount)
+            {
+                _logger.LogWarning(
+                    "Order {OrderId} InvoiceCompleted with insufficient amount. " +
+                    "Expected: {Expected}, Received: {Received}. Revoking tickets.",
+                    order.OrderGuid, order.TotalAmount, invoiceTotal.Value);
+
+                var revokeResult = await _mediator.Send(new RevokeOrderCommand
+                {
+                    OrderId = order.OrderGuid,
+                    UserId = order.UserId,
+                    Reason = $"InvoiceCompleted with insufficient amount. Expected: {order.TotalAmount}, Received: {invoiceTotal.Value}"
+                }, cancellationToken);
+
+                if (revokeResult.IsFailed)
+                {
+                    _logger.LogError(
+                        "Failed to revoke order {OrderId} after short payment: {Error}",
+                        order.OrderGuid, revokeResult.Errors.FirstOrDefault()?.Message);
+                }
+
+                return revokeResult;
+            }
+
+            _logger.LogInformation(
+                "Order {OrderId} InvoiceCompleted — final confirmation. Payment fully settled.",
+                order.OrderGuid);
+            return Result.Ok();
+        }
+
+        // Fallback: if order is still Pending (InvoicePending was missed), complete now
+        if (order.Status == OrderStatus.Pending || order.Status == OrderStatus.Expired)
+        {
+            if (order.Status == OrderStatus.Expired)
+            {
+                order.Status = OrderStatus.Pending;
+                order.ExpiresAt = DateTime.UtcNow.AddMinutes(60);
+                await _orderRepository.UpdateAsync(order);
+            }
+
+            return await CompleteOrderFromWebhook(order, request, cancellationToken);
+        }
+
+        _logger.LogInformation(
+            "Order {OrderId} is in status {Status}. InvoiceCompleted ignored.",
+            order.OrderGuid, order.Status);
+        return Result.Ok();
+    }
+
+    /// <summary>
+    /// Shared logic to complete an order from any webhook event.
+    /// </summary>
+    private async Task<Result> CompleteOrderFromWebhook(
+        Domain.Models.Order order,
+        ProcessWebhookCommand request,
+        CancellationToken cancellationToken)
+    {
         var transactionId = request.Payload.Invoice?.Payments?.FirstOrDefault()?.Id
                             ?? request.Payload.Invoice?.Id
                             ?? request.InvoiceId;
 
         _logger.LogInformation(
-            "Completing order {OrderId} via webhook. TransactionId: {TransactionId}",
-            order.OrderGuid, transactionId);
+            "Completing order {OrderId} via webhook ({EventType}). TransactionId: {TransactionId}",
+            order.OrderGuid, request.EventType, transactionId);
 
         var completeResult = await _mediator.Send(new CompleteOrderCommand
         {
@@ -151,8 +298,8 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
         if (completeResult.IsFailed)
         {
             _logger.LogError(
-                "Failed to complete order {OrderId} from webhook: {Error}",
-                order.OrderGuid, completeResult.Errors.FirstOrDefault()?.Message);
+                "Failed to complete order {OrderId} from webhook ({EventType}): {Error}",
+                order.OrderGuid, request.EventType, completeResult.Errors.FirstOrDefault()?.Message);
             return Result.Fail(completeResult.Errors);
         }
 
@@ -163,7 +310,7 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
             Source = 4,      // Order
             Action = "WebhookPaymentConfirmed",
             Status = 1,      // Success
-            Description = $"Payment confirmed via webhook for order {order.OrderGuid}. TransactionId: {transactionId}",
+            Description = $"Payment confirmed via webhook ({request.EventType}) for order {order.OrderGuid}. TransactionId: {transactionId}",
             ResourceType = ResourceTypeOrder,
             ResourceId = order.OrderGuid.ToString(),
             Metadata = JsonSerializer.Serialize(new
@@ -178,8 +325,8 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
         });
 
         _logger.LogInformation(
-            "Order {OrderId} successfully completed via CoinPayments webhook",
-            order.OrderGuid);
+            "Order {OrderId} successfully completed via CoinPayments webhook ({EventType})",
+            order.OrderGuid, request.EventType);
 
         return Result.Ok();
     }
@@ -197,13 +344,38 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
             return Result.Ok();
         }
 
-        // Cannot cancel if not in Pending status
+        // If order was optimistically completed (from InvoicePending), REVOKE it
+        if (order.Status == OrderStatus.Completed)
+        {
+            _logger.LogWarning(
+                "Order {OrderId} was completed (optimistic) but invoiceCancelled received. Revoking tickets.",
+                order.OrderGuid);
+
+            var revokeResult = await _mediator.Send(new RevokeOrderCommand
+            {
+                OrderId = order.OrderGuid,
+                UserId = order.UserId,
+                Reason = "Invoice cancelled via CoinPayments webhook after optimistic credit"
+            }, cancellationToken);
+
+            if (revokeResult.IsFailed)
+            {
+                _logger.LogError(
+                    "Failed to revoke order {OrderId} from invoiceCancelled webhook: {Error}",
+                    order.OrderGuid, revokeResult.Errors.FirstOrDefault()?.Message);
+                return Result.Fail(revokeResult.Errors);
+            }
+
+            return Result.Ok();
+        }
+
+        // Normal cancellation for Pending orders
         if (order.Status != OrderStatus.Pending)
         {
             _logger.LogWarning(
                 "Order {OrderId} is in status {Status}. Cannot cancel from webhook",
                 order.OrderGuid, order.Status);
-            return Result.Ok(); // Not an error, just nothing to do
+            return Result.Ok();
         }
 
         _logger.LogInformation(
@@ -263,15 +435,52 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
             return Result.Ok();
         }
 
-        // Cannot expire if already completed
+        // If order was optimistically completed (from InvoicePending), REVOKE it
         if (order.Status == OrderStatus.Completed)
         {
             _logger.LogWarning(
-                "Order {OrderId} is already completed. Ignoring invoiceTimedOut webhook",
+                "Order {OrderId} was completed (optimistic) but invoiceTimedOut received. " +
+                "Payment was not fully confirmed. Revoking tickets.",
                 order.OrderGuid);
+
+            var revokeResult = await _mediator.Send(new RevokeOrderCommand
+            {
+                OrderId = order.OrderGuid,
+                UserId = order.UserId,
+                Reason = "Invoice timed out via CoinPayments webhook after optimistic credit"
+            }, cancellationToken);
+
+            if (revokeResult.IsFailed)
+            {
+                _logger.LogError(
+                    "Failed to revoke order {OrderId} from invoiceTimedOut webhook: {Error}",
+                    order.OrderGuid, revokeResult.Errors.FirstOrDefault()?.Message);
+                return Result.Fail(revokeResult.Errors);
+            }
+
+            // Audit: payment timed out after optimistic credit
+            await _eventBus.Publish(new AuditLogEvent
+            {
+                EventType = 308, // CoinPaymentWebhookPaymentTimedOut
+                Source = 4,      // Order
+                Action = "WebhookPaymentTimedOutRevoked",
+                Status = 2,      // Warning
+                Description = $"Payment timed out for order {order.OrderGuid} AFTER optimistic credit. Tickets revoked.",
+                ResourceType = ResourceTypeOrder,
+                ResourceId = order.OrderGuid.ToString(),
+                Metadata = JsonSerializer.Serialize(new
+                {
+                    OrderId = order.OrderGuid,
+                    order.InvoiceId,
+                    order.UserId,
+                    WasOptimisticallyCompleted = true
+                })
+            });
+
             return Result.Ok();
         }
 
+        // Normal timeout for Pending orders
         _logger.LogInformation(
             "Cancelling order {OrderId} via webhook (invoiceTimedOut)",
             order.OrderGuid);

@@ -551,4 +551,33 @@ public class LotteryNumberRepository : ILotteryNumberRepository
             .OrderBy(x => x.Series)
             .ToListAsync();
     }
+
+    /// <summary>
+    /// Revokes sold/reserved numbers back to available (order revocation after optimistic credit).
+    /// Clears TicketId, OrderId, and ReservationExpiresAt.
+    /// Returns the number of records updated.
+    /// </summary>
+    public async Task<int> RevokeSoldNumbersByGuidsAsync(List<Guid> lotteryNumberGuids)
+    {
+        var numbers = await _context.LotteryNumbers
+            .Where(x => lotteryNumberGuids.Contains(x.LotteryNumberGuid) 
+                        && (x.Status == NumberStatus.Sold || x.Status == NumberStatus.Reserved))
+            .ToListAsync();
+
+        if (numbers.Count == 0)
+            return 0;
+
+        var now = DateTime.UtcNow;
+        foreach (var number in numbers)
+        {
+            number.Status = NumberStatus.Available;
+            number.TicketId = null;
+            number.OrderId = null;
+            number.ReservationExpiresAt = null;
+            number.UpdatedAt = now;
+        }
+
+        await _context.SaveChangesAsync();
+        return numbers.Count;
+    }
 }

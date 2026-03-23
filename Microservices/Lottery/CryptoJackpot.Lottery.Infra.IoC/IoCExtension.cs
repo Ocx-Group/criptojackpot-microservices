@@ -287,6 +287,7 @@ public static class IoCExtension
                 rider.AddConsumer<OrderCompletedConsumer>();
                 rider.AddConsumer<OrderExpiredConsumer>();
                 rider.AddConsumer<OrderCancelledConsumer>();
+                rider.AddConsumer<OrderRevokedConsumer>();
             },
             configureKafkaEndpoints: (context, kafka) =>
             {
@@ -337,6 +338,16 @@ public static class IoCExtension
                     e =>
                     {
                         e.ConfigureConsumer<OrderCancelledConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // Order events - release sold numbers when order is revoked (optimistic credit failed)
+                kafka.TopicEndpoint<OrderRevokedEvent>(
+                    KafkaTopics.OrderRevoked,
+                    KafkaTopics.LotteryGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<OrderRevokedConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
             });

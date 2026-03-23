@@ -364,6 +364,7 @@ public static class IoCExtension
                 rider.AddProducer<OrderCompletedEvent>(KafkaTopics.OrderCompleted);
                 rider.AddProducer<OrderExpiredEvent>(KafkaTopics.OrderExpired);
                 rider.AddProducer<OrderCancelledEvent>(KafkaTopics.OrderCancelled);
+                rider.AddProducer<OrderRevokedEvent>(KafkaTopics.OrderRevoked);
                 rider.AddProducer<AuditLogEvent>(KafkaTopics.AuditLog);
                 rider.AddProducer<WithdrawalCompletedEvent>(KafkaTopics.WithdrawalCompleted);
                 rider.AddProducer<WithdrawalFailedEvent>(KafkaTopics.WithdrawalFailed);

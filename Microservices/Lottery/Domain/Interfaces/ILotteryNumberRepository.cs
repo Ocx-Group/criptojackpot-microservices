@@ -51,4 +51,10 @@ public interface ILotteryNumberRepository
     /// Gets all lottery number records for a specific number (all series).
     /// </summary>
     Task<List<LotteryNumber>> GetSeriesForNumberAsync(long lotteryId, int number);
+    
+    /// <summary>
+    /// Revokes sold/reserved numbers back to available (order revocation after optimistic credit).
+    /// Returns the number of records updated.
+    /// </summary>
+    Task<int> RevokeSoldNumbersByGuidsAsync(List<Guid> lotteryNumberGuids);
 }

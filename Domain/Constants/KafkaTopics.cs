@@ -30,6 +30,7 @@ public static class KafkaTopics
     public const string OrderCompleted = "order-completed";
     public const string OrderExpired = "order-expired";
     public const string OrderCancelled = "order-cancelled";
+    public const string OrderRevoked = "order-revoked";
     
     // Notification Events
     public const string EmailSent = "email-sent";

@@ -79,6 +79,18 @@ public class ExpiredOrdersCleanupService : BackgroundService
                     continue;
                 }
 
+                // Do NOT expire orders that have an active CoinPayments invoice.
+                // Payment may still be confirming on the blockchain.
+                // CoinPayments webhooks (InvoicePaid/TimedOut/Cancelled) will handle the lifecycle.
+                if (!string.IsNullOrEmpty(order.InvoiceId))
+                {
+                    _logger.LogInformation(
+                        "ExpiredOrdersCleanupService: Order {OrderId} has CoinPayments InvoiceId {InvoiceId}. " +
+                        "Skipping — CoinPayments webhooks will handle lifecycle.",
+                        order.OrderGuid, order.InvoiceId);
+                    continue;
+                }
+
                 // Mark as expired
                 order.Status = OrderStatus.Expired;
                 await orderRepository.UpdateAsync(order);
