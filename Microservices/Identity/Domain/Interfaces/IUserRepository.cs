@@ -12,6 +12,7 @@ public interface IUserRepository
     Task<User?> GetByGoogleIdAsync(string googleId);
     Task<User?> GetByReferralCodeAsync(string referralCode);
     Task<bool> ExistsByEmailAsync(string email);
+    Task<User?> GetByEmailVerificationTokenAsync(string token);
     Task<User> CreateAsync(User user);
     Task<User> UpdateAsync(User user);
     Task<IEnumerable<User>> GetAllAsync(long? excludeUserId = null);
