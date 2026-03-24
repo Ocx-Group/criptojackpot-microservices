@@ -36,12 +36,13 @@ public class PrizeController : ControllerBase
 
     // [Authorize]
     [HttpGet]
-    public async Task<IActionResult> GetAllPrizes([FromQuery] PaginationRequest pagination)
+    public async Task<IActionResult> GetAllPrizes([FromQuery] PaginationRequest pagination, [FromQuery] bool availableOnly = false)
     {
         var query = new GetAllPrizesQuery
         {
             PageNumber = pagination.PageNumber,
-            PageSize = pagination.PageSize
+            PageSize = pagination.PageSize,
+            AvailableOnly = availableOnly
         };
 
         var result = await _mediator.Send(query);
