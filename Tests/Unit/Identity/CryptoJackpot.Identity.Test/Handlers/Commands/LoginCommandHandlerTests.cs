@@ -6,6 +6,7 @@ using CryptoJackpot.Identity.Application.Interfaces;
 using CryptoJackpot.Identity.Domain.Interfaces;
 using CryptoJackpot.Identity.Domain.Models;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 namespace CryptoJackpot.Identity.Test.Handlers.Commands;
@@ -17,6 +18,7 @@ public class LoginCommandHandlerTests
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuthenticationService _authService;
     private readonly IIdentityEventPublisher _eventPublisher;
+    private readonly ILogger<LoginCommandHandler> _logger;
     private readonly LoginCommandHandler _sut;
 
     public LoginCommandHandlerTests()
@@ -25,12 +27,14 @@ public class LoginCommandHandlerTests
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _authService = Substitute.For<IAuthenticationService>();
         _eventPublisher = Substitute.For<IIdentityEventPublisher>();
+        _logger = Substitute.For<ILogger<LoginCommandHandler>>();
 
         _sut = new LoginCommandHandler(
             _userRepository,
             _unitOfWork,
             _authService,
-            _eventPublisher);
+            _eventPublisher,
+            _logger);
     }
 
     // ─── Helper: Genera un User válido con estado controlado ────────
@@ -40,7 +44,8 @@ public class LoginCommandHandlerTests
         bool twoFactorEnabled = false,
         string? passwordHash = "hashed_password",
         int failedLoginAttempts = 0,
-        DateTime? lockoutEndAt = null)
+        DateTime? lockoutEndAt = null,
+        DateTime? emailVerificationTokenExpiresAt = null)
     {
         return new User
         {
@@ -54,6 +59,7 @@ public class LoginCommandHandlerTests
             TwoFactorEnabled = twoFactorEnabled,
             FailedLoginAttempts = failedLoginAttempts,
             LockoutEndAt = lockoutEndAt,
+            EmailVerificationTokenExpiresAt = emailVerificationTokenExpiresAt,
             Status = true
         };
     }
@@ -214,14 +220,52 @@ public class LoginCommandHandlerTests
     }
 
     // ═════════════════════════════════════════════════════════════════
-    // Branch 6: Email not verified → ForbiddenError
+    // Branch 6a: Email not verified, token expired (null) →
+    //            ForbiddenError + saves new token + fires re-verification email
     // ═════════════════════════════════════════════════════════════════
 
     [Fact]
-    public async Task Handle_EmailNotVerified_ReturnsForbiddenError()
+    public async Task Handle_EmailNotVerified_TokenExpired_ResendVerificationEmailAndReturnsForbiddenError()
     {
-        // Arrange
-        var user = CreateUser(emailVerified: false);
+        // Arrange — EmailVerificationTokenExpiresAt null → tokenExpired = true
+        var user = CreateUser(emailVerified: false, emailVerificationTokenExpiresAt: null);
+        _userRepository.GetByEmailAsync(user.Email).Returns(user);
+        _authService.VerifyPassword(user.PasswordHash!, Arg.Any<string>()).Returns(true);
+
+        var command = CreateCommand();
+
+        // Act
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        // Assert
+        result.IsFailed.Should().BeTrue();
+        result.Errors.Should().ContainSingle()
+            .Which.Should().BeOfType<ForbiddenError>()
+            .Which.Message.Should().Contain("verification link has expired");
+
+        // Verify: guarda el nuevo token y envía nuevo email de verificación (fire-and-forget)
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _eventPublisher.Received(1).PublishUserRegisteredAsync(user, Arg.Any<string>());
+
+        // Verify: no debe completar login ni generar tokens de sesión
+        await _authService.DidNotReceive()
+            .CompleteLoginAsync(
+                Arg.Any<User>(), Arg.Any<string?>(), Arg.Any<string?>(),
+                Arg.Any<bool>(), Arg.Any<CancellationToken>());
+    }
+
+    // ═════════════════════════════════════════════════════════════════
+    // Branch 6b: Email not verified, token still valid →
+    //            ForbiddenError (no resend, no save)
+    // ═════════════════════════════════════════════════════════════════
+
+    [Fact]
+    public async Task Handle_EmailNotVerified_TokenValid_ReturnsForbiddenError()
+    {
+        // Arrange — token expira en el futuro → tokenExpired = false
+        var user = CreateUser(
+            emailVerified: false,
+            emailVerificationTokenExpiresAt: new DateTime(2099, 12, 31, 23, 59, 59, DateTimeKind.Utc));
         _userRepository.GetByEmailAsync(user.Email).Returns(user);
         _authService.VerifyPassword(user.PasswordHash!, Arg.Any<string>()).Returns(true);
 
@@ -236,7 +280,11 @@ public class LoginCommandHandlerTests
             .Which.Should().BeOfType<ForbiddenError>()
             .Which.Message.Should().Contain("verify your email");
 
-        // Verify: no debe completar login ni generar tokens
+        // Verify: no debe guardar ni reenviar email (el token sigue vigente)
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        await _eventPublisher.DidNotReceive().PublishUserRegisteredAsync(Arg.Any<User>(), Arg.Any<string>());
+
+        // Verify: no debe completar login ni generar tokens de sesión
         await _authService.DidNotReceive()
             .CompleteLoginAsync(
                 Arg.Any<User>(), Arg.Any<string?>(), Arg.Any<string?>(),
