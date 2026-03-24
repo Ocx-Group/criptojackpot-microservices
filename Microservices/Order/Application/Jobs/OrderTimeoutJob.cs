@@ -78,19 +78,10 @@ public class OrderTimeoutJob : IJob
                 return;
             }
 
-            // Do NOT expire orders that have an active CoinPayments invoice.
-            // Payment may still be confirming on the blockchain.
-            // CoinPayments webhooks (InvoicePaid/TimedOut/Cancelled) will handle the lifecycle.
-            if (!string.IsNullOrEmpty(order.InvoiceId))
-            {
-                _logger.LogInformation(
-                    "OrderTimeoutJob: Order {OrderId} has CoinPayments InvoiceId {InvoiceId}. " +
-                    "Skipping expiration — CoinPayments webhooks will handle lifecycle.",
-                    orderId, order.InvoiceId);
-                return;
-            }
-
             // Mark order as expired
+            // Note: CoinPayments orders are also expired normally. If a webhook
+            // (InvoicePending/InvoicePaid/InvoiceCompleted) arrives later, the
+            // ProcessWebhookCommandHandler has resurrection logic to recover the order.
             order.Status = OrderStatus.Expired;
             await _orderRepository.UpdateAsync(order);
 
