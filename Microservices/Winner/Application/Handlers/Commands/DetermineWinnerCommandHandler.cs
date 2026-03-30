@@ -103,7 +103,8 @@ public class DetermineWinnerCommandHandler : IRequestHandler<DetermineWinnerComm
                 PrizeEstimatedValue = created.PrizeEstimatedValue,
                 PrizeImageUrl = created.PrizeImageUrl,
                 PurchaseAmount = created.PurchaseAmount,
-                WonAt = created.WonAt
+                WonAt = created.WonAt,
+                LotteryType = request.LotteryType
             });
             _logger.LogInformation(
                 "WinnerDeterminedEvent published for winner {WinnerGuid}, lottery {LotteryId}",

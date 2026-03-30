@@ -19,5 +19,6 @@ public class TicketDto
     public bool IsGift { get; set; }
     public long? GiftSenderId { get; set; }
     public DateTime CreatedAt { get; set; }
+    public int LotteryType { get; set; }
 }
 

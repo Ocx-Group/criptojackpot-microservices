@@ -20,5 +20,6 @@ public class SendWinnerNotificationCommand : IRequest<Result<bool>>
     public string? PrizeImageUrl { get; set; }
     public decimal PurchaseAmount { get; set; }
     public DateTime WonAt { get; set; }
+    public int LotteryType { get; set; }
 }
 

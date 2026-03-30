@@ -39,6 +39,9 @@ public class OrderCompletedEvent : Event
     
     /// <summary>Purchased ticket details for the confirmation email</summary>
     public List<PurchasedTicketItem> Tickets { get; set; } = [];
+
+    /// <summary>Lottery type for number formatting (e.g., Pick3 → 3-digit display)</summary>
+    public int LotteryType { get; set; }
 }
 
 /// <summary>

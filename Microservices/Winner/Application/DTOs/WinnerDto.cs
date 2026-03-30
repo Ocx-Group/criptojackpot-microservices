@@ -20,4 +20,5 @@ public class WinnerDto
     public WinnerStatus Status { get; set; }
     public DateTime WonAt { get; set; }
     public DateTime CreatedAt { get; set; }
+    public int LotteryType { get; set; }
 }

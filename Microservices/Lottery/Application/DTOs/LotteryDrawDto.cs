@@ -1,3 +1,4 @@
+using CryptoJackpot.Lottery.Application.Utilities;
 using CryptoJackpot.Lottery.Domain.Enums;
 
 namespace CryptoJackpot.Lottery.Application.DTOs;
@@ -27,5 +28,10 @@ public class LotteryDrawDto
     public List<PrizeDto> Prizes { get; set; } = [];
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Number of digits for formatting (e.g., 3 for Pick3). 0 means no padding.
+    /// </summary>
+    public int NumberDigits => LotteryNumberFormatter.GetNumberDigits(Type);
 }
 

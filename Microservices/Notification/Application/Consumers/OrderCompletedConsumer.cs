@@ -51,7 +51,8 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
                 Series = t.Series,
                 Amount = t.Amount,
                 IsGift = t.IsGift
-            }).ToList()
+            }).ToList(),
+            LotteryType = message.LotteryType
         });
     }
 }

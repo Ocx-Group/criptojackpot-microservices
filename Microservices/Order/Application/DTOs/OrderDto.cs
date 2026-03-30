@@ -15,6 +15,7 @@ public class OrderDto
     public decimal TotalAmount { get; set; }
     public int TotalItems { get; set; }
     public OrderStatus Status { get; set; }
+    public int LotteryType { get; set; }
     public DateTime ExpiresAt { get; set; }
     public int SecondsRemaining { get; set; }
     public List<OrderDetailDto> Items { get; set; } = [];

@@ -97,4 +97,9 @@ public class NumbersReservedEvent : Event
     /// Existing order ID to update (if IsAddToExistingOrder is true)
     /// </summary>
     public Guid? ExistingOrderId { get; set; }
+
+    /// <summary>
+    /// Lottery type for number formatting in downstream services (e.g., Pick3 → 3-digit display)
+    /// </summary>
+    public int LotteryType { get; set; }
 }

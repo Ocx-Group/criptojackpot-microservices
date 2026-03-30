@@ -15,4 +15,5 @@ public class DetermineWinnerCommand : IRequest<Result<WinnerDto>>
     public string? PrizeName { get; set; }
     public decimal? PrizeEstimatedValue { get; set; }
     public string? PrizeImageUrl { get; set; }
+    public int LotteryType { get; set; }
 }

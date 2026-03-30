@@ -1,4 +1,5 @@
 using CryptoJackpot.Lottery.Application.Commands;
+using CryptoJackpot.Lottery.Domain.Enums;
 using FluentValidation;
 
 namespace CryptoJackpot.Lottery.Application.Validators;
@@ -56,6 +57,19 @@ public class CreateLotteryDrawCommandValidator : AbstractValidator<CreateLottery
         RuleFor(c => c.CryptoCurrencySymbol)
             .NotEmpty().WithMessage("CryptoCurrencySymbol is required")
             .MaximumLength(100).WithMessage("CryptoCurrencySymbol must not exceed 100 characters");
+
+        // Pick3: fixed configuration (000-999, 1000 numbers)
+        When(c => c.Type == LotteryType.Pick3, () =>
+        {
+            RuleFor(c => c.MinNumber)
+                .Equal(0).WithMessage("Pick3 MinNumber must be 0");
+
+            RuleFor(c => c.MaxNumber)
+                .Equal(999).WithMessage("Pick3 MaxNumber must be 999");
+
+            RuleFor(c => c.MaxTickets)
+                .Equal(1000).WithMessage("Pick3 MaxTickets must be 1000");
+        });
     }
 }
 

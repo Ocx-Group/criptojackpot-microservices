@@ -17,6 +17,7 @@ public class SendPurchaseConfirmationCommand : IRequest<Result<bool>>
     public decimal TotalAmount { get; set; }
     public DateTime PurchaseDate { get; set; }
     public List<PurchasedTicketItemDto> Tickets { get; set; } = [];
+    public int LotteryType { get; set; }
 }
 
 public class PurchasedTicketItemDto

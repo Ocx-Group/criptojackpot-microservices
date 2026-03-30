@@ -335,6 +335,19 @@ public class LotteryNumberService : ILotteryNumberService
             return Result.Fail<ReservationWithOrderDto>("Lottery not found");
         }
 
+        // Pick3 validation: exactly 3 distinct numbers, each with quantity 1
+        if (lottery.Type == LotteryType.Pick3)
+        {
+            if (items.Count != 3)
+                return Result.Fail<ReservationWithOrderDto>("Pick3 requires exactly 3 numbers");
+
+            if (items.Any(i => i.Quantity != 1))
+                return Result.Fail<ReservationWithOrderDto>("Pick3 numbers must have quantity 1");
+
+            if (items.Select(i => i.Number).Distinct().Count() != 3)
+                return Result.Fail<ReservationWithOrderDto>("Pick3 requires 3 distinct numbers");
+        }
+
         // Generate order ID FIRST (or use existing one)
         var orderId = existingOrderId ?? Guid.NewGuid();
         var isAddToExisting = existingOrderId.HasValue;
@@ -387,7 +400,8 @@ public class LotteryNumberService : ILotteryNumberService
             CryptoCurrencyId = lottery.CryptoCurrencyId,
             CryptoCurrencySymbol = lottery.CryptoCurrencySymbol,
             IsAddToExistingOrder = isAddToExisting,
-            ExistingOrderId = existingOrderId
+            ExistingOrderId = existingOrderId,
+            LotteryType = (int)lottery.Type
         });
 
         _logger.LogInformation(

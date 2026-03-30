@@ -21,5 +21,8 @@ public class WinnerDeterminedEvent : Event
     public string? PrizeImageUrl { get; set; }
     public decimal PurchaseAmount { get; set; }
     public DateTime WonAt { get; set; }
+
+    /// <summary>Lottery type for number formatting (e.g., Pick3 → 3-digit display)</summary>
+    public int LotteryType { get; set; }
 }
 

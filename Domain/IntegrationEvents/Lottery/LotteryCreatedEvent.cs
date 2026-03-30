@@ -34,5 +34,8 @@ public class LotteryCreatedEvent : Event
     // Cryptocurrency payment information
     public string CryptoCurrencyId { get; set; } = null!;
     public string CryptoCurrencySymbol { get; set; } = null!;
+
+    /// <summary>Lottery type for downstream processing (e.g., Pick3 → 3-digit numbers)</summary>
+    public int LotteryType { get; set; }
 }
 

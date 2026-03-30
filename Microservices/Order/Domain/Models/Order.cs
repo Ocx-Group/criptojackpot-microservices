@@ -43,6 +43,11 @@ public class Order : BaseEntity
     /// </summary>
     public string LotteryNo { get; set; } = null!;
     
+    /// <summary>
+    /// Lottery type snapshot for number formatting (e.g., Pick3 = 5 → 3-digit display)
+    /// </summary>
+    public int LotteryType { get; set; }
+    
     public OrderStatus Status { get; set; }
     
     /// <summary>

@@ -44,7 +44,7 @@ public class SendPurchaseConfirmationHandler : IRequestHandler<SendPurchaseConfi
             return Result.Fail<bool>(new NotFoundError($"Template not found: {TemplateNames.PurchaseConfirmation}"));
         }
 
-        var ticketRowsHtml = BuildTicketRowsHtml(request.Tickets);
+        var ticketRowsHtml = BuildTicketRowsHtml(request.Tickets, request.LotteryType);
         var lotteryUrl = $"{_config.Brevo!.BaseUrl}{UrlPaths.MyTickets}";
 
         var body = template
@@ -85,7 +85,7 @@ public class SendPurchaseConfirmationHandler : IRequestHandler<SendPurchaseConfi
         return Result.Ok(true);
     }
 
-    private static string BuildTicketRowsHtml(List<PurchasedTicketItemDto> tickets)
+    private static string BuildTicketRowsHtml(List<PurchasedTicketItemDto> tickets, int lotteryType)
     {
         var sb = new StringBuilder();
         foreach (var ticket in tickets)
@@ -94,9 +94,11 @@ public class SendPurchaseConfirmationHandler : IRequestHandler<SendPurchaseConfi
                 ? " <span style=\"background-color:#FFA500;color:#fff;padding:2px 6px;border-radius:3px;font-size:11px;\">GIFT</span>"
                 : string.Empty;
 
+            var formattedNumber = FormatNumber(ticket.Number, lotteryType);
+
             sb.AppendLine($"""
                 <tr>
-                    <td style="padding:10px 15px;border-bottom:1px solid #eee;text-align:center;font-size:18px;font-weight:bold;">{ticket.Number}</td>
+                    <td style="padding:10px 15px;border-bottom:1px solid #eee;text-align:center;font-size:18px;font-weight:bold;">{formattedNumber}</td>
                     <td style="padding:10px 15px;border-bottom:1px solid #eee;text-align:center;">{ticket.Series.ToString().PadLeft(2, '0')}{giftBadge}</td>
                     <td style="padding:10px 15px;border-bottom:1px solid #eee;text-align:right;">${ticket.Amount:F2}</td>
                 </tr>
@@ -105,5 +107,11 @@ public class SendPurchaseConfirmationHandler : IRequestHandler<SendPurchaseConfi
 
         return sb.ToString();
     }
+
+    /// <summary>
+    /// Formats a lottery number based on lottery type. Pick3 (5) uses 3-digit padding.
+    /// </summary>
+    private static string FormatNumber(int number, int lotteryType)
+        => lotteryType == 5 ? number.ToString("D3") : number.ToString();
 }
 

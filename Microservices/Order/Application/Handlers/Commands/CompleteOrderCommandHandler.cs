@@ -135,7 +135,8 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
                     Amount = d.Subtotal,
                     IsGift = d.IsGift,
                     GiftRecipientId = d.GiftRecipientId
-                }).ToList()
+                }).ToList(),
+                LotteryType = order.LotteryType
             });
 
             _logger.LogInformation(

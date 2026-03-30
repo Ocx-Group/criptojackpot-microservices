@@ -48,7 +48,8 @@ public class WinnerDeterminedConsumer : IConsumer<WinnerDeterminedEvent>
             PrizeEstimatedValue = message.PrizeEstimatedValue,
             PrizeImageUrl = message.PrizeImageUrl,
             PurchaseAmount = message.PurchaseAmount,
-            WonAt = message.WonAt
+            WonAt = message.WonAt,
+            LotteryType = message.LotteryType
         });
     }
 }
