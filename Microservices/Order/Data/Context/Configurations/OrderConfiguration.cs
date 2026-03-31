@@ -55,6 +55,10 @@ public class OrderConfiguration : IEntityTypeConfiguration<Domain.Models.Order>
             .HasMaxLength(50)
             .IsRequired();
 
+        builder.Property(o => o.LotteryType)
+            .HasColumnName("lottery_type")
+            .HasDefaultValue(0);
+
         builder.Property(o => o.Status)
             .HasColumnName("status")
             .HasConversion<string>()
