@@ -335,17 +335,14 @@ public class LotteryNumberService : ILotteryNumberService
             return Result.Fail<ReservationWithOrderDto>("Lottery not found");
         }
 
-        // Pick3 validation: exactly 3 distinct numbers, each with quantity 1
+        // Pick3 validation: exactly 1 number (3-digit, 000-999), quantity 1
         if (lottery.Type == LotteryType.Pick3)
         {
-            if (items.Count != 3)
-                return Result.Fail<ReservationWithOrderDto>("Pick3 requires exactly 3 numbers");
+            if (items.Count != 1)
+                return Result.Fail<ReservationWithOrderDto>("Pick3 requires exactly 1 number");
 
             if (items.Any(i => i.Quantity != 1))
-                return Result.Fail<ReservationWithOrderDto>("Pick3 numbers must have quantity 1");
-
-            if (items.Select(i => i.Number).Distinct().Count() != 3)
-                return Result.Fail<ReservationWithOrderDto>("Pick3 requires 3 distinct numbers");
+                return Result.Fail<ReservationWithOrderDto>("Pick3 number must have quantity 1");
         }
 
         // Generate order ID FIRST (or use existing one)
