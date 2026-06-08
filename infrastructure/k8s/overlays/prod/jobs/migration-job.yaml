@@ -40,6 +40,13 @@ spec:
               done
               echo "PgBouncer is ready!"
               sleep 2
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
       containers:
         - name: migrator
           image: registry.digitalocean.com/criptojackpot/migrator:latest
