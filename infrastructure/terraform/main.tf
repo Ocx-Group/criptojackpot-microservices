@@ -188,57 +188,23 @@ module "argocd_image_updater" {
 }
 
 # -----------------------------------------------------------------------------
-# Kubernetes Secrets Module
-# Crea los secrets reales en el cluster con valores de los servicios gestionados
+# Kubernetes Namespace Module (antes "k8s_secrets")
+# Solo crea el namespace. Los Secrets de aplicación los gestiona ArgoCD vía
+# SealedSecrets (overlays/{env}/secrets/*) — única fuente de verdad.
+# Los kubernetes_secret que este módulo creaba antes eran código muerto: el
+# SealedSecret-controller dueña los Secrets vivos. Ver modules/secrets/main.tf.
 # -----------------------------------------------------------------------------
 module "k8s_secrets" {
   source = "./modules/secrets"
 
-  depends_on = [module.doks, module.database, module.redis, module.mongodb, module.spaces]
+  depends_on = [module.doks]
 
   namespace   = var.project_name
   environment = var.environment
-
-  # PostgreSQL - DO Managed (microservicios conectan via PgBouncer interno)
-  postgres_host     = module.database.host
-  postgres_port     = module.database.port
-  postgres_user     = module.database.user
-  postgres_password = module.database.password
-  databases         = var.databases
-
-  # JWT
-  jwt_secret_key = local.jwt_secret_key
-  jwt_issuer     = var.jwt_issuer
-  jwt_audience   = var.jwt_audience
-
-  # Kafka - Redpanda interno (bootstrap server se construye desde el namespace, sin credenciales)
-
-  # Redis - DO Managed (reemplaza Upstash Redis)
-  redis_connection_string = module.redis.connection_string
-
-  # MongoDB - DO Managed (reemplaza MongoDB Atlas)
-  mongodb_connection_string = module.mongodb.private_uri
-  mongodb_audit_database    = module.mongodb.audit_database
-
-  # DigitalOcean Spaces
-  spaces_endpoint   = module.spaces.endpoint
-  spaces_region     = var.region
-  spaces_bucket     = module.spaces.bucket_name
-  spaces_access_key = var.spaces_access_key
-  spaces_secret_key = var.spaces_secret_key
-
-  # Brevo - Notification service
-  brevo_api_key      = var.brevo_api_key
-  brevo_sender_email = var.brevo_sender_email
-  brevo_sender_name  = var.brevo_sender_name
-  brevo_base_url     = local.frontend_url
-
-  # Google OAuth - Identity service
-  google_client_id     = var.google_client_id
-  google_client_secret = var.google_client_secret
 }
 
-# NOTA: Los manifiestos K8s son desplegados por ArgoCD (GitOps), no por Terraform.
+# NOTA: Los manifiestos K8s (incluidos los Secrets vía SealedSecrets) son
+# desplegados por ArgoCD (GitOps), no por Terraform.
 # ArgoCD Image Updater detecta nuevas imagenes en DOCR y actualiza los deploys.
 # El null_resource.kustomize_apply fue eliminado porque conflictuaba con ArgoCD
 # (ambos intentaban gestionar los mismos recursos).
