@@ -58,9 +58,6 @@ spec:
             - name: varlog
               mountPath: /var/log
               readOnly: true
-            - name: varlibdockercontainers
-              mountPath: /var/lib/docker/containers
-              readOnly: true
             - name: run
               mountPath: /run/promtail
           ports:
@@ -86,13 +83,11 @@ spec:
         - name: varlog
           hostPath:
             path: /var/log
-        - name: varlibdockercontainers
-          hostPath:
-            path: /var/lib/docker/containers
+        # positions.yaml (offsets de lectura) en emptyDir en vez de hostPath:
+        # evita acoplar el pod al filesystem del host. Trade-off: las posiciones no
+        # sobreviven a la recreación del pod (puede re-leer logs recientes una vez).
         - name: run
-          hostPath:
-            path: /run/promtail
-            type: DirectoryOrCreate
+          emptyDir: {}
 ---
 # Promtail ConfigMap
 apiVersion: v1
