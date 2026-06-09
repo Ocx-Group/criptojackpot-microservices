@@ -26,12 +26,15 @@ region       = "nyc3"
 vpc_ip_range = "10.10.0.0/16"
 
 # Kubernetes - Right-sized para uso real bajo (cost-optimized 2026-06)
+# NOTA: cambiar k8s_node_size FUERZA recreación del cluster (provider DO) y
+# prevent_destroy lo bloquea. El tamaño de máquina de un node pool es inmutable
+# en DO. Ahorro de cómputo se hace bajando node_count (min_nodes), no el size.
 k8s_version    = "1.36.0-do.1"
-k8s_node_size  = "s-2vcpu-4gb"
-k8s_node_count = 2
+k8s_node_size  = "s-4vcpu-8gb"
+k8s_node_count = 1
 k8s_auto_scale = true
-k8s_min_nodes  = 2
-k8s_max_nodes  = 3   # tope de seguridad: evita que el autoscaler dispare el gasto
+k8s_min_nodes  = 1   # 1 nodo base (~$48); single-node SPOF asumido por costo
+k8s_max_nodes  = 3   # autoescala bajo carga; tope de seguridad de gasto
 
 # Database - 1 nodo (sin standby HA). Backups/PITR siguen activos.
 # Para reactivar HA: db_node_count = 2 (+~$60/mes).
@@ -39,8 +42,9 @@ db_size       = "db-s-2vcpu-4gb"
 db_node_count = 1
 db_version    = "16"
 
-# Registry - basic (5GB). Requiere política de retención de imágenes.
-registry_subscription_tier = "basic"
+# Registry - professional. NO bajar a basic sin confirmar cuenta/uso real:
+# el registry parece compartido (ocx-registry, syd1) con varios proyectos.
+registry_subscription_tier = "professional"
 
 # Spaces
 spaces_bucket_name   = "criptojackpot-prod-assets"
