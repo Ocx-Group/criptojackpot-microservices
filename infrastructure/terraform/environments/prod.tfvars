@@ -25,21 +25,22 @@ region       = "nyc3"
 # VPC
 vpc_ip_range = "10.10.0.0/16"
 
-# Kubernetes - Configuración optimizada para inicio (escalar según demanda)
-k8s_version    = "1.32.10-do.5"
-k8s_node_size  = "s-4vcpu-8gb"
+# Kubernetes - Right-sized para uso real bajo (cost-optimized 2026-06)
+k8s_version    = "1.36.0-do.1"
+k8s_node_size  = "s-2vcpu-4gb"
 k8s_node_count = 2
 k8s_auto_scale = true
 k8s_min_nodes  = 2
-k8s_max_nodes  = 5
+k8s_max_nodes  = 3   # tope de seguridad: evita que el autoscaler dispare el gasto
 
-# Database - HA para producción (replicación + failover automático)
+# Database - 1 nodo (sin standby HA). Backups/PITR siguen activos.
+# Para reactivar HA: db_node_count = 2 (+~$60/mes).
 db_size       = "db-s-2vcpu-4gb"
-db_node_count = 2
+db_node_count = 1
 db_version    = "16"
 
-# Registry
-registry_subscription_tier = "professional"
+# Registry - basic (5GB). Requiere política de retención de imágenes.
+registry_subscription_tier = "basic"
 
 # Spaces
 spaces_bucket_name   = "criptojackpot-prod-assets"

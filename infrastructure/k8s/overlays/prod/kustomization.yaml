@@ -26,7 +26,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 2
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -57,7 +57,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 2
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -88,7 +88,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 2
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -119,7 +119,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 2
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -150,7 +150,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 2
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -181,7 +181,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 2
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -212,7 +212,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 2
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -243,7 +243,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 2
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
