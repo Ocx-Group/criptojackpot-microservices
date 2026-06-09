@@ -1,0 +1,28 @@
+# ArgoCD Application para el stack de monitoring (promtail + otel-collector).
+# Antes estaba fuera de GitOps (aplicado a mano), por lo que los cambios del repo
+# no bajaban al cluster. Con esta App, ArgoCD gobierna overlays/prod/monitoring.
+#
+# Aplicar una sola vez:  kubectl apply -f infrastructure/k8s/argocd-apps/monitoring-app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: criptojackpot-monitoring
+  namespace: argocd
+  # Evita que ArgoCD borre la App si se hace prune del padre.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Ocx-Group/criptojackpot-microservices
+    targetRevision: main
+    path: infrastructure/k8s/overlays/prod/monitoring
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
