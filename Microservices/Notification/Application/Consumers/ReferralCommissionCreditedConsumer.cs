@@ -32,6 +32,8 @@ public class ReferralCommissionCreditedConsumer : IConsumer<ReferralCommissionCr
             BuyerName        = message.BuyerName,
             LotteryTitle     = message.LotteryTitle,
             CommissionAmount = message.CommissionAmount,
+            // Legacy events (pre lottery-level percentage) arrive with 0 → default to the old 1%
+            CommissionPercentage = message.CommissionPercentage > 0 ? message.CommissionPercentage : 1.00m,
             BalanceAfter     = message.BalanceAfter,
             TransactionGuid  = message.TransactionGuid,
             OrderId          = message.OrderId,

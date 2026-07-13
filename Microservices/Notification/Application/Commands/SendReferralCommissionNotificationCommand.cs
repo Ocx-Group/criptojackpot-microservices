@@ -11,6 +11,10 @@ public class SendReferralCommissionNotificationCommand : IRequest<Result<bool>>
     public string BuyerName { get; set; } = null!;
     public string LotteryTitle { get; set; } = null!;
     public decimal CommissionAmount { get; set; }
+
+    /// <summary>Commission percentage applied (e.g. 1.00 = 1%).</summary>
+    public decimal CommissionPercentage { get; set; }
+
     public decimal BalanceAfter { get; set; }
     public Guid TransactionGuid { get; set; }
     public Guid OrderId { get; set; }

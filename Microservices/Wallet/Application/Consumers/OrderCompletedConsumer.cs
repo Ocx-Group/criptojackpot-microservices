@@ -10,15 +10,19 @@ namespace CryptoJackpot.Wallet.Application.Consumers;
 
 /// <summary>
 /// Consumes <see cref="OrderCompletedEvent"/> from Order service via Kafka.
-/// Credits 1% of the ticket purchase amount to the referrer's wallet
-/// as a <see cref="WalletTransactionType.ReferralPurchaseCommission"/>.
+/// Credits the lottery's configured referral commission percentage of the ticket
+/// purchase amount to the referrer's wallet as a
+/// <see cref="WalletTransactionType.ReferralPurchaseCommission"/>.
 /// Resolves the referrer via gRPC call to Identity (single source of truth).
 /// If the buyer has no referrer, the event is silently skipped.
 /// </summary>
 public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
 {
-    /// <summary>Commission rate applied to the total order amount.</summary>
-    private const decimal CommissionRate = 0.01m; // 1%
+    /// <summary>
+    /// Fallback percentage for events/orders created before the lottery-level
+    /// percentage existed (they arrive with a null snapshot).
+    /// </summary>
+    private const decimal LegacyCommissionPercentage = 1.00m; // 1%
 
     private readonly IReferralGrpcClient _referralGrpcClient;
     private readonly IUserVerificationGrpcClient _userVerificationGrpcClient;
@@ -63,14 +67,24 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
             return;
         }
 
-        // ── 2. Calculate commission ─────────────────────────────────────
-        var commission = Math.Round(message.TotalAmount * CommissionRate, 4);
+        // ── 2. Calculate commission using the lottery's configured percentage ──
+        var commissionPercentage = message.ReferralCommissionPercentage ?? LegacyCommissionPercentage;
+
+        if (commissionPercentage <= 0)
+        {
+            _logger.LogInformation(
+                "Lottery {LotteryTitle} has referral commission disabled (0%). Skipping commission for order {OrderId}",
+                message.LotteryTitle, message.OrderId);
+            return;
+        }
+
+        var commission = Math.Round(message.TotalAmount * (commissionPercentage / 100m), 4);
 
         if (commission <= 0)
         {
             _logger.LogWarning(
-                "Calculated commission is zero or negative for order {OrderId}. TotalAmount: {Amount}",
-                message.OrderId, message.TotalAmount);
+                "Calculated commission is zero or negative for order {OrderId}. TotalAmount: {Amount}, Percentage: {Percentage}",
+                message.OrderId, message.TotalAmount, commissionPercentage);
             return;
         }
 
@@ -87,7 +101,7 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
         }
 
         // ── 4. Credit the referrer ──────────────────────────────────────
-        var description = $"Referral commission (1%) — {message.UserName} purchased tickets in {message.LotteryTitle}";
+        var description = $"Referral commission ({commissionPercentage:0.##}%) — {message.UserName} purchased tickets in {message.LotteryTitle}";
 
         var result = await _walletService.ApplyTransactionAsync(
             userGuid: referrerUserGuid.Value,
@@ -121,6 +135,7 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
                         BuyerName        = message.UserName,
                         LotteryTitle     = message.LotteryTitle,
                         CommissionAmount = commission,
+                        CommissionPercentage = commissionPercentage,
                         BalanceAfter     = result.Value.BalanceAfter,
                         TransactionGuid  = result.Value.TransactionGuid,
                         OrderId          = message.OrderId,

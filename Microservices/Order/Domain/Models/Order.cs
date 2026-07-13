@@ -47,6 +47,13 @@ public class Order : BaseEntity
     /// Lottery type snapshot for number formatting (e.g., Pick3 = 5 → 3-digit display)
     /// </summary>
     public int LotteryType { get; set; }
+
+    /// <summary>
+    /// Referral commission percentage snapshot from the lottery at order creation
+    /// time (e.g. 1.00 = 1%). 0 means no commission. Null for orders created before
+    /// this field existed — downstream consumers fall back to the legacy 1%.
+    /// </summary>
+    public decimal? ReferralCommissionPercentage { get; set; }
     
     public OrderStatus Status { get; set; }
     

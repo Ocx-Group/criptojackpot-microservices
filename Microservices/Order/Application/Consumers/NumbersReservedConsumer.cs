@@ -74,6 +74,7 @@ public class NumbersReservedConsumer : IConsumer<NumbersReservedEvent>
             LotteryTitle = message.LotteryTitle,
             LotteryNo = message.LotteryNo,
             LotteryType = message.LotteryType,
+            ReferralCommissionPercentage = message.ReferralCommissionPercentage,
             Status = OrderStatus.Pending,
             ExpiresAt = message.ExpiresAt
         };

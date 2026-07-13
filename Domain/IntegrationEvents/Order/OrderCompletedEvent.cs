@@ -42,6 +42,13 @@ public class OrderCompletedEvent : Event
 
     /// <summary>Lottery type for number formatting (e.g., Pick3 → 3-digit display)</summary>
     public int LotteryType { get; set; }
+
+    /// <summary>
+    /// Referral commission percentage snapshot from the lottery (e.g. 1.00 = 1%).
+    /// 0 means no referral commission. Null for events/orders created before this
+    /// field existed — consumers fall back to the legacy 1%.
+    /// </summary>
+    public decimal? ReferralCommissionPercentage { get; set; }
 }
 
 /// <summary>

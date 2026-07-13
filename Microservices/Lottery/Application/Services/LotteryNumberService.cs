@@ -398,7 +398,8 @@ public class LotteryNumberService : ILotteryNumberService
             CryptoCurrencySymbol = lottery.CryptoCurrencySymbol,
             IsAddToExistingOrder = isAddToExisting,
             ExistingOrderId = existingOrderId,
-            LotteryType = (int)lottery.Type
+            LotteryType = (int)lottery.Type,
+            ReferralCommissionPercentage = lottery.ReferralCommissionPercentage
         });
 
         _logger.LogInformation(

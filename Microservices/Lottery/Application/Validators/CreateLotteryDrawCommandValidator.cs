@@ -29,6 +29,9 @@ public class CreateLotteryDrawCommandValidator : AbstractValidator<CreateLottery
         RuleFor(c => c.MaxTickets)
             .GreaterThan(0).WithMessage("MaxTickets must be greater than 0");
 
+        RuleFor(c => c.ReferralCommissionPercentage)
+            .InclusiveBetween(0, 100).WithMessage("ReferralCommissionPercentage must be between 0 and 100");
+
         RuleFor(c => c.StartDate)
             .NotEmpty().WithMessage("StartDate is required")
             .GreaterThanOrEqualTo(DateTime.UtcNow.Date).WithMessage("StartDate must be today or in the future");

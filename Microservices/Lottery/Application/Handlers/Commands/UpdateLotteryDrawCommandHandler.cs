@@ -58,6 +58,7 @@ public class UpdateLotteryDrawCommandHandler : IRequestHandler<UpdateLotteryDraw
             lotteryDraw.MinimumAge = request.MinimumAge;
             lotteryDraw.CryptoCurrencySymbol = request.CryptoCurrencySymbol;
             lotteryDraw.CryptoCurrencyId = request.CryptoCurrencyId;
+            lotteryDraw.ReferralCommissionPercentage = request.ReferralCommissionPercentage;
             lotteryDraw.RestrictedCountries = request.RestrictedCountries;
 
             var updatedLottery = await _lotteryDrawRepository.UpdateLotteryDrawAsync(lotteryDraw);

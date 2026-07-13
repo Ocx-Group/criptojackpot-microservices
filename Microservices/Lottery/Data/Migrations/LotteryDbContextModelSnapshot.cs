@@ -92,6 +92,12 @@ namespace CryptoJackpot.Lottery.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("minimum_age");
 
+                    b.Property<decimal>("ReferralCommissionPercentage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(1.00m)
+                        .HasColumnName("referral_commission_percentage");
+
                     b.Property<List<string>>("RestrictedCountries")
                         .IsRequired()
                         .HasColumnType("jsonb")

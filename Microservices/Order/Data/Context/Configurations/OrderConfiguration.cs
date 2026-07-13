@@ -59,6 +59,10 @@ public class OrderConfiguration : IEntityTypeConfiguration<Domain.Models.Order>
             .HasColumnName("lottery_type")
             .HasDefaultValue(0);
 
+        builder.Property(o => o.ReferralCommissionPercentage)
+            .HasColumnName("referral_commission_percentage")
+            .HasColumnType("decimal(5,2)");
+
         builder.Property(o => o.Status)
             .HasColumnName("status")
             .HasConversion<string>()

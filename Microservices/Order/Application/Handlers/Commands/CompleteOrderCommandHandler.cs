@@ -136,7 +136,8 @@ public class CompleteOrderCommandHandler : IRequestHandler<CompleteOrderCommand,
                     IsGift = d.IsGift,
                     GiftRecipientId = d.GiftRecipientId
                 }).ToList(),
-                LotteryType = order.LotteryType
+                LotteryType = order.LotteryType,
+                ReferralCommissionPercentage = order.ReferralCommissionPercentage
             });
 
             _logger.LogInformation(

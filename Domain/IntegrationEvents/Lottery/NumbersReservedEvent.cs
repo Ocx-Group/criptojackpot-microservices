@@ -102,4 +102,10 @@ public class NumbersReservedEvent : Event
     /// Lottery type for number formatting in downstream services (e.g., Pick3 → 3-digit display)
     /// </summary>
     public int LotteryType { get; set; }
+
+    /// <summary>
+    /// Referral commission percentage snapshot from the lottery (e.g. 1.00 = 1%).
+    /// 0 means no referral commission for this lottery.
+    /// </summary>
+    public decimal ReferralCommissionPercentage { get; set; }
 }

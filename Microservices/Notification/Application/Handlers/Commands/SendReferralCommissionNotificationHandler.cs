@@ -48,10 +48,13 @@ public class SendReferralCommissionNotificationHandler : IRequestHandler<SendRef
         var referralsUrl     = $"{_config.Brevo!.BaseUrl}{UrlPaths.ReferralProgram}";
         var transactionUrl   = $"{_config.Brevo!.BaseUrl}{UrlPaths.Transactions}";
 
+        var commissionPercentage = request.CommissionPercentage.ToString("0.##");
+
         var body = template
             .Replace("{ReferrerName}",    referrerFullName)
             .Replace("{BuyerName}",       request.BuyerName)
             .Replace("{LotteryTitle}",    request.LotteryTitle)
+            .Replace("{CommissionPercentage}", commissionPercentage)
             .Replace("{CommissionAmount}", request.CommissionAmount.ToString("F2"))
             .Replace("{BalanceAfter}",    request.BalanceAfter.ToString("F2"))
             .Replace("{TransactionId}",   request.TransactionGuid.ToString()[..8].ToUpper())

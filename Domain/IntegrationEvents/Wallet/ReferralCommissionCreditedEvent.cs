@@ -4,7 +4,7 @@ namespace CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
 
 /// <summary>
 /// Integration event published by the Wallet service after successfully crediting
-/// a 1% referral purchase commission to the referrer's wallet.
+/// a referral purchase commission to the referrer's wallet.
 /// Consumed by: Notification microservice to send a commission email.
 /// </summary>
 public class ReferralCommissionCreditedEvent : Event
@@ -16,6 +16,9 @@ public class ReferralCommissionCreditedEvent : Event
     public string BuyerName { get; set; } = null!;
     public string LotteryTitle { get; set; } = null!;
     public decimal CommissionAmount { get; set; }
+
+    /// <summary>Commission percentage applied (e.g. 1.00 = 1%). 0 on legacy events → treated as 1%.</summary>
+    public decimal CommissionPercentage { get; set; }
     public decimal BalanceAfter { get; set; }
     public Guid TransactionGuid { get; set; }
     public Guid OrderId { get; set; }

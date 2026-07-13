@@ -20,7 +20,7 @@
         <div style="background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); padding: 30px 20px; text-align: center;">
             <p style="margin: 0 0 8px; font-size: 42px;">🎉</p>
             <h2 style="margin: 0; font-size: 24px; color: #FFA500;">Referral Commission Earned!</h2>
-            <p style="margin: 8px 0 0; font-size: 15px; color: #cccccc;">You earned a 1% commission from a referral purchase</p>
+            <p style="margin: 8px 0 0; font-size: 15px; color: #cccccc;">You earned a {CommissionPercentage}% commission from a referral purchase</p>
         </div>
 
         <!-- Body -->
@@ -29,7 +29,7 @@
             <p style="margin: 0 0 16px; font-size: 16px;">Hi <strong>{ReferrerName}</strong>,</p>
             <p style="margin: 0 0 20px; font-size: 16px;">
                 Great news! <strong>{BuyerName}</strong> purchased tickets in
-                <strong style="color: #FFA500;">{LotteryTitle}</strong> and you've earned a 1% commission.
+                <strong style="color: #FFA500;">{LotteryTitle}</strong> and you've earned a {CommissionPercentage}% commission.
             </p>
 
             <!-- Commission Highlight Box -->
@@ -52,7 +52,7 @@
                         <td style="padding: 4px 0; color: #FFA500; font-weight: bold;">{LotteryTitle}</td>
                     </tr>
                     <tr>
-                        <td style="padding: 4px 0; color: #777777;">Commission (1%):</td>
+                        <td style="padding: 4px 0; color: #777777;">Commission ({CommissionPercentage}%):</td>
                         <td style="padding: 4px 0; color: #333333; font-weight: bold;">$<span>{CommissionAmount}</span> USD</td>
                     </tr>
                     <tr>
@@ -91,7 +91,7 @@
             </div>
 
             <p style="margin: 20px 0 0; font-size: 14px; color: #777777; text-align: center;">
-                You earn 1% commission every time your referrals purchase tickets. Keep sharing!
+                You earn a commission every time your referrals purchase tickets. Keep sharing!
             </p>
 
         </div>
