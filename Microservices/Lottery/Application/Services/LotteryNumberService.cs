@@ -41,7 +41,9 @@ public class LotteryNumberService : ILotteryNumberService
 
         var numbers = await _lotteryNumberRepository.GetNumbersByLotteryAsync(lottery.Id);
 
-        // Group by number and count available series
+        // Group by number and count available series. Only numbers that are NOT fully
+        // available are sent: clients treat a missing number as fully available. This
+        // keeps the payload small for large ranges (e.g. 10,000-number raffles).
         var grouped = numbers
             .GroupBy(n => n.Number)
             .Select(g => new AvailableNumberDto
@@ -50,6 +52,7 @@ public class LotteryNumberService : ILotteryNumberService
                 AvailableSeries = g.Count(n => n.Status == NumberStatus.Available),
                 TotalSeries = g.Count()
             })
+            .Where(dto => dto.AvailableSeries < dto.TotalSeries)
             .OrderBy(n => n.Number)
             .ToList();
 

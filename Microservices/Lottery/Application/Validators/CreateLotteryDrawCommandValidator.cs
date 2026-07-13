@@ -61,6 +61,20 @@ public class CreateLotteryDrawCommandValidator : AbstractValidator<CreateLottery
             .NotEmpty().WithMessage("CryptoCurrencySymbol is required")
             .MaximumLength(100).WithMessage("CryptoCurrencySymbol must not exceed 100 characters");
 
+        // Standard (rifa/promoción): fixed configuration (0000-9999, 10000 numbers, 1 series).
+        // Each ticket is two 00-99 pairs sold as a single 4-digit number.
+        When(c => c.Type == LotteryType.Standard, () =>
+        {
+            RuleFor(c => c.MinNumber)
+                .Equal(0).WithMessage("Standard promotion MinNumber must be 0");
+
+            RuleFor(c => c.MaxNumber)
+                .Equal(9999).WithMessage("Standard promotion MaxNumber must be 9999");
+
+            RuleFor(c => c.MaxTickets)
+                .Equal(10000).WithMessage("Standard promotion MaxTickets must be 10000");
+        });
+
         // Pick3: fixed configuration (000-999, 1000 numbers)
         When(c => c.Type == LotteryType.Pick3, () =>
         {
