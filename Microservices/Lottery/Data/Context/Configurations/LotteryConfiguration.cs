@@ -40,6 +40,7 @@ public class LotteryConfiguration : IEntityTypeConfiguration<LotteryDraw>
             .HasDefaultValue(1.00m);
         
         builder.Property(e => e.RestrictedCountries).HasColumnType(ColumnTypes.Jsonb);
+        builder.Property(e => e.Translations).HasColumnType(ColumnTypes.Jsonb);
         builder.Property(e => e.CreatedAt).IsRequired();
         builder.Property(e => e.UpdatedAt).IsRequired();
 

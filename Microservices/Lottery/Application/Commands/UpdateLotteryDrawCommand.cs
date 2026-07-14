@@ -1,5 +1,6 @@
 using CryptoJackpot.Lottery.Application.DTOs;
 using CryptoJackpot.Lottery.Domain.Enums;
+using CryptoJackpot.Lottery.Domain.Models;
 using FluentResults;
 using MediatR;
 
@@ -25,6 +26,7 @@ public class UpdateLotteryDrawCommand : IRequest<Result<LotteryDrawDto>>
     public string CryptoCurrencySymbol { get; set; } = null!;
     public decimal ReferralCommissionPercentage { get; set; } = 1.00m;
     public List<string> RestrictedCountries { get; set; } = [];
+    public Dictionary<string, LotteryTranslation>? Translations { get; set; }
     public Guid? PrizeId { get; set; }
 }
 

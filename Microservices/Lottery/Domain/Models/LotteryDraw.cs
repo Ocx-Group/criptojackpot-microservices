@@ -43,6 +43,12 @@ public class LotteryDraw : BaseEntity
 
     public List<string> RestrictedCountries { get; set; } = null!;
 
+    /// <summary>
+    /// Optional localized texts keyed by language code ("en", "pt").
+    /// Base fields hold the default language (Spanish).
+    /// </summary>
+    public Dictionary<string, LotteryTranslation>? Translations { get; set; }
+
     public virtual ICollection<Prize> Prizes { get; set; } = null!;
     public virtual ICollection<LotteryNumber> LotteryNumbers { get; set; } = null!;
 }

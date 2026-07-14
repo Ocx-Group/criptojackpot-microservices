@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Npgsql;
 
 namespace CryptoJackpot.Lottery.Data.Context;
 
@@ -17,7 +18,12 @@ public class LotteryDbContextFactory : IDesignTimeDbContextFactory<LotteryDbCont
         // This matches the local development environment
         var connectionString = "Host=localhost;Port=5433;Database=cryptojackpot_lottery_db;Username=postgres;Password=postgres;";
         
-        optionsBuilder.UseNpgsql(connectionString)
+        // EnableDynamicJson: required to map POCO dictionaries (e.g. Translations) to jsonb,
+        // same as the runtime data source in Infra.IoC
+        var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+        dataSourceBuilder.EnableDynamicJson();
+
+        optionsBuilder.UseNpgsql(dataSourceBuilder.Build())
             .UseSnakeCaseNamingConvention();
 
         return new LotteryDbContext(optionsBuilder.Options);

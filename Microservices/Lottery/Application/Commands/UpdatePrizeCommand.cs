@@ -1,6 +1,7 @@
 using CryptoJackpot.Lottery.Application.DTOs;
 using CryptoJackpot.Lottery.Application.Requests;
 using CryptoJackpot.Lottery.Domain.Enums;
+using CryptoJackpot.Lottery.Domain.Models;
 using FluentResults;
 using MediatR;
 
@@ -20,5 +21,6 @@ public class UpdatePrizeCommand : IRequest<Result<PrizeDto>>
     public decimal? CashAlternative { get; set; }
     public bool IsDeliverable { get; set; }
     public bool IsDigital { get; set; }
+    public Dictionary<string, PrizeTranslation>? Translations { get; set; }
 }
 

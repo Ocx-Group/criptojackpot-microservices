@@ -1,5 +1,6 @@
 using CryptoJackpot.Lottery.Application.Utilities;
 using CryptoJackpot.Lottery.Domain.Enums;
+using CryptoJackpot.Lottery.Domain.Models;
 
 namespace CryptoJackpot.Lottery.Application.DTOs;
 
@@ -26,6 +27,7 @@ public class LotteryDrawDto
     public string CryptoCurrencySymbol { get; set; } = null!;
     public decimal ReferralCommissionPercentage { get; set; }
     public List<string> RestrictedCountries { get; set; } = [];
+    public Dictionary<string, LotteryTranslation>? Translations { get; set; }
     public List<PrizeDto> Prizes { get; set; } = [];
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

@@ -21,6 +21,7 @@ public class PrizeConfiguration : IEntityTypeConfiguration<Prize>
         builder.Property(e => e.Type).IsRequired();
         builder.Property(e => e.MainImageUrl).IsRequired().HasColumnType(ColumnTypes.Text).HasMaxLength(500);
         builder.Property(e => e.Specifications).HasColumnType(ColumnTypes.Jsonb);
+        builder.Property(e => e.Translations).HasColumnType(ColumnTypes.Jsonb);
         builder.Property(e => e.CashAlternative).HasColumnType(ColumnTypes.Decimal);
         builder.Property(e => e.IsDeliverable).IsRequired();
         builder.Property(e => e.IsDigital).IsRequired();
