@@ -3,6 +3,7 @@ using CryptoJackpot.Domain.Core.Bus;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Audit;
 using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Order.Application.Commands;
+using CryptoJackpot.Order.Domain.Configuration;
 using CryptoJackpot.Order.Domain.Constants;
 using CryptoJackpot.Order.Domain.Enums;
 using CryptoJackpot.Order.Domain.Interfaces;
@@ -19,17 +20,20 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
     private readonly IOrderRepository _orderRepository;
     private readonly IMediator _mediator;
     private readonly IEventBus _eventBus;
+    private readonly int _reservationMinutes;
     private readonly ILogger<ProcessWebhookCommandHandler> _logger;
 
     public ProcessWebhookCommandHandler(
         IOrderRepository orderRepository,
         IMediator mediator,
         IEventBus eventBus,
+        ReservationSettings reservationSettings,
         ILogger<ProcessWebhookCommandHandler> logger)
     {
         _orderRepository = orderRepository;
         _mediator = mediator;
         _eventBus = eventBus;
+        _reservationMinutes = reservationSettings.ReservationMinutes;
         _logger = logger;
     }
 
@@ -146,7 +150,7 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
                 "Order {OrderId} was expired but payment detected (InvoicePending). Resurrecting order.",
                 order.OrderGuid);
             order.Status = OrderStatus.Pending;
-            order.ExpiresAt = DateTime.UtcNow.AddMinutes(60);
+            order.ExpiresAt = DateTime.UtcNow.AddMinutes(_reservationMinutes);
             await _orderRepository.UpdateAsync(order);
         }
 
@@ -190,7 +194,7 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
                 "Order {OrderId} was expired but InvoicePaid received. Resurrecting order.",
                 order.OrderGuid);
             order.Status = OrderStatus.Pending;
-            order.ExpiresAt = DateTime.UtcNow.AddMinutes(60);
+            order.ExpiresAt = DateTime.UtcNow.AddMinutes(_reservationMinutes);
             await _orderRepository.UpdateAsync(order);
         }
 
@@ -259,7 +263,7 @@ public class ProcessWebhookCommandHandler : IRequestHandler<ProcessWebhookComman
             if (order.Status == OrderStatus.Expired)
             {
                 order.Status = OrderStatus.Pending;
-                order.ExpiresAt = DateTime.UtcNow.AddMinutes(60);
+                order.ExpiresAt = DateTime.UtcNow.AddMinutes(_reservationMinutes);
                 await _orderRepository.UpdateAsync(order);
             }
 

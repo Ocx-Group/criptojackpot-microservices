@@ -50,7 +50,15 @@ public static class IoCExtension
         AddGrpcClients(services, configuration);
         services.AddDistributedMemoryCache();
         AddQuartzScheduler(services, configuration);
+        AddReservationSettings(services, configuration);
         AddInfrastructure(services, configuration);
+    }
+
+    private static void AddReservationSettings(IServiceCollection services, IConfiguration configuration)
+    {
+        var settings = new Domain.Configuration.ReservationSettings();
+        configuration.GetSection(Domain.Configuration.ReservationSettings.SectionName).Bind(settings);
+        services.AddSingleton(settings);
     }
 
 

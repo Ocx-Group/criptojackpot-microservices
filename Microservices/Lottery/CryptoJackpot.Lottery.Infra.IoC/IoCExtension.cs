@@ -13,6 +13,7 @@ using CryptoJackpot.Lottery.Application.Interfaces;
 using CryptoJackpot.Lottery.Application.Services;
 using CryptoJackpot.Lottery.Data.Context;
 using CryptoJackpot.Lottery.Data.Repositories;
+using CryptoJackpot.Lottery.Domain.Configuration;
 using CryptoJackpot.Lottery.Domain.Interfaces;
 using FluentValidation;
 using MassTransit;
@@ -40,7 +41,15 @@ public static class IoCExtension
         AddControllers(services, configuration);
         AddRepositories(services);
         AddApplicationServices(services);
+        AddReservationSettings(services, configuration);
         AddInfrastructure(services, configuration);
+    }
+
+    private static void AddReservationSettings(IServiceCollection services, IConfiguration configuration)
+    {
+        var settings = new ReservationSettings();
+        configuration.GetSection(ReservationSettings.SectionName).Bind(settings);
+        services.AddSingleton(settings);
     }
 
 

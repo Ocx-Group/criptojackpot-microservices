@@ -3,6 +3,7 @@ using CryptoJackpot.Domain.Core.Extensions;
 using CryptoJackpot.Domain.Core.Responses.Errors;
 using CryptoJackpot.Lottery.Application.Commands;
 using CryptoJackpot.Lottery.Application.DTOs;
+using CryptoJackpot.Lottery.Domain.Configuration;
 using CryptoJackpot.Lottery.Domain.Enums;
 using CryptoJackpot.Lottery.Domain.Interfaces;
 using FluentResults;
@@ -21,17 +22,20 @@ public class ReserveNumbersCommandHandler : IRequestHandler<ReserveNumbersComman
     private readonly ILotteryNumberRepository _lotteryNumberRepository;
     private readonly ILotteryDrawRepository _lotteryDrawRepository;
     private readonly IMapper _mapper;
+    private readonly int _reservationMinutes;
     private readonly ILogger<ReserveNumbersCommandHandler> _logger;
 
     public ReserveNumbersCommandHandler(
         ILotteryNumberRepository lotteryNumberRepository,
         ILotteryDrawRepository lotteryDrawRepository,
         IMapper mapper,
+        ReservationSettings reservationSettings,
         ILogger<ReserveNumbersCommandHandler> logger)
     {
         _lotteryNumberRepository = lotteryNumberRepository;
         _lotteryDrawRepository = lotteryDrawRepository;
         _mapper = mapper;
+        _reservationMinutes = reservationSettings.ReservationMinutes;
         _logger = logger;
     }
 
@@ -77,7 +81,7 @@ public class ReserveNumbersCommandHandler : IRequestHandler<ReserveNumbersComman
             {
                 number.Status = NumberStatus.Reserved;
                 number.TicketId = request.TicketId;
-                number.ReservationExpiresAt = now.AddMinutes(65);
+                number.ReservationExpiresAt = now.AddMinutes(_reservationMinutes);
                 number.UpdatedAt = now;
             }
 
