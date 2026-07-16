@@ -27,9 +27,41 @@ public class OrderConfiguration : IEntityTypeConfiguration<Domain.Models.Order>
             .HasColumnName("user_id")
             .IsRequired();
 
+        builder.Property(o => o.UserGuid)
+            .HasColumnName("user_guid")
+            .IsRequired();
+
         builder.Property(o => o.LotteryId)
             .HasColumnName("lottery_id")
             .IsRequired();
+
+        builder.Property(o => o.UserEmail)
+            .HasColumnName("user_email")
+            .HasMaxLength(255)
+            .IsRequired();
+
+        builder.Property(o => o.UserName)
+            .HasColumnName("user_name")
+            .HasMaxLength(200)
+            .IsRequired();
+
+        builder.Property(o => o.LotteryTitle)
+            .HasColumnName("lottery_title")
+            .HasMaxLength(300)
+            .IsRequired();
+
+        builder.Property(o => o.LotteryNo)
+            .HasColumnName("lottery_no")
+            .HasMaxLength(50)
+            .IsRequired();
+
+        builder.Property(o => o.LotteryType)
+            .HasColumnName("lottery_type")
+            .HasDefaultValue(0);
+
+        builder.Property(o => o.ReferralCommissionPercentage)
+            .HasColumnName("referral_commission_percentage")
+            .HasColumnType("decimal(5,2)");
 
         builder.Property(o => o.Status)
             .HasColumnName("status")
@@ -39,6 +71,15 @@ public class OrderConfiguration : IEntityTypeConfiguration<Domain.Models.Order>
         builder.Property(o => o.ExpiresAt)
             .HasColumnName("expires_at")
             .IsRequired();
+
+        builder.Property(o => o.InvoiceId)
+            .HasColumnName("invoice_id")
+            .HasMaxLength(100);
+
+        builder.HasIndex(o => o.InvoiceId)
+            .IsUnique()
+            .HasFilter("invoice_id IS NOT NULL")
+            .HasDatabaseName("ix_orders_invoice_id");
 
         builder.Property(o => o.CreatedAt)
             .HasColumnName("created_at")

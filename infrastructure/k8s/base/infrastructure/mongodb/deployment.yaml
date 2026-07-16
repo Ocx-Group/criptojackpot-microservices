@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mongodb
-  namespace: cryptojackpot
+  namespace: criptojackpot
   labels:
     app: mongodb
     tier: database

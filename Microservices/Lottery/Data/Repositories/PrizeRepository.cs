@@ -28,9 +28,11 @@ public class PrizeRepository : IPrizeRepository
     public async Task<Prize?> GetPrizeAsync(Guid prizeGuid)
         => await _context.Prizes.FirstOrDefaultAsync(p => p.PrizeGuid == prizeGuid);
 
-    public async Task<PagedList<Prize>> GetAllPrizesAsync(Pagination pagination)
+    public async Task<PagedList<Prize>> GetAllPrizesAsync(Pagination pagination, bool availableOnly = false)
     {
-        var query = _context.Prizes.Where(p => p.LotteryId == null);
+        var query = availableOnly
+            ? _context.Prizes.Where(p => p.LotteryId == null)
+            : _context.Prizes.AsQueryable();
         var totalItems = await query.CountAsync();
 
         var prizes = await query.OrderByDescending(p => p.CreatedAt)

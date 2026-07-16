@@ -67,7 +67,14 @@ public class NumbersReservedConsumer : IConsumer<NumbersReservedEvent>
         {
             OrderGuid = message.OrderId,
             UserId = message.UserId,
+            UserGuid = message.UserGuid,
+            UserEmail = message.UserEmail,
+            UserName = message.UserName,
             LotteryId = message.LotteryId,
+            LotteryTitle = message.LotteryTitle,
+            LotteryNo = message.LotteryNo,
+            LotteryType = message.LotteryType,
+            ReferralCommissionPercentage = message.ReferralCommissionPercentage,
             Status = OrderStatus.Pending,
             ExpiresAt = message.ExpiresAt
         };
@@ -84,6 +91,9 @@ public class NumbersReservedConsumer : IConsumer<NumbersReservedEvent>
             order.OrderDetails.Add(new OrderDetail
             {
                 Number = message.Numbers[i],
+                DisplayNumber = i < message.DisplayNumbers.Length
+                    ? message.DisplayNumbers[i]
+                    : message.Numbers[i].ToString(),
                 Series = series,
                 UnitPrice = unitPrice,
                 Quantity = 1,
@@ -167,6 +177,9 @@ public class NumbersReservedConsumer : IConsumer<NumbersReservedEvent>
             existingOrder.OrderDetails.Add(new OrderDetail
             {
                 Number = message.Numbers[i],
+                DisplayNumber = i < message.DisplayNumbers.Length
+                    ? message.DisplayNumbers[i]
+                    : message.Numbers[i].ToString(),
                 Series = series,
                 UnitPrice = unitPrice,
                 Quantity = 1,

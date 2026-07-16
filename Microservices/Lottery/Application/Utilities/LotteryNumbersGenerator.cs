@@ -17,14 +17,17 @@ public static class LotteryNumbersGenerator
     /// <param name="minNumber">Minimum number in range (typically 0)</param>
     /// <param name="maxNumber">Maximum number in range (typically 99)</param>
     /// <param name="totalSeries">Total number of series to generate</param>
+    /// <param name="lotteryType">Lottery type, used to derive the zero-padded display width</param>
     /// <returns>Lazy enumerable of LotteryNumber entities</returns>
     public static IEnumerable<LotteryNumber> Generate(
         long lotteryId,
         int minNumber,
         int maxNumber,
-        int totalSeries)
+        int totalSeries,
+        LotteryType lotteryType)
     {
         var now = DateTime.UtcNow;
+        var digits = LotteryNumberFormatter.GetNumberDigits(lotteryType, maxNumber);
 
         for (var series = 1; series <= totalSeries; series++)
         {
@@ -35,6 +38,7 @@ public static class LotteryNumbersGenerator
                     LotteryId = lotteryId,
                     LotteryNumberGuid = Guid.NewGuid(),
                     Number = number,
+                    DisplayNumber = number.ToString().PadLeft(digits, '0'),
                     Series = series,
                     Status = NumberStatus.Available,
                     TicketId = null,

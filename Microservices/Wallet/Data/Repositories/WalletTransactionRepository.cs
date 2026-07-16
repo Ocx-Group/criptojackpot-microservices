@@ -65,6 +65,14 @@ public class WalletTransactionRepository : IWalletRepository
             .AnyAsync(t => t.TransactionGuid == transactionGuid, cancellationToken);
     }
 
+    public async Task<WalletTransaction?> GetByReferenceIdAndTypeAsync(
+        Guid referenceId, WalletTransactionType type, CancellationToken cancellationToken = default)
+    {
+        return await _context.WalletTransactions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.ReferenceId == referenceId && t.Type == type, cancellationToken);
+    }
+
     public async Task<(decimal TotalEarnings, decimal LastMonthEarnings)> GetReferralEarningsAsync(
         Guid userGuid, CancellationToken cancellationToken = default)
     {
@@ -90,6 +98,34 @@ public class WalletTransactionRepository : IWalletRepository
             .SumAsync(t => (decimal?)t.Amount, cancellationToken) ?? 0m;
 
         return (totalEarnings, lastMonthEarnings);
+    }
+
+    public async Task<PagedList<WalletTransaction>> GetAllAsync(
+        int page,
+        int pageSize,
+        WalletTransactionType? type = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _context.WalletTransactions.AsQueryable();
+
+        if (type.HasValue)
+            query = query.Where(t => t.Type == type.Value);
+
+        query = query.OrderByDescending(t => t.CreatedAt);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PagedList<WalletTransaction>
+        {
+            Items = items,
+            TotalItems = totalCount,
+            PageNumber = page,
+            PageSize = pageSize
+        };
     }
 }
 

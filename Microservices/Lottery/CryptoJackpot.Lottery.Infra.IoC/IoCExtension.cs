@@ -13,6 +13,7 @@ using CryptoJackpot.Lottery.Application.Interfaces;
 using CryptoJackpot.Lottery.Application.Services;
 using CryptoJackpot.Lottery.Data.Context;
 using CryptoJackpot.Lottery.Data.Repositories;
+using CryptoJackpot.Lottery.Domain.Configuration;
 using CryptoJackpot.Lottery.Domain.Interfaces;
 using FluentValidation;
 using MassTransit;
@@ -33,13 +34,22 @@ public static class IoCExtension
    public static void AddLotteryServices(this IServiceCollection services,
        IConfiguration configuration)
     {
+        DependencyContainer.RegisterOpenTelemetry(services, configuration, "cryptojackpot-lottery");
         AddAuthentication(services, configuration);
         AddDatabase(services, configuration);
         AddSwagger(services);
         AddControllers(services, configuration);
         AddRepositories(services);
         AddApplicationServices(services);
+        AddReservationSettings(services, configuration);
         AddInfrastructure(services, configuration);
+    }
+
+    private static void AddReservationSettings(IServiceCollection services, IConfiguration configuration)
+    {
+        var settings = new ReservationSettings();
+        configuration.GetSection(ReservationSettings.SectionName).Bind(settings);
+        services.AddSingleton(settings);
     }
 
 
@@ -286,6 +296,7 @@ public static class IoCExtension
                 rider.AddConsumer<OrderCompletedConsumer>();
                 rider.AddConsumer<OrderExpiredConsumer>();
                 rider.AddConsumer<OrderCancelledConsumer>();
+                rider.AddConsumer<OrderRevokedConsumer>();
             },
             configureKafkaEndpoints: (context, kafka) =>
             {
@@ -336,6 +347,16 @@ public static class IoCExtension
                     e =>
                     {
                         e.ConfigureConsumer<OrderCancelledConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // Order events - release sold numbers when order is revoked (optimistic credit failed)
+                kafka.TopicEndpoint<OrderRevokedEvent>(
+                    KafkaTopics.OrderRevoked,
+                    KafkaTopics.LotteryGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<OrderRevokedConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
             });

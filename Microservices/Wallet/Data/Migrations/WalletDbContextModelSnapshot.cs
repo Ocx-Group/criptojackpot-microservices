@@ -251,6 +251,96 @@ namespace CryptoJackpot.Wallet.Data.Migrations
                     b.ToTable("wallet_transactions", (string)null);
                 });
 
+            modelBuilder.Entity("CryptoJackpot.Wallet.Domain.Models.WithdrawalRequest", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AdminNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("admin_notes");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CurrencyName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("currency_name");
+
+                    b.Property<string>("CurrencySymbol")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("currency_symbol");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.Property<Guid>("RequestGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("request_guid");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("status");
+
+                    b.Property<long?>("TransactionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("transaction_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_guid");
+
+                    b.Property<string>("WalletAddress")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("wallet_address");
+
+                    b.HasKey("Id")
+                        .HasName("pk_withdrawal_requests");
+
+                    b.HasIndex("RequestGuid")
+                        .IsUnique()
+                        .HasDatabaseName("ix_withdrawal_requests_request_guid");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_withdrawal_requests_status");
+
+                    b.HasIndex("TransactionId")
+                        .HasDatabaseName("ix_withdrawal_requests_transaction_id");
+
+                    b.HasIndex("UserGuid")
+                        .HasDatabaseName("ix_withdrawal_requests_user_guid");
+
+                    b.ToTable("withdrawal_requests", (string)null);
+                });
+
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>
                 {
                     b.Property<long>("Id")
@@ -480,6 +570,16 @@ namespace CryptoJackpot.Wallet.Data.Migrations
                         .HasConstraintName("fk_wallet_transactions_wallet_balances_user_guid");
 
                     b.Navigation("WalletBalance");
+                });
+
+            modelBuilder.Entity("CryptoJackpot.Wallet.Domain.Models.WithdrawalRequest", b =>
+                {
+                    b.HasOne("CryptoJackpot.Wallet.Domain.Models.WalletTransaction", "Transaction")
+                        .WithMany()
+                        .HasForeignKey("TransactionId")
+                        .HasConstraintName("fk_withdrawal_requests_wallet_transactions_transaction_id");
+
+                    b.Navigation("Transaction");
                 });
 
             modelBuilder.Entity("CryptoJackpot.Wallet.Domain.Models.WalletBalance", b =>

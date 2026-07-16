@@ -37,6 +37,10 @@ public class OrderDetailConfiguration : IEntityTypeConfiguration<OrderDetail>
             .HasColumnName("number")
             .IsRequired();
 
+        builder.Property(od => od.DisplayNumber)
+            .HasColumnName("display_number")
+            .HasMaxLength(10);
+
         builder.Property(od => od.Series)
             .HasColumnName("series")
             .IsRequired();

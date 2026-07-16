@@ -29,7 +29,7 @@ public class GetAllPrizesQueryHandler : IRequestHandler<GetAllPrizesQuery, Resul
             PageSize = request.PageSize
         };
 
-        var pagedPrizes = await _prizeRepository.GetAllPrizesAsync(pagination);
+        var pagedPrizes = await _prizeRepository.GetAllPrizesAsync(pagination, request.AvailableOnly);
 
         var result = _mapper.Map<PagedList<PrizeDto>>(pagedPrizes);
 

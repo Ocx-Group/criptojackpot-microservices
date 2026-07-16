@@ -113,4 +113,15 @@ public class UserController : ControllerBase
         var result = await _mediator.Send(command);
         return result.ToActionResult();
     }
+
+    /// <summary>
+    /// Gets user statistics for admin dashboard.
+    /// </summary>
+    [HttpGet("admin/stats")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> GetUserStats()
+    {
+        var result = await _mediator.Send(new GetUserStatsQuery());
+        return result.ToActionResult();
+    }
 }

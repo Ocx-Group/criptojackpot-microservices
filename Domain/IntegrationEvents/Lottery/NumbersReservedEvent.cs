@@ -24,6 +24,31 @@ public class NumbersReservedEvent : Event
     public long UserId { get; set; }
     
     /// <summary>
+    /// Buyer's UserGuid (JWT sub claim) for cross-service identity resolution.
+    /// </summary>
+    public Guid UserGuid { get; set; }
+    
+    /// <summary>
+    /// User's email for purchase confirmation notification
+    /// </summary>
+    public string UserEmail { get; set; } = null!;
+    
+    /// <summary>
+    /// User's display name for purchase confirmation notification
+    /// </summary>
+    public string UserName { get; set; } = null!;
+    
+    /// <summary>
+    /// Lottery title snapshot for notification context
+    /// </summary>
+    public string LotteryTitle { get; set; } = null!;
+    
+    /// <summary>
+    /// Lottery number identifier snapshot (e.g. "001")
+    /// </summary>
+    public string LotteryNo { get; set; } = null!;
+    
+    /// <summary>
     /// The reserved lottery number IDs
     /// </summary>
     public List<Guid> LotteryNumberIds { get; set; } = [];
@@ -32,6 +57,13 @@ public class NumbersReservedEvent : Event
     /// The actual numbers reserved (e.g., [10, 10] for number 10 series 1 and 2)
     /// </summary>
     public int[] Numbers { get; set; } = [];
+
+    /// <summary>
+    /// Zero-padded display representation of each reserved number, parallel to
+    /// <see cref="Numbers"/> (e.g., ["0010", "0010"]). Persisted downstream so
+    /// orders/tickets show exactly what the user selected.
+    /// </summary>
+    public string[] DisplayNumbers { get; set; } = [];
     
     /// <summary>
     /// The series of each reserved number
@@ -72,4 +104,15 @@ public class NumbersReservedEvent : Event
     /// Existing order ID to update (if IsAddToExistingOrder is true)
     /// </summary>
     public Guid? ExistingOrderId { get; set; }
+
+    /// <summary>
+    /// Lottery type for number formatting in downstream services (e.g., Pick3 → 3-digit display)
+    /// </summary>
+    public int LotteryType { get; set; }
+
+    /// <summary>
+    /// Referral commission percentage snapshot from the lottery (e.g. 1.00 = 1%).
+    /// 0 means no referral commission for this lottery.
+    /// </summary>
+    public decimal ReferralCommissionPercentage { get; set; }
 }

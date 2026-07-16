@@ -3,6 +3,7 @@ using CryptoJackpot.Lottery.Data.Context;
 using CryptoJackpot.Lottery.Domain.Interfaces;
 using CryptoJackpot.Lottery.Domain.Models;
 using Microsoft.EntityFrameworkCore;
+
 namespace CryptoJackpot.Lottery.Data.Repositories;
 
 public class LotteryDrawRepository : ILotteryDrawRepository
@@ -70,5 +71,14 @@ public class LotteryDrawRepository : ILotteryDrawRepository
         _context.Update(lotteryDraw);
         await _context.SaveChangesAsync();
         return lotteryDraw;
+    }
+    
+    public async Task IncrementSoldTicketsAsync(Guid lotteryGuid, int count)
+    {
+        await _context.LotteryDraws
+            .Where(l => l.LotteryGuid == lotteryGuid)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(l => l.SoldTickets, l => l.SoldTickets + count)
+                .SetProperty(l => l.UpdatedAt, DateTime.UtcNow));
     }
 }

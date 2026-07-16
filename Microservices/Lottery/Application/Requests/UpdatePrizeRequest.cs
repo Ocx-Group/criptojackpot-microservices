@@ -1,4 +1,5 @@
 using CryptoJackpot.Lottery.Domain.Enums;
+using CryptoJackpot.Lottery.Domain.Models;
 
 namespace CryptoJackpot.Lottery.Application.Requests;
 
@@ -16,5 +17,6 @@ public class UpdatePrizeRequest
     public bool IsDeliverable { get; set; }
 
     public bool IsDigital { get; set; }
+    public Dictionary<string, PrizeTranslation>? Translations { get; set; }
 }
 

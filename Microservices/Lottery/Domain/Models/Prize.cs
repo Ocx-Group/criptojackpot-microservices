@@ -19,6 +19,12 @@ public class Prize : BaseEntity
     public bool IsDeliverable { get; set; }
     public bool IsDigital { get; set; }
 
+    /// <summary>
+    /// Optional localized texts keyed by language code ("en", "pt").
+    /// Base fields hold the default language (Spanish).
+    /// </summary>
+    public Dictionary<string, PrizeTranslation>? Translations { get; set; }
+
     // Referencia al ticket ganador (microservicio Order)
     public Guid? WinnerTicketId { get; set; }
     public DateTime? ClaimedAt { get; set; }

@@ -29,9 +29,13 @@ resource "digitalocean_kubernetes_cluster" "main" {
     min_nodes  = var.auto_scale ? var.min_nodes : null
     max_nodes  = var.auto_scale ? var.max_nodes : null
     
+    # Custom node labels — DOKS reaplica estos labels al reemplazar/actualizar nodos.
+    # Cualquier label aplicado manualmente (kubectl label node) se pierde en un reemplazo;
+    # por eso TODOS los labels personalizados deben declararse aquí (fuente única de verdad).
     labels = {
-      service  = "criptojackpot"
-      pool     = "workers"
+      service = "criptojackpot"
+      pool    = "workers"
+      region  = var.region
     }
 
     tags = var.tags
@@ -64,11 +68,4 @@ resource "digitalocean_kubernetes_cluster" "main" {
       node_pool[0].tags,
     ]
   }
-}
-
-# Obtener credenciales del cluster
-data "digitalocean_kubernetes_cluster" "main" {
-  name = digitalocean_kubernetes_cluster.main.name
-  
-  depends_on = [digitalocean_kubernetes_cluster.main]
 }

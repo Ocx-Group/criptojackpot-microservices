@@ -1,4 +1,5 @@
 using CryptoJackpot.Lottery.Application.Commands;
+using CryptoJackpot.Lottery.Domain.Models;
 using FluentValidation;
 
 namespace CryptoJackpot.Lottery.Application.Validators;
@@ -31,6 +32,9 @@ public class UpdateLotteryDrawCommandValidator : AbstractValidator<UpdateLottery
         RuleFor(c => c.MaxTickets)
             .GreaterThan(0).WithMessage("MaxTickets must be greater than 0");
 
+        RuleFor(c => c.ReferralCommissionPercentage)
+            .InclusiveBetween(0, 100).WithMessage("ReferralCommissionPercentage must be between 0 and 100");
+
         RuleFor(c => c.StartDate)
             .NotEmpty().WithMessage("StartDate is required");
 
@@ -53,11 +57,44 @@ public class UpdateLotteryDrawCommandValidator : AbstractValidator<UpdateLottery
 
         RuleFor(c => c.CryptoCurrencyId)
             .NotEmpty().WithMessage("CryptoCurrencyId is required")
-            .MaximumLength(20).WithMessage("CryptoCurrencyId must not exceed 20 characters");
+            .MaximumLength(100).WithMessage("CryptoCurrencyId must not exceed 100 characters");
 
         RuleFor(c => c.CryptoCurrencySymbol)
             .NotEmpty().WithMessage("CryptoCurrencySymbol is required")
-            .MaximumLength(20).WithMessage("CryptoCurrencySymbol must not exceed 20 characters");
+            .MaximumLength(100).WithMessage("CryptoCurrencySymbol must not exceed 100 characters");
+
+        // Translations: base fields are Spanish; "en" and "pt" are required so users
+        // always see the content in their selected language (no Spanish fallback)
+        RuleFor(c => c.Translations)
+            .NotNull().WithMessage("Translations are required (en, pt)")
+            .Must(tr => tr is null || TranslationLanguages.Supported.All(tr.ContainsKey))
+            .WithMessage("Translations must include: en, pt");
+
+        RuleForEach(c => c.Translations)
+            .ChildRules(entry =>
+            {
+                entry.RuleFor(e => e.Key)
+                    .Must(TranslationLanguages.Supported.Contains)
+                    .WithMessage("Translation language must be one of: en, pt");
+
+                entry.RuleFor(e => e.Value)
+                    .NotNull().WithMessage("Translation content is required");
+
+                entry.RuleFor(e => e.Value.Title)
+                    .NotEmpty().WithMessage("Translated Title is required")
+                    .MaximumLength(200).WithMessage("Translated Title must not exceed 200 characters")
+                    .When(e => e.Value is not null);
+
+                entry.RuleFor(e => e.Value.Description)
+                    .NotEmpty().WithMessage("Translated Description is required")
+                    .MaximumLength(2000).WithMessage("Translated Description must not exceed 2000 characters")
+                    .When(e => e.Value is not null);
+
+                entry.RuleFor(e => e.Value.Terms)
+                    .NotEmpty().WithMessage("Translated Terms is required")
+                    .When(e => e.Value is not null);
+            })
+            .When(c => c.Translations is not null);
     }
 }
 

@@ -9,6 +9,7 @@ public static class KafkaTopics
     // Identity Events
     public const string UserRegistered = "user-registered";
     public const string UserLoggedIn = "user-logged-in";
+    public const string UserLoggedOut = "user-logged-out";
     public const string PasswordResetRequested = "password-reset-requested";
     public const string ReferralCreated = "referral-created";
     public const string GetUsersForMarketingRequest = "get-users-for-marketing-request";
@@ -29,11 +30,22 @@ public static class KafkaTopics
     public const string OrderCompleted = "order-completed";
     public const string OrderExpired = "order-expired";
     public const string OrderCancelled = "order-cancelled";
+    public const string OrderRevoked = "order-revoked";
     
     // Notification Events
     public const string EmailSent = "email-sent";
     public const string NotificationFailed = "notification-failed";
     public const string SendMarketingEmail = "send-marketing-email";
+    
+    // Wallet Events
+    public const string WithdrawalVerificationRequested = "withdrawal-verification-requested";
+    public const string ReferralCommissionCredited = "referral-commission-credited";
+    public const string WithdrawalApproved = "withdrawal-approved";
+    public const string WithdrawalCompleted = "withdrawal-completed";
+    public const string WithdrawalFailed = "withdrawal-failed";
+    
+    // Winner Events
+    public const string WinnerDetermined = "winner-determined";
     
     // Audit Events
     public const string AuditLog = "audit-log";
@@ -46,5 +58,6 @@ public static class KafkaTopics
     public const string IdentityGroup = "identity-group";
     public const string AuditGroup = "audit-group";
     public const string WalletGroup = "wallet-group";
+    public const string WinnerGroup = "winner-group";
 }
 

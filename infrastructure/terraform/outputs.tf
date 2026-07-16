@@ -96,6 +96,12 @@ output "cloudflare_dns_record" {
 # =============================================================================
 # Helper Commands
 # =============================================================================
+output "redis_host" {
+  description = "Host privado del Redis DO Managed (dentro de VPC)"
+  value       = module.redis.private_host
+  sensitive   = true
+}
+
 output "cmd_kubectl_connect" {
   description = "Comando para conectar kubectl al cluster"
   value       = "doctl kubernetes cluster kubeconfig save ${module.doks.cluster_id} --context ${local.resource_prefix}"

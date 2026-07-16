@@ -61,17 +61,16 @@ output "database_names" {
 }
 
 # Connection strings formateados para .NET
+locals {
+  db_user     = digitalocean_database_cluster.main.user != null && digitalocean_database_cluster.main.user != "" ? digitalocean_database_cluster.main.user : "doadmin"
+  db_password = digitalocean_database_cluster.main.password != null ? digitalocean_database_cluster.main.password : ""
+  db_port     = tostring(digitalocean_database_cluster.main.port)
+}
+
 output "connection_strings" {
   description = "Connection strings para cada microservicio (formato .NET)"
   value = {
-    for db_name in var.databases : db_name => join("", [
-      "Host=", digitalocean_database_cluster.main.private_host, ";",
-      "Port=", digitalocean_database_cluster.main.port, ";",
-      "Database=", db_name, ";",
-      "Username=", digitalocean_database_cluster.main.user, ";",
-      "Password=", digitalocean_database_cluster.main.password, ";",
-      "SSL Mode=Require;Trust Server Certificate=true"
-    ])
+    for db_name in var.databases : db_name => "Host=${digitalocean_database_cluster.main.private_host};Port=${local.db_port};Database=${db_name};Username=${local.db_user};Password=${local.db_password};SSL Mode=Require;Trust Server Certificate=true"
   }
   sensitive = true
 }
@@ -80,15 +79,7 @@ output "connection_strings" {
 output "microservice_connection_strings" {
   description = "Connection strings mapeados por nombre de base de datos"
   value = {
-    for db_name in var.databases : upper(replace(db_name, "${var.app_user_name}_", "")) => join("", [
-      "Host=", digitalocean_database_cluster.main.private_host, ";",
-      "Port=", digitalocean_database_cluster.main.port, ";",
-      "Database=", db_name, ";",
-      "Username=", digitalocean_database_cluster.main.user, ";",
-      "Password=", digitalocean_database_cluster.main.password, ";",
-      "SSL Mode=Require;Trust Server Certificate=true"
-    ])
+    for db_name in var.databases : upper(replace(db_name, "${var.app_user_name}_", "")) => "Host=${digitalocean_database_cluster.main.private_host};Port=${local.db_port};Database=${db_name};Username=${local.db_user};Password=${local.db_password};SSL Mode=Require;Trust Server Certificate=true"
   }
   sensitive = true
 }
-

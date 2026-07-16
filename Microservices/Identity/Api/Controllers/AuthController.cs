@@ -95,6 +95,18 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Confirm user email using the verification token sent via email.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("confirm-email/{token}")]
+    public async Task<IActionResult> ConfirmEmail(string token)
+    {
+        var command = new ConfirmEmailCommand { Token = token };
+        var result = await _mediator.Send(command);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
     /// Logout user by revoking refresh token and clearing cookies.
     /// Requires a refresh token cookie; otherwise returns 401.
     /// </summary>
@@ -106,7 +118,12 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(refreshToken))
             return Unauthorized(new { success = false, message = "Refresh token not found." });
         
-        var command = new LogoutCommand { RefreshToken = refreshToken };
+        var command = new LogoutCommand
+        {
+            RefreshToken = refreshToken,
+            IpAddress = Request.GetClientIpAddress(),
+            UserAgent = Request.GetUserAgent()
+        };
         await _mediator.Send(command);
 
         Response.ClearAuthCookies(_cookieConfig);

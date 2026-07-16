@@ -2,29 +2,31 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: cryptojackpot
+namespace: criptojackpot
 
 resources:
   - ../../base
+  - ../../base/infrastructure/redpanda
   - secrets
   - pgbouncer
+  - jobs
 
-# PROD uses managed services:
-# - DigitalOcean Managed PostgreSQL
-# - Upstash Redis
-# - Upstash Kafka
+# PROD uses:
+# - DigitalOcean Managed PostgreSQL (via PgBouncer)
+# - DigitalOcean Managed Redis
+# - Redpanda (Kafka-compatible, pod interno en el cluster)
 # - DigitalOcean Spaces
 # - MongoDB Atlas
 
 patches:
-  # Identity API - replicas, resources, security, Kafka SASL
+  # Identity API - replicas, resources, security
   - target:
       kind: Deployment
       name: identity-api
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 3
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -43,42 +45,10 @@ patches:
         value:
           requests:
             memory: "256Mi"
-            cpu: "200m"
+            cpu: "100m"
           limits:
             memory: "512Mi"
             cpu: "500m"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslUsername
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_USERNAME
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslPassword
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_PASSWORD
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslMechanism
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_MECHANISM
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SecurityProtocol
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SECURITY_PROTOCOL
 
   # Lottery API
   - target:
@@ -87,7 +57,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 3
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -106,42 +76,10 @@ patches:
         value:
           requests:
             memory: "256Mi"
-            cpu: "200m"
+            cpu: "100m"
           limits:
             memory: "512Mi"
             cpu: "500m"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslUsername
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_USERNAME
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslPassword
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_PASSWORD
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslMechanism
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_MECHANISM
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SecurityProtocol
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SECURITY_PROTOCOL
 
   # Order API
   - target:
@@ -150,7 +88,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 3
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -169,42 +107,10 @@ patches:
         value:
           requests:
             memory: "256Mi"
-            cpu: "200m"
+            cpu: "100m"
           limits:
             memory: "512Mi"
             cpu: "500m"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslUsername
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_USERNAME
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslPassword
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_PASSWORD
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslMechanism
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_MECHANISM
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SecurityProtocol
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SECURITY_PROTOCOL
 
   # Wallet API
   - target:
@@ -213,7 +119,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 3
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -232,42 +138,10 @@ patches:
         value:
           requests:
             memory: "256Mi"
-            cpu: "200m"
+            cpu: "100m"
           limits:
             memory: "512Mi"
             cpu: "500m"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslUsername
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_USERNAME
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslPassword
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_PASSWORD
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslMechanism
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_MECHANISM
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SecurityProtocol
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SECURITY_PROTOCOL
 
   # Winner API
   - target:
@@ -276,7 +150,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 3
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -295,42 +169,10 @@ patches:
         value:
           requests:
             memory: "256Mi"
-            cpu: "200m"
+            cpu: "100m"
           limits:
             memory: "512Mi"
             cpu: "500m"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslUsername
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_USERNAME
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslPassword
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_PASSWORD
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslMechanism
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_MECHANISM
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SecurityProtocol
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SECURITY_PROTOCOL
 
   # Notification API
   - target:
@@ -339,7 +181,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 3
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -358,42 +200,10 @@ patches:
         value:
           requests:
             memory: "256Mi"
-            cpu: "200m"
+            cpu: "100m"
           limits:
             memory: "512Mi"
             cpu: "500m"
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslUsername
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_USERNAME
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslPassword
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_PASSWORD
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslMechanism
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_MECHANISM
-      - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SecurityProtocol
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SECURITY_PROTOCOL
 
   # Audit API
   - target:
@@ -402,7 +212,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 3
+        value: 1
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -421,42 +231,41 @@ patches:
         value:
           requests:
             memory: "256Mi"
-            cpu: "200m"
+            cpu: "100m"
           limits:
             memory: "512Mi"
             cpu: "500m"
+
+  # Content API
+  - target:
+      kind: Deployment
+      name: content-api
+    patch: |-
       - op: add
-        path: /spec/template/spec/containers/0/env/-
-        value:
-          name: Kafka__SaslUsername
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_USERNAME
+        path: /spec/replicas
+        value: 1
       - op: add
-        path: /spec/template/spec/containers/0/env/-
+        path: /spec/template/spec/securityContext
         value:
-          name: Kafka__SaslPassword
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_PASSWORD
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          fsGroup: 1000
       - op: add
-        path: /spec/template/spec/containers/0/env/-
+        path: /spec/template/spec/containers/0/securityContext
         value:
-          name: Kafka__SaslMechanism
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SASL_MECHANISM
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
       - op: add
-        path: /spec/template/spec/containers/0/env/-
+        path: /spec/template/spec/containers/0/resources
         value:
-          name: Kafka__SecurityProtocol
-          valueFrom:
-            secretKeyRef:
-              name: kafka-secrets
-              key: KAFKA_SECURITY_PROTOCOL
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
 
   # BFF Gateway
   - target:
@@ -465,7 +274,7 @@ patches:
     patch: |-
       - op: add
         path: /spec/replicas
-        value: 3
+        value: 2
       - op: add
         path: /spec/template/spec/securityContext
         value:
@@ -488,9 +297,29 @@ patches:
           limits:
             memory: "256Mi"
             cpu: "250m"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: CookieSettings__AccessTokenCookieName
+          value: "__Secure-access_token"
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: CookieSettings__RefreshTokenCookieName
+          value: "__Secure-refresh_token"
 
-  # BFF Ingress - único punto de entrada externo (api.criptojackpot.com)
-  # Flujo: Frontend → Cloudflare (TLS terminado) → BFF Ingress (HTTP interno)
+  # imagePullSecrets for all Deployments â€” needed to pull from private DOCR
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: add
+        path: /spec/template/spec/imagePullSecrets
+        value:
+          - name: registry-criptojackpot
+
+
+  # BFF Ingress - Ãºnico punto de entrada externo (api.criptojackpot.com) - Ãºnico punto de entrada externo (api.criptojackpot.com)
+  # Flujo: Frontend â†’ Cloudflare (TLS terminado) â†’ BFF Ingress (HTTP interno)
   # Cloudflare gestiona el certificado TLS externo; dentro del cluster es HTTP plano.
   # Rate limiting aplicado a nivel de nginx como capa extra de defensa.
   - target:
@@ -522,7 +351,7 @@ patches:
                       name: bff-gateway
                       port:
                         number: 80
-                - path: /lottery-hub
+                - path: /hubs/lottery
                   pathType: Prefix
                   backend:
                     service:
@@ -537,45 +366,66 @@ patches:
                       port:
                         number: 80
 
+  # OTel Collector patch moved to overlays/prod/monitoring/kustomization.yaml
+
 # ConfigMap for Production environment
 configMapGenerator:
   - name: app-config
     literals:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_URLS=http://+:8080
       - Logging__LogLevel__Default=Warning
       - Logging__LogLevel__Microsoft.AspNetCore=Warning
       - Cors__AllowedOrigins__0=https://criptojackpot.com
       - Cors__AllowedOrigins__1=https://www.criptojackpot.com
+      - Cors__AllowedOrigins__2=https://app.criptojackpot.com
+      - CookieSettings__AccessTokenCookieName=__Secure-access_token
+      - CookieSettings__RefreshTokenCookieName=__Secure-refresh_token
+      - CookieSettings__Domain=.criptojackpot.com
+      - CookieSettings__SecureOnly=true
+      - CookieSettings__SameSite=Lax
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda.criptojackpot.svc.cluster.local:9092
+      - OpenTelemetry__Endpoint=http://otel-collector.monitoring.svc.cluster.local:4317
+      - OpenTelemetry__Enabled=true
+      - GrpcServices__IdentityAddress=http://identity-api:5001
+      - GrpcServices__OrderAddress=http://order-api:5051
+      - GrpcServices__WalletAddress=http://wallet-api:5052
+      - ReservationSettings__ReservationMinutes=120
 
 generatorOptions:
   disableNameSuffixHash: true
 
 images:
+  - name: cryptojackpot/migrator
+    newName: registry.digitalocean.com/criptojackpot/migrator
+    newTag: prod-aef911d
   - name: cryptojackpot/bff-gateway
     newName: registry.digitalocean.com/criptojackpot/bff-gateway
-    newTag: v1.0.0
+    newTag: prod-aef911d
   - name: cryptojackpot/identity-api
     newName: registry.digitalocean.com/criptojackpot/identity-api
-    newTag: v1.0.0
+    newTag: prod-aef911d
   - name: cryptojackpot/lottery-api
     newName: registry.digitalocean.com/criptojackpot/lottery-api
-    newTag: v1.0.0
+    newTag: prod-aef911d
   - name: cryptojackpot/order-api
     newName: registry.digitalocean.com/criptojackpot/order-api
-    newTag: v1.0.0
+    newTag: prod-aef911d
   - name: cryptojackpot/wallet-api
     newName: registry.digitalocean.com/criptojackpot/wallet-api
-    newTag: v1.0.0
+    newTag: prod-aef911d
   - name: cryptojackpot/winner-api
     newName: registry.digitalocean.com/criptojackpot/winner-api
-    newTag: v1.0.0
+    newTag: prod-aef911d
   - name: cryptojackpot/notification-api
     newName: registry.digitalocean.com/criptojackpot/notification-api
-    newTag: v1.0.0
+    newTag: prod-aef911d
   - name: cryptojackpot/audit-api
     newName: registry.digitalocean.com/criptojackpot/audit-api
-    newTag: v1.0.0
+    newTag: prod-aef911d
+  - name: cryptojackpot/content-api
+    newName: registry.digitalocean.com/criptojackpot/content-api
+    newTag: prod-aef911d
 
 labels:
   - pairs:

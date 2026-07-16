@@ -204,7 +204,13 @@ deploy-config.json
 # Local secrets with real values
 k8s/local/secrets/*.local.yaml
 
-# Local secrets with real API keys
+# Local secrets with real API keys (ruta correcta)
 k8s/local/secrets/brevo-secrets.yaml
+infrastructure/k8s/overlays/local/secrets/brevo-secrets.yaml
+infrastructure/k8s/overlays/local/secrets/*.yaml
+
+# Production/QA secrets - NUNCA commitear valores reales
+infrastructure/k8s/overlays/prod/secrets/*.yaml
+infrastructure/k8s/overlays/qa/secrets/*.yaml
 CLAUDE.md
 copilot-instructions.md

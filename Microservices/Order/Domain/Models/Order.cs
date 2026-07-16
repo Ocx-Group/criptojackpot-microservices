@@ -5,7 +5,7 @@ namespace CryptoJackpot.Order.Domain.Models;
 
 /// <summary>
 /// Representa un intento de compra / carrito.
-/// Tiene un countdown de 5 minutos para completar el pago.
+/// Tiene un countdown de 65 minutos para completar el pago.
 /// </summary>
 public class Order : BaseEntity
 {
@@ -15,12 +15,55 @@ public class Order : BaseEntity
     public Guid OrderGuid { get; set; } = Guid.NewGuid();
     
     public long UserId { get; set; }
+    
+    /// <summary>
+    /// Buyer's UserGuid (JWT sub claim) for cross-service identity resolution.
+    /// </summary>
+    public Guid UserGuid { get; set; }
+    
     public Guid LotteryId { get; set; }
+    
+    /// <summary>
+    /// Buyer's email snapshot (for notification after webhook-based payment)
+    /// </summary>
+    public string UserEmail { get; set; } = null!;
+    
+    /// <summary>
+    /// Buyer's display name snapshot
+    /// </summary>
+    public string UserName { get; set; } = null!;
+    
+    /// <summary>
+    /// Lottery title snapshot at order creation time
+    /// </summary>
+    public string LotteryTitle { get; set; } = null!;
+    
+    /// <summary>
+    /// Lottery number identifier snapshot (e.g. "001")
+    /// </summary>
+    public string LotteryNo { get; set; } = null!;
+    
+    /// <summary>
+    /// Lottery type snapshot for number formatting (e.g., Pick3 = 5 → 3-digit display)
+    /// </summary>
+    public int LotteryType { get; set; }
+
+    /// <summary>
+    /// Referral commission percentage snapshot from the lottery at order creation
+    /// time (e.g. 1.00 = 1%). 0 means no commission. Null for orders created before
+    /// this field existed — downstream consumers fall back to the legacy 1%.
+    /// </summary>
+    public decimal? ReferralCommissionPercentage { get; set; }
     
     public OrderStatus Status { get; set; }
     
     /// <summary>
-    /// Expiration time for pending orders (5 minutes from creation)
+    /// CoinPayments invoice ID associated with this order
+    /// </summary>
+    public string? InvoiceId { get; set; }
+    
+    /// <summary>
+    /// Expiration time for pending orders (65 minutes from creation)
     /// </summary>
     public DateTime ExpiresAt { get; set; }
     

@@ -96,5 +96,32 @@ public class LotteryNumberController : ControllerBase
         var result = await _mediator.Send(query);
         return result.ToActionResult();
     }
+
+    [Authorize]
+    [HttpGet("{lotteryId:guid}/board")]
+    public async Task<IActionResult> GetNumberBoard([FromRoute] Guid lotteryId)
+    {
+        var query = new GetNumberBoardQuery
+        {
+            LotteryId = lotteryId
+        };
+
+        var result = await _mediator.Send(query);
+        return result.ToActionResult();
+    }
+
+    [Authorize]
+    [HttpGet("{lotteryId:guid}/board/{number:int}")]
+    public async Task<IActionResult> GetNumberSeriesDetail([FromRoute] Guid lotteryId, [FromRoute] int number)
+    {
+        var query = new GetNumberSeriesDetailQuery
+        {
+            LotteryId = lotteryId,
+            Number = number
+        };
+
+        var result = await _mediator.Send(query);
+        return result.ToActionResult();
+    }
 }
 

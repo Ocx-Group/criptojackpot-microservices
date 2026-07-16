@@ -12,5 +12,15 @@ public class LogoutCommand : IRequest<Result>
     /// The raw refresh token from the HttpOnly cookie.
     /// </summary>
     public string? RefreshToken { get; set; }
+
+    /// <summary>
+    /// Client IP address for audit logging.
+    /// </summary>
+    public string? IpAddress { get; set; }
+
+    /// <summary>
+    /// Client User-Agent for audit logging.
+    /// </summary>
+    public string? UserAgent { get; set; }
 }
 

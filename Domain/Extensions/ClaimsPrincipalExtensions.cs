@@ -57,6 +57,16 @@ public static class ClaimsPrincipalExtensions
     }
 
     /// <summary>
+    /// Gets the user's display name from JWT claims.
+    /// The "name" claim typically contains "{Name} {LastName}".
+    /// </summary>
+    public static string? GetName(this ClaimsPrincipal principal)
+    {
+        return principal.FindFirst(ClaimTypes.Name)?.Value
+               ?? principal.FindFirst("name")?.Value;
+    }
+
+    /// <summary>
     /// Gets the user's role from JWT claims.
     /// </summary>
     public static string? GetRole(this ClaimsPrincipal principal)

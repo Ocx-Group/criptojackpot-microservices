@@ -35,7 +35,19 @@ public class LotteryDraw : BaseEntity
     /// </summary>
     public string CryptoCurrencySymbol { get; set; } = null!;
 
+    /// <summary>
+    /// Referral commission percentage paid to the buyer's referrer on each
+    /// ticket purchase (e.g. 1.00 = 1%). 0 disables commission for this lottery.
+    /// </summary>
+    public decimal ReferralCommissionPercentage { get; set; } = 1.00m;
+
     public List<string> RestrictedCountries { get; set; } = null!;
+
+    /// <summary>
+    /// Optional localized texts keyed by language code ("en", "pt").
+    /// Base fields hold the default language (Spanish).
+    /// </summary>
+    public Dictionary<string, LotteryTranslation>? Translations { get; set; }
 
     public virtual ICollection<Prize> Prizes { get; set; } = null!;
     public virtual ICollection<LotteryNumber> LotteryNumbers { get; set; } = null!;

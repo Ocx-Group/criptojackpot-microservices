@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option csharp_namespace = "CryptoJackpot.Domain.Core.Protos";
+
+package wallet_debit;
+
+// Service exposed by Wallet to debit internal balance for ticket purchases.
+service WalletDebitGrpcService {
+  // Debits the user's internal balance atomically. Returns the transaction GUID on success.
+  rpc DebitBalance (DebitBalanceRequest) returns (DebitBalanceResponse);
+}
+
+message DebitBalanceRequest {
+  string user_guid = 1;
+  double amount = 2;
+  string order_id = 3;
+  string description = 4;
+}
+
+message DebitBalanceResponse {
+  bool success = 1;
+  string transaction_guid = 2;
+  string error_message = 3;
+  double balance_after = 4;
+}

@@ -80,6 +80,9 @@ public class ExpiredOrdersCleanupService : BackgroundService
                 }
 
                 // Mark as expired
+                // Note: CoinPayments orders are also expired normally. If a webhook
+                // (InvoicePending/InvoicePaid/InvoiceCompleted) arrives later, the
+                // ProcessWebhookCommandHandler has resurrection logic to recover the order.
                 order.Status = OrderStatus.Expired;
                 await orderRepository.UpdateAsync(order);
 

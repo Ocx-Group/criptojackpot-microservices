@@ -220,6 +220,36 @@ patches:
             memory: "512Mi"
             cpu: "500m"
 
+  # Content API
+  - target:
+      kind: Deployment
+      name: content-api
+    patch: |-
+      - op: add
+        path: /spec/replicas
+        value: 1
+      - op: add
+        path: /spec/template/spec/initContainers
+        value:
+          - name: wait-for-postgres
+            image: busybox:1.36
+            command: ["sh", "-c", "echo 'Waiting for DNS and PostgreSQL...'; sleep 5; until nslookup postgres.cryptojackpot.svc.cluster.local > /dev/null 2>&1 && nc -z postgres.cryptojackpot.svc.cluster.local 5432; do echo 'Waiting for PostgreSQL...'; sleep 3; done; echo 'PostgreSQL is ready!'"]
+          - name: wait-for-migrations
+            image: bitnami/kubectl:latest
+            command: ["sh", "-c", "echo 'Waiting for migrations...'; kubectl wait --for=condition=complete job/db-migrations -n cryptojackpot --timeout=120s 2>/dev/null || echo 'Migration job not found or already completed'; echo 'Proceeding with startup.'"]
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+      - op: add
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+
   # BFF Gateway
   - target:
       kind: Deployment
@@ -259,7 +289,7 @@ patches:
                       name: bff-gateway
                       port:
                         number: 80
-                - path: /lottery-hub
+                - path: /hubs/lottery
                   pathType: Prefix
                   backend:
                     service:
@@ -279,7 +309,7 @@ configMapGenerator:
   - name: app-config
     literals:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_URLS=http://+:8080
       - Logging__LogLevel__Default=Information
       - Logging__LogLevel__Microsoft.AspNetCore=Warning
       - POSTGRES_HOST=postgres.cryptojackpot.svc.cluster.local
@@ -289,6 +319,8 @@ configMapGenerator:
       - Cors__AllowedOrigins__0=http://localhost:3000
       - Cors__AllowedOrigins__1=http://localhost:8080
       - Cors__AllowedOrigins__2=http://localhost:30180
+      - OpenTelemetry__Endpoint=http://otel-collector.monitoring.svc.cluster.local:4317
+      - OpenTelemetry__Enabled=true
 
 generatorOptions:
   disableNameSuffixHash: true

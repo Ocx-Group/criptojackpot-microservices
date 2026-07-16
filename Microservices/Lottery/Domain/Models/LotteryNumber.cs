@@ -8,6 +8,14 @@ public class LotteryNumber : BaseEntity
     public Guid LotteryNumberGuid { get; set; } = Guid.NewGuid();
     public long LotteryId { get; set; }
     public int Number { get; set; }
+
+    /// <summary>
+    /// Zero-padded display representation of Number, persisted at generation time
+    /// (e.g. "007" for Pick3, "0007" for a 0-9999 raffle). This exact string is
+    /// what users see everywhere (board, cart, orders, tickets, winners, emails).
+    /// </summary>
+    public string DisplayNumber { get; set; } = null!;
+
     public int Series { get; set; }
     public NumberStatus Status { get; set; }
     

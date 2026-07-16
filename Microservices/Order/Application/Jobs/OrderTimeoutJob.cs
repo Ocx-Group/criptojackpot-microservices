@@ -79,6 +79,9 @@ public class OrderTimeoutJob : IJob
             }
 
             // Mark order as expired
+            // Note: CoinPayments orders are also expired normally. If a webhook
+            // (InvoicePending/InvoicePaid/InvoiceCompleted) arrives later, the
+            // ProcessWebhookCommandHandler has resurrection logic to recover the order.
             order.Status = OrderStatus.Expired;
             await _orderRepository.UpdateAsync(order);
 

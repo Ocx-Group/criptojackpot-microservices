@@ -76,7 +76,8 @@ public class CreateLotteryDrawCommandHandler : IRequestHandler<CreateLotteryDraw
                 MaxTickets = createdLottery.MaxTickets,
                 // Cryptocurrency payment information
                 CryptoCurrencyId = createdLottery.CryptoCurrencyId,
-                CryptoCurrencySymbol = createdLottery.CryptoCurrencySymbol
+                CryptoCurrencySymbol = createdLottery.CryptoCurrencySymbol,
+                LotteryType = (int)createdLottery.Type
             });
 
             _logger.LogInformation("Lottery {LotteryId} created successfully. Number generation queued.", createdLottery.LotteryGuid);

@@ -14,4 +14,5 @@ data:
     CREATE DATABASE cryptojackpot_wallet_db;
     CREATE DATABASE cryptojackpot_winner_db;
     CREATE DATABASE cryptojackpot_notification_db;
+    CREATE DATABASE cryptojackpot_content_db;
 

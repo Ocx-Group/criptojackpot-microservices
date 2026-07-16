@@ -10,5 +10,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Application\CryptoJackpot.Winner.Application.csproj" />
+    <ProjectReference Include="..\CryptoJackpot.Winner.Infra.IoC\CryptoJackpot.Winner.Infra.IoC.csproj" />
   </ItemGroup>
 </Project>

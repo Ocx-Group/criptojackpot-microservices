@@ -59,6 +59,10 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
             .HasColumnName("number")
             .IsRequired();
 
+        builder.Property(t => t.DisplayNumber)
+            .HasColumnName("display_number")
+            .HasMaxLength(10);
+
         builder.Property(t => t.Series)
             .HasColumnName("series")
             .IsRequired();

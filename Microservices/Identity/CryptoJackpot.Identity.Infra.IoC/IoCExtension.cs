@@ -36,6 +36,7 @@ public static class IoCExtension
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        DependencyContainer.RegisterOpenTelemetry(services, configuration, "cryptojackpot-identity");
         AddConfiguration(services, configuration);
         AddAuthentication(services, configuration);
         AddDataProtection(services, configuration);
@@ -243,6 +244,7 @@ public static class IoCExtension
         services.AddScoped<IUserReferralRepository, UserReferralRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IRecoveryCodeRepository, RecoveryCodeRepository>();
+        services.AddScoped<IWishListRepository, WishListRepository>();
     }
 
     private static void AddApplicationServices(IServiceCollection services)
@@ -294,6 +296,7 @@ public static class IoCExtension
                 rider.AddProducer<PasswordResetRequestedEvent>(KafkaTopics.PasswordResetRequested);
                 rider.AddProducer<ReferralCreatedEvent>(KafkaTopics.ReferralCreated);
                 rider.AddProducer<UserLoggedInEvent>(KafkaTopics.UserLoggedIn);
+                rider.AddProducer<UserLoggedOutEvent>(KafkaTopics.UserLoggedOut);
                 rider.AddProducer<GetUsersForMarketingResponseEvent>(KafkaTopics.GetUsersForMarketingResponse);
                 rider.AddProducer<UserLockedOutEvent>(KafkaTopics.UserLockedOut);
                 rider.AddProducer<SecurityAlertEvent>(KafkaTopics.SecurityAlert);

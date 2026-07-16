@@ -2,6 +2,7 @@ using CryptoJackpot.Domain.Core.Bus;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
 using CryptoJackpot.Lottery.Application.DTOs;
 using CryptoJackpot.Lottery.Application.Interfaces;
+using CryptoJackpot.Lottery.Domain.Configuration;
 using CryptoJackpot.Lottery.Domain.Enums;
 using CryptoJackpot.Lottery.Domain.Interfaces;
 using FluentResults;
@@ -19,17 +20,19 @@ public class LotteryNumberService : ILotteryNumberService
     private readonly ILotteryDrawRepository _lotteryDrawRepository;
     private readonly IEventBus _eventBus;
     private readonly ILogger<LotteryNumberService> _logger;
-    private const int ReservationMinutes = 5;
+    private readonly int _reservationMinutes;
 
     public LotteryNumberService(
         ILotteryNumberRepository lotteryNumberRepository,
         ILotteryDrawRepository lotteryDrawRepository,
         IEventBus eventBus,
+        ReservationSettings reservationSettings,
         ILogger<LotteryNumberService> logger)
     {
         _lotteryNumberRepository = lotteryNumberRepository;
         _lotteryDrawRepository = lotteryDrawRepository;
         _eventBus = eventBus;
+        _reservationMinutes = reservationSettings.ReservationMinutes;
         _logger = logger;
     }
 
@@ -41,15 +44,19 @@ public class LotteryNumberService : ILotteryNumberService
 
         var numbers = await _lotteryNumberRepository.GetNumbersByLotteryAsync(lottery.Id);
 
-        // Group by number and count available series
+        // Group by number and count available series. Only numbers that are NOT fully
+        // available are sent: clients treat a missing number as fully available. This
+        // keeps the payload small for large ranges (e.g. 10,000-number raffles).
         var grouped = numbers
             .GroupBy(n => n.Number)
             .Select(g => new AvailableNumberDto
             {
                 Number = g.Key,
+                DisplayNumber = g.First().DisplayNumber,
                 AvailableSeries = g.Count(n => n.Status == NumberStatus.Available),
                 TotalSeries = g.Count()
             })
+            .Where(dto => dto.AvailableSeries < dto.TotalSeries)
             .OrderBy(n => n.Number)
             .ToList();
 
@@ -85,7 +92,7 @@ public class LotteryNumberService : ILotteryNumberService
 
         // Reserve the number
         var now = DateTime.UtcNow;
-        var expiresAt = now.AddMinutes(ReservationMinutes);
+        var expiresAt = now.AddMinutes(_reservationMinutes);
 
         availableNumber.Status = NumberStatus.Reserved;
         availableNumber.ReservationExpiresAt = expiresAt;
@@ -103,9 +110,10 @@ public class LotteryNumberService : ILotteryNumberService
             LotteryNumberGuid = availableNumber.LotteryNumberGuid,
             LotteryGuid = lotteryGuid,
             Number = availableNumber.Number,
+            DisplayNumber = availableNumber.DisplayNumber,
             Series = availableNumber.Series,
             ReservationExpiresAt = expiresAt,
-            SecondsRemaining = ReservationMinutes * 60
+            SecondsRemaining = _reservationMinutes * 60
         });
     }
 
@@ -122,6 +130,7 @@ public class LotteryNumberService : ILotteryNumberService
             NumberId = n.Id,
             LotteryNumberGuid = n.LotteryNumberGuid,
             Number = n.Number,
+            DisplayNumber = n.DisplayNumber,
             Series = n.Series,
             Status = n.Status
         }).ToList();
@@ -184,7 +193,7 @@ public class LotteryNumberService : ILotteryNumberService
 
         // Reserve all the numbers
         var now = DateTime.UtcNow;
-        var expiresAt = now.AddMinutes(ReservationMinutes);
+        var expiresAt = now.AddMinutes(_reservationMinutes);
         var reservations = new List<NumberReservationDto>();
 
         foreach (var availableNumber in availableNumbers)
@@ -199,9 +208,10 @@ public class LotteryNumberService : ILotteryNumberService
                 LotteryNumberGuid = availableNumber.LotteryNumberGuid,
                 LotteryGuid = lotteryGuid,
                 Number = availableNumber.Number,
+                DisplayNumber = availableNumber.DisplayNumber,
                 Series = availableNumber.Series,
                 ReservationExpiresAt = expiresAt,
-                SecondsRemaining = ReservationMinutes * 60
+                SecondsRemaining = _reservationMinutes * 60
             });
         }
 
@@ -276,7 +286,7 @@ public class LotteryNumberService : ILotteryNumberService
 
         // Reserve all the numbers WITH OrderId
         var now = DateTime.UtcNow;
-        var expiresAt = now.AddMinutes(ReservationMinutes);
+        var expiresAt = now.AddMinutes(_reservationMinutes);
         var reservations = new List<NumberReservationDto>();
 
         foreach (var availableNumber in availableNumbers)
@@ -292,9 +302,10 @@ public class LotteryNumberService : ILotteryNumberService
                 LotteryNumberGuid = availableNumber.LotteryNumberGuid,
                 LotteryGuid = lotteryGuid,
                 Number = availableNumber.Number,
+                DisplayNumber = availableNumber.DisplayNumber,
                 Series = availableNumber.Series,
                 ReservationExpiresAt = expiresAt,
-                SecondsRemaining = ReservationMinutes * 60
+                SecondsRemaining = _reservationMinutes * 60
             });
         }
 
@@ -317,6 +328,9 @@ public class LotteryNumberService : ILotteryNumberService
         Guid lotteryGuid,
         List<CartItemDto> items,
         long userId,
+        Guid userGuid,
+        string userEmail,
+        string userName,
         Guid? existingOrderId = null)
     {
         // Validation
@@ -330,6 +344,16 @@ public class LotteryNumberService : ILotteryNumberService
         if (lottery == null)
         {
             return Result.Fail<ReservationWithOrderDto>("Lottery not found");
+        }
+
+        // Pick3 validation: exactly 1 number (3-digit, 000-999), quantity 1
+        if (lottery.Type == LotteryType.Pick3)
+        {
+            if (items.Count != 1)
+                return Result.Fail<ReservationWithOrderDto>("Pick3 requires exactly 1 number");
+
+            if (items.Any(i => i.Quantity != 1))
+                return Result.Fail<ReservationWithOrderDto>("Pick3 number must have quantity 1");
         }
 
         // Generate order ID FIRST (or use existing one)
@@ -358,7 +382,7 @@ public class LotteryNumberService : ILotteryNumberService
         }
 
         var now = DateTime.UtcNow;
-        var expiresAt = now.AddMinutes(ReservationMinutes);
+        var expiresAt = now.AddMinutes(_reservationMinutes);
 
         // Calculate total amount for all reservations
         var ticketPrice = lottery.TicketPrice;
@@ -370,8 +394,14 @@ public class LotteryNumberService : ILotteryNumberService
             OrderId = orderId,
             LotteryId = lotteryGuid,
             UserId = userId,
+            UserGuid = userGuid,
+            UserEmail = userEmail,
+            UserName = userName,
+            LotteryTitle = lottery.Title,
+            LotteryNo = lottery.LotteryNo,
             LotteryNumberIds = allReservations.Select(r => r.LotteryNumberGuid).ToList(),
             Numbers = allReservations.Select(r => r.Number).ToArray(),
+            DisplayNumbers = allReservations.Select(r => r.DisplayNumber).ToArray(),
             SeriesArray = allReservations.Select(r => r.Series).ToArray(),
             TicketPrice = ticketPrice,
             TotalAmount = reservationAmount,
@@ -379,7 +409,9 @@ public class LotteryNumberService : ILotteryNumberService
             CryptoCurrencyId = lottery.CryptoCurrencyId,
             CryptoCurrencySymbol = lottery.CryptoCurrencySymbol,
             IsAddToExistingOrder = isAddToExisting,
-            ExistingOrderId = existingOrderId
+            ExistingOrderId = existingOrderId,
+            LotteryType = (int)lottery.Type,
+            ReferralCommissionPercentage = lottery.ReferralCommissionPercentage
         });
 
         _logger.LogInformation(
@@ -393,7 +425,7 @@ public class LotteryNumberService : ILotteryNumberService
             TotalAmount = reservationAmount,
             TicketPrice = ticketPrice,
             ExpiresAt = expiresAt,
-            SecondsRemaining = ReservationMinutes * 60,
+            SecondsRemaining = _reservationMinutes * 60,
             Reservations = allReservations,
             AddedToExistingOrder = isAddToExisting
         });
