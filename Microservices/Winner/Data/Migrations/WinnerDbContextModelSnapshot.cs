@@ -22,6 +22,119 @@ namespace CryptoJackpot.Winner.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("CryptoJackpot.Winner.Domain.Models.LotteryWinner", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("DisplayNumber")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("display_number");
+
+                    b.Property<Guid>("LotteryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lottery_id");
+
+                    b.Property<string>("LotteryTitle")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("lottery_title");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<decimal?>("PrizeEstimatedValue")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("prize_estimated_value");
+
+                    b.Property<string>("PrizeImageUrl")
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)")
+                        .HasColumnName("prize_image_url");
+
+                    b.Property<string>("PrizeName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("prize_name");
+
+                    b.Property<decimal>("PurchaseAmount")
+                        .HasColumnType("decimal(18,8)")
+                        .HasColumnName("purchase_amount");
+
+                    b.Property<int>("Series")
+                        .HasColumnType("integer")
+                        .HasColumnName("series");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("TicketGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ticket_guid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UserEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("user_email");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("user_name");
+
+                    b.Property<Guid>("WinnerGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("winner_guid");
+
+                    b.Property<DateTime>("WonAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("won_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_lottery_winners");
+
+                    b.HasIndex("LotteryId")
+                        .HasDatabaseName("ix_lottery_winners_lottery_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_lottery_winners_user_id");
+
+                    b.HasIndex("WinnerGuid")
+                        .IsUnique()
+                        .HasDatabaseName("ix_lottery_winners_winner_guid");
+
+                    b.HasIndex("LotteryId", "Number", "Series")
+                        .IsUnique()
+                        .HasDatabaseName("ix_lottery_winners_lottery_number_series");
+
+                    b.ToTable("lottery_winners", (string)null);
+                });
+
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>
                 {
                     b.Property<long>("Id")

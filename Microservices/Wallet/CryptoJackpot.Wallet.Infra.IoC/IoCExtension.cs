@@ -2,15 +2,15 @@
 using Asp.Versioning;
 using CryptoJackpot.Domain.Core.Behaviors;
 using CryptoJackpot.Domain.Core.Constants;
-using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
+using CryptoJackpot.Domain.Core.Protos;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
 using CryptoJackpot.Wallet.Application;
 using CryptoJackpot.Wallet.Application.Consumers;
-using CryptoJackpot.Wallet.Application.Providers;
 using CryptoJackpot.Wallet.Application.Services;
 using CryptoJackpot.Wallet.Data.Context;
-using CryptoJackpot.Wallet.Domain.Constants;
 using CryptoJackpot.Wallet.Domain.Interfaces;
 using FluentValidation;
 using MassTransit;
@@ -22,8 +22,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
-using Polly;
-using Polly.Extensions.Http;
 
 namespace CryptoJackpot.Wallet.Infra.IoC;
 
@@ -33,13 +31,14 @@ public static class IoCExtension
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        DependencyContainer.RegisterOpenTelemetry(services, configuration, "cryptojackpot-wallet");
         AddAuthentication(services, configuration);
         AddDatabase(services, configuration);
         AddSwagger(services);
         AddControllers(services, configuration);
         AddRepositories(services);
         AddApplicationServices(services);
-        AddCoinPayments(services, configuration);
+        AddGrpcClients(services, configuration);
         AddRedisCache(services, configuration);
         AddInfrastructure(services, configuration);
     }
@@ -225,6 +224,7 @@ public static class IoCExtension
         services.AddScoped<IUserCryptoWalletRepository, Data.Repositories.UserCryptoWalletRepository>();
         services.AddScoped<IWalletRepository, Data.Repositories.WalletTransactionRepository>();
         services.AddScoped<IWalletBalanceRepository, Data.Repositories.WalletBalanceRepository>();
+        services.AddScoped<IWithdrawalRequestRepository, Data.Repositories.WithdrawalRequestRepository>();
         services.AddScoped<IUnitOfWork, Data.UnitOfWork>();
     }
 
@@ -246,55 +246,42 @@ public static class IoCExtension
         services.AddScoped<IWalletService, WalletService>();
     }
 
-    private static void AddCoinPayments(IServiceCollection services, IConfiguration configuration)
+    private static void AddGrpcClients(IServiceCollection services, IConfiguration configuration)
     {
-        var coinPaymentsSettings = configuration.GetSection(ConfigurationKeys.CoinPaymentsSection);
-        var clientSecret = coinPaymentsSettings["ClientSecret"] 
-            ?? coinPaymentsSettings["PrivateKey"] // backward compat
-            ?? throw new InvalidOperationException("CoinPayments ClientSecret is not configured");
-        var clientId = coinPaymentsSettings["ClientId"] 
-            ?? coinPaymentsSettings["PublicKey"] // backward compat
-            ?? throw new InvalidOperationException("CoinPayments ClientId is not configured");
-        var baseUrl = coinPaymentsSettings["BaseUrl"] ?? ServiceDefaults.CoinPaymentsBaseUrl;
-        
-        // Ensure BaseUrl ends with '/' so relative paths resolve correctly
-        if (!baseUrl.EndsWith('/'))
-            baseUrl += '/';
+        var identityGrpcAddress = configuration["GrpcServices:IdentityAddress"]
+                                  ?? "http://identity-api:80";
 
-        // Configure HttpClient with retry and circuit breaker policies
-        services.AddHttpClient(ServiceDefaults.CoinPaymentsHttpClient, client =>
+        services.AddGrpcClient<ReferralGrpcService.ReferralGrpcServiceClient>(options =>
             {
-                client.BaseAddress = new Uri(baseUrl);
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
-                client.Timeout = TimeSpan.FromSeconds(ServiceDefaults.HttpClientTimeoutSeconds);
+                options.Address = new Uri(identityGrpcAddress);
             })
-            .AddPolicyHandler(GetRetryPolicy())
-            .AddPolicyHandler(GetCircuitBreakerPolicy());
+            .ConfigureChannel(channel =>
+            {
+                // Deadline for all calls — prevents hanging if Identity is unresponsive
+                channel.HttpHandler = new SocketsHttpHandler
+                {
+                    EnableMultipleHttp2Connections = true,
+                    KeepAlivePingDelay = TimeSpan.FromSeconds(60),
+                    KeepAlivePingTimeout = TimeSpan.FromSeconds(30)
+                };
+            });
 
-        // Register the provider
-        services.AddSingleton<ICoinPaymentProvider>(sp =>
-        {
-            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
-            return new CoinPaymentProvider(clientSecret, clientId, httpClientFactory);
-        });
-    }
+        services.AddGrpcClient<UserVerificationGrpcService.UserVerificationGrpcServiceClient>(options =>
+            {
+                options.Address = new Uri(identityGrpcAddress);
+            })
+            .ConfigureChannel(channel =>
+            {
+                channel.HttpHandler = new SocketsHttpHandler
+                {
+                    EnableMultipleHttp2Connections = true,
+                    KeepAlivePingDelay = TimeSpan.FromSeconds(60),
+                    KeepAlivePingTimeout = TimeSpan.FromSeconds(30)
+                };
+            });
 
-    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
-    {
-        return HttpPolicyExtensions
-            .HandleTransientHttpError()
-            .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-            .WaitAndRetryAsync(ResilienceSettings.RetryCount, retryAttempt => 
-                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
-    }
-
-    private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
-    {
-        return HttpPolicyExtensions
-            .HandleTransientHttpError()
-            .CircuitBreakerAsync(
-                ResilienceSettings.CircuitBreakerFailureThreshold, 
-                TimeSpan.FromSeconds(ResilienceSettings.CircuitBreakerDurationSeconds));
+        services.AddScoped<IReferralGrpcClient, ReferralGrpcClient>();
+        services.AddScoped<IUserVerificationGrpcClient, UserVerificationGrpcClient>();
     }
 
     private static void AddInfrastructure(IServiceCollection services, IConfiguration configuration)
@@ -305,19 +292,47 @@ public static class IoCExtension
             configuration,
             configureRider: rider =>
             {
-                // Register consumers for Identity events
-                rider.AddConsumer<ReferralCreatedConsumer>();
+                // Register consumers
+                rider.AddConsumer<OrderCompletedConsumer>();
+                rider.AddConsumer<WithdrawalCompletedConsumer>();
+                rider.AddConsumer<WithdrawalFailedConsumer>();
+
+                // Register producers
+                rider.AddProducer<WithdrawalVerificationRequestedEvent>(KafkaTopics.WithdrawalVerificationRequested);
+                rider.AddProducer<ReferralCommissionCreditedEvent>(KafkaTopics.ReferralCommissionCredited);
+                rider.AddProducer<WithdrawalApprovedEvent>(KafkaTopics.WithdrawalApproved);
             },
             configureBus: null,
             configureKafkaEndpoints: (context, kafka) =>
             {
-                // Identity events - credit referral bonus when a referral is created
-                kafka.TopicEndpoint<ReferralCreatedEvent>(
-                    KafkaTopics.ReferralCreated,
+
+                // Order events - credit 1% referral purchase commission to the referrer
+                kafka.TopicEndpoint<OrderCompletedEvent>(
+                    KafkaTopics.OrderCompleted,
                     KafkaTopics.WalletGroup,
                     e =>
                     {
-                        e.ConfigureConsumer<ReferralCreatedConsumer>(context);
+                        e.ConfigureConsumer<OrderCompletedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // Withdrawal completed - mark request as Completed after CoinPayments spend
+                kafka.TopicEndpoint<WithdrawalCompletedEvent>(
+                    KafkaTopics.WithdrawalCompleted,
+                    KafkaTopics.WalletGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<WithdrawalCompletedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // Withdrawal failed - revert request to Pending after CoinPayments spend failure
+                kafka.TopicEndpoint<WithdrawalFailedEvent>(
+                    KafkaTopics.WithdrawalFailed,
+                    KafkaTopics.WalletGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<WithdrawalFailedConsumer>(context);
                         e.ConfigureTopicDefaults(configuration);
                     });
             },

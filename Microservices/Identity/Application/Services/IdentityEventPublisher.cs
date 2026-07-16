@@ -57,6 +57,19 @@ public class IdentityEventPublisher : IIdentityEventPublisher
         }
     }
 
+    public async Task PublishUserLoggedOutAsync(User user, string? ipAddress, string? userAgent)
+    {
+        try
+        {
+            await _eventBus.Publish(new UserLoggedOutEvent(user.Id, user.Email, $"{user.Name} {user.LastName}", ipAddress, userAgent));
+            _logger.LogInformation("UserLoggedOutEvent published for user {UserId}", user.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to publish UserLoggedOutEvent for user {UserId}", user.Id);
+        }
+    }
+
     public async Task PublishUserRegisteredAsync(User user, string confirmationToken)
     {
         try

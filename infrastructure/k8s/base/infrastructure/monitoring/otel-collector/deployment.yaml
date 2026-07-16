@@ -1,0 +1,107 @@
+﻿# OTel Collector — Deployment base
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: monitoring
+  labels:
+    app: otel-collector
+    app.kubernetes.io/name: otel-collector
+    app.kubernetes.io/part-of: cryptojackpot-observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+      annotations:
+        # Fuerza re-deploy cuando cambia el ConfigMap
+        checksum/config: "placeholder"
+    spec:
+      serviceAccountName: otel-collector
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: otel-collector
+          # contrib incluye prometheusremotewrite + loki exporters
+          image: otel/opentelemetry-collector-contrib:0.114.0
+          args:
+            - "--config=/etc/otel/config.yaml"
+          ports:
+            - name: otlp-grpc
+              containerPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              containerPort: 4318
+              protocol: TCP
+            - name: health
+              containerPort: 13133
+              protocol: TCP
+            - name: metrics
+              containerPort: 8888
+              protocol: TCP
+          env:
+            # Credenciales de Grafana Cloud inyectadas desde Secret
+            - name: GRAFANA_INSTANCE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-cloud-secrets
+                  key: GRAFANA_INSTANCE_ID
+            - name: GRAFANA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-cloud-secrets
+                  key: GRAFANA_API_KEY
+            - name: GRAFANA_TEMPO_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-cloud-secrets
+                  key: GRAFANA_TEMPO_ENDPOINT
+            - name: GRAFANA_PROMETHEUS_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-cloud-secrets
+                  key: GRAFANA_PROMETHEUS_ENDPOINT
+            - name: GRAFANA_LOKI_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-cloud-secrets
+                  key: GRAFANA_LOKI_ENDPOINT
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otel
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config
+

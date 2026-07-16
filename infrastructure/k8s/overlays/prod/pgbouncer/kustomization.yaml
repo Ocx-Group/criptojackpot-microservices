@@ -16,7 +16,7 @@ patches:
         value: 2
       - op: replace
         path: /spec/template/spec/containers/0/env/6/value
-        value: "600"
+        value: "10"
       - op: replace
         path: /spec/template/spec/containers/0/env/7/value
-        value: "40"
+        value: "2"

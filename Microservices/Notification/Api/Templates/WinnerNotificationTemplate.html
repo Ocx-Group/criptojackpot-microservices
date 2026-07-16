@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You Won!</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; width: 100% !important; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+
+<div style="background-color: #f4f4f4; padding: 40px 0; font-family: Arial, sans-serif;">
+
+    <div style="background-color: #ffffff; margin: 0 auto; max-width: 600px; color: #333333; border-radius: 4px; overflow: hidden;">
+
+        <!-- Header -->
+        <div style="background-color: #000000; padding: 24px 20px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px; color: #FFA500;">Criptojackpot</h1>
+        </div>
+
+        <!-- Hero Banner -->
+        <div style="background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); padding: 36px 20px; text-align: center;">
+            <p style="margin: 0 0 10px; font-size: 56px;">🏆</p>
+            <h2 style="margin: 0 0 8px; font-size: 30px; color: #FFA500;">You're a Winner!</h2>
+            <p style="margin: 0; font-size: 16px; color: #cccccc;">Your lottery ticket has been selected as the winning ticket</p>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 30px 24px; text-align: left; line-height: 1.6;">
+
+            <p style="margin: 0 0 16px; font-size: 16px;">Hi <strong>{UserName}</strong>,</p>
+            <p style="margin: 0 0 20px; font-size: 16px;">
+                Incredible news! Your ticket was selected as the winner of
+                <strong style="color: #FFA500;">{LotteryTitle}</strong>.
+                Congratulations — you've won!
+            </p>
+
+            <!-- Prize Highlight -->
+            <div style="background-color: #fff8e1; border: 2px solid #FFA500; border-radius: 8px; padding: 24px 20px; margin: 0 0 24px; text-align: center;">
+                <p style="margin: 0 0 6px; font-size: 13px; color: #777777; text-transform: uppercase; letter-spacing: 1px;">Prize Won</p>
+                <p style="margin: 0 0 6px; font-size: 26px; font-weight: bold; color: #333333;">{PrizeName}</p>
+                <p style="margin: 0; font-size: 20px; font-weight: bold; color: #FFA500;">Estimated Value: {PrizeEstimatedValue}</p>
+            </div>
+
+            <!-- Winning Ticket Details -->
+            <div style="background-color: #f9f9f9; border-left: 4px solid #FFA500; border-radius: 0 4px 4px 0; padding: 16px 20px; margin: 0 0 24px;">
+                <p style="margin: 0 0 12px; font-size: 15px; font-weight: bold; color: #333333;">Winning Ticket Details</p>
+                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                    <tr>
+                        <td style="padding: 5px 0; color: #777777; width: 45%;">Lottery:</td>
+                        <td style="padding: 5px 0; color: #FFA500; font-weight: bold;">{LotteryTitle}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0; color: #777777;">Winning Number:</td>
+                        <td style="padding: 5px 0; color: #333333; font-weight: bold; font-size: 18px;">{Number}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0; color: #777777;">Series:</td>
+                        <td style="padding: 5px 0; color: #333333; font-weight: bold;">{Series}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0; color: #777777;">Original Purchase:</td>
+                        <td style="padding: 5px 0; color: #333333; font-weight: bold;">${PurchaseAmount} USD</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px 0; color: #777777;">Won At:</td>
+                        <td style="padding: 5px 0; color: #333333;">{WonAt}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Reference -->
+            <div style="background-color: #f0f0f0; border-radius: 4px; padding: 10px 15px; margin: 0 0 24px;">
+                <p style="margin: 0; font-size: 13px; color: #777777;">
+                    <strong>Winner Reference:</strong> #{WinnerRef}
+                </p>
+            </div>
+
+            <!-- CTA -->
+            <div style="text-align: center; margin: 28px 0;">
+                <a href="{MyTicketsUrl}"
+                   style="background-color: #FFA500; color: #000000; padding: 14px 32px; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 4px; display: inline-block;">
+                    View My Tickets
+                </a>
+            </div>
+
+            <p style="margin: 0; font-size: 14px; color: #555555;">
+                Our team will contact you shortly with instructions on how to claim your prize.
+                Please keep this email as your proof of winning.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #f4f4f4; padding: 20px 24px; text-align: center; border-top: 1px solid #eeeeee;">
+            <p style="margin: 0 0 6px; font-size: 13px; color: #999999;">
+                &copy; Criptojackpot. All rights reserved.
+            </p>
+            <p style="margin: 0; font-size: 12px; color: #bbbbbb;">
+                This email was sent because you hold a winning ticket on the Criptojackpot platform.
+            </p>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
+

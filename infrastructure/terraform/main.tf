@@ -115,8 +115,51 @@ module "spaces" {
 }
 
 # -----------------------------------------------------------------------------
-# NGINX Ingress Controller (sin cert-manager — TLS gestionado por Cloudflare)
+# Redis (DO Managed) Module
+# Reemplaza Upstash Redis — mismo VPC, latencia mínima, gestionado por DO
+# Usado como: SignalR Backplane (Lottery), Cache distribuido (Wallet), DataProtection (Identity)
 # -----------------------------------------------------------------------------
+module "redis" {
+  source = "./modules/redis"
+
+  depends_on = [module.vpc, module.doks]
+
+  name   = "${local.resource_prefix}-redis"
+  region = var.region
+
+  size       = var.redis_size
+  node_count = 1
+  vpc_uuid   = module.vpc.vpc_id
+
+  trusted_sources_ids = [module.doks.cluster_id]
+
+  tags = local.common_tags
+}
+
+# -----------------------------------------------------------------------------
+# MongoDB (DO Managed) Module
+# Reemplaza MongoDB Atlas — mismo VPC, sin costo externo
+# Usado por: Audit service
+# -----------------------------------------------------------------------------
+module "mongodb" {
+  source = "./modules/mongodb"
+
+  depends_on = [module.vpc, module.doks]
+
+  name   = "${local.resource_prefix}-mongodb"
+  region = var.region
+
+  size            = var.mongodb_size
+  node_count      = 1
+  vpc_uuid        = module.vpc.vpc_id
+  audit_database  = var.mongodb_audit_database
+
+  trusted_sources_ids = [module.doks.cluster_id]
+
+  tags = local.common_tags
+}
+
+
 module "ingress" {
   source = "./modules/ingress"
 
@@ -129,95 +172,48 @@ module "ingress" {
 }
 
 # -----------------------------------------------------------------------------
-# Kubernetes Secrets Module
-# Crea los secrets reales en el cluster con valores de los servicios gestionados
+# ArgoCD Image Updater — detecta nuevas imagenes en DOCR y actualiza deploys
+# Elimina la necesidad de commits automaticos con image tags desde CI/CD.
+# Usa write-back method "argocd" (sin commits a git, sin git pull forzado).
+# Flujo: CI push imagen → Image Updater detecta (~2 min) → ArgoCD sync
+# -----------------------------------------------------------------------------
+module "argocd_image_updater" {
+  source = "./modules/argocd-image-updater"
+
+  depends_on = [module.doks, module.ingress]
+
+  docr_token    = var.do_token
+  poll_interval = var.environment == "prod" ? "2m" : "1m"
+  log_level     = var.environment == "prod" ? "info" : "debug"
+}
+
+# -----------------------------------------------------------------------------
+# Kubernetes Namespace Module (antes "k8s_secrets")
+# Solo crea el namespace. Los Secrets de aplicación los gestiona ArgoCD vía
+# SealedSecrets (overlays/{env}/secrets/*) — única fuente de verdad.
+# Los kubernetes_secret que este módulo creaba antes eran código muerto: el
+# SealedSecret-controller dueña los Secrets vivos. Ver modules/secrets/main.tf.
 # -----------------------------------------------------------------------------
 module "k8s_secrets" {
   source = "./modules/secrets"
 
-  depends_on = [module.doks, module.database, module.spaces]
+  depends_on = [module.doks]
 
   namespace   = var.project_name
   environment = var.environment
-
-  # PostgreSQL - DO Managed (microservicios conectan via PgBouncer interno)
-  postgres_host     = module.database.host
-  postgres_port     = module.database.port
-  postgres_user     = module.database.user
-  postgres_password = module.database.password
-  databases         = var.databases
-
-  # JWT
-  jwt_secret_key = local.jwt_secret_key
-  jwt_issuer     = var.jwt_issuer
-  jwt_audience   = var.jwt_audience
-
-  # Kafka - Upstash (SASL_SSL externo)
-  kafka_bootstrap_servers = var.kafka_bootstrap_servers
-  kafka_sasl_username     = var.kafka_sasl_username
-  kafka_sasl_password     = var.kafka_sasl_password
-  kafka_sasl_mechanism    = var.kafka_sasl_mechanism
-  kafka_security_protocol = var.kafka_security_protocol
-
-  # Redis - Upstash (externo, TLS)
-  redis_connection_string = var.redis_connection_string
-
-  # MongoDB Atlas - Audit service
-  mongodb_connection_string = var.mongodb_connection_string
-  mongodb_audit_database    = var.mongodb_audit_database
-
-  # DigitalOcean Spaces
-  spaces_endpoint   = module.spaces.endpoint
-  spaces_region     = var.region
-  spaces_bucket     = module.spaces.bucket_name
-  spaces_access_key = var.spaces_access_key
-  spaces_secret_key = var.spaces_secret_key
-
-  # Brevo - Notification service
-  brevo_api_key      = var.brevo_api_key
-  brevo_sender_email = var.brevo_sender_email
-  brevo_sender_name  = var.brevo_sender_name
-  brevo_base_url     = local.frontend_url
 }
 
-# -----------------------------------------------------------------------------
-# Kustomize apply — despliega los manifiestos K8s del overlay correcto
-# Se ejecuta DESPUÉS de que el cluster y los secrets estén listos
-# -----------------------------------------------------------------------------
-resource "null_resource" "kustomize_apply" {
-  depends_on = [module.doks, module.k8s_secrets, module.ingress]
-
-  triggers = {
-    # Re-aplica si el cluster cambia o si hay cambios en los overlays
-    cluster_id  = module.doks.cluster_id
-    environment = var.environment
-    # Checksum de los archivos del overlay para detectar cambios
-    overlay_hash = sha256(join("", [
-      filesha256("${path.root}/../k8s/overlays/${var.environment}/kustomization.yaml"),
-    ]))
-  }
-
-  provisioner "local-exec" {
-    command     = <<-EOT
-      echo "Conectando kubectl al cluster ${module.doks.cluster_name}..."
-      doctl kubernetes cluster kubeconfig save ${module.doks.cluster_id} --context ${local.resource_prefix}
-
-      echo "Aplicando manifiestos Kustomize para ambiente: ${var.environment}..."
-      kubectl apply -k ../k8s/overlays/${var.environment} --context ${local.resource_prefix} --timeout=300s
-
-      echo "Verificando rollout de deployments..."
-      kubectl rollout status deployment/bff-gateway -n ${var.project_name} --context ${local.resource_prefix} --timeout=300s
-    EOT
-    interpreter = ["bash", "-c"]
-    working_dir = path.module
-  }
-}
+# NOTA: Los manifiestos K8s (incluidos los Secrets vía SealedSecrets) son
+# desplegados por ArgoCD (GitOps), no por Terraform.
+# ArgoCD Image Updater detecta nuevas imagenes en DOCR y actualiza los deploys.
+# El null_resource.kustomize_apply fue eliminado porque conflictuaba con ArgoCD
+# (ambos intentaban gestionar los mismos recursos).
 
 # -----------------------------------------------------------------------------
 # Cloudflare DNS — apunta al Load Balancer IP del NGINX Ingress
 # -----------------------------------------------------------------------------
 resource "cloudflare_record" "api_endpoint" {
-  count = local.is_cloudflare_ready && module.ingress.load_balancer_ip != "pending" ? 1 : 0
+  count = local.is_cloudflare_ready ? 1 : 0
 
   zone_id = var.cloudflare_zone_id
   name    = local.subdomain  # "api-qa" o "api"

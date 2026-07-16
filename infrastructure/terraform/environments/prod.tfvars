@@ -11,11 +11,10 @@
 #   $env:TF_VAR_spaces_secret_key     = "..."
 #   $env:TF_VAR_cloudflare_api_token  = "..."
 #   $env:TF_VAR_cloudflare_zone_id    = "..."
-#   $env:TF_VAR_kafka_bootstrap_servers = "upstash-host:9092"
-#   $env:TF_VAR_kafka_sasl_username   = "..."
-#   $env:TF_VAR_kafka_sasl_password   = "..."
-#   $env:TF_VAR_mongodb_connection_string = "mongodb+srv://..."
 #   $env:TF_VAR_brevo_api_key         = "..."
+#   (Kafka: Redpanda interno — sin TF_VAR)
+#   (Redis: DO Managed — sin TF_VAR)
+#   (MongoDB: DO Managed — sin TF_VAR)
 # =============================================================================
 
 # Project
@@ -26,20 +25,25 @@ region       = "nyc3"
 # VPC
 vpc_ip_range = "10.10.0.0/16"
 
-# Kubernetes - Configuración robusta para producción
-k8s_version    = "1.32.2-do.0"
+# Kubernetes - Right-sized para uso real bajo (cost-optimized 2026-06)
+# NOTA: cambiar k8s_node_size FUERZA recreación del cluster (provider DO) y
+# prevent_destroy lo bloquea. El tamaño de máquina de un node pool es inmutable
+# en DO. Ahorro de cómputo se hace bajando node_count (min_nodes), no el size.
+k8s_version    = "1.36.0-do.1"
 k8s_node_size  = "s-4vcpu-8gb"
-k8s_node_count = 3
+k8s_node_count = 1
 k8s_auto_scale = true
-k8s_min_nodes  = 3
-k8s_max_nodes  = 10
+k8s_min_nodes  = 1   # 1 nodo base (~$48); single-node SPOF asumido por costo
+k8s_max_nodes  = 3   # autoescala bajo carga; tope de seguridad de gasto
 
-# Database - HA para producción (replicación + failover automático)
+# Database - 1 nodo (sin standby HA). Backups/PITR siguen activos.
+# Para reactivar HA: db_node_count = 2 (+~$60/mes).
 db_size       = "db-s-2vcpu-4gb"
-db_node_count = 2
+db_node_count = 1
 db_version    = "16"
 
-# Registry
+# Registry - professional. NO bajar a basic sin confirmar cuenta/uso real:
+# el registry parece compartido (ocx-registry, syd1) con varios proyectos.
 registry_subscription_tier = "professional"
 
 # Spaces
@@ -58,10 +62,14 @@ cloudflare_proxied    = true  # Nube naranja: CDN + WAF activo
 jwt_issuer   = "CriptoJackpotIdentity"
 jwt_audience = "CriptoJackpotApp"
 
-# Kafka - Upstash (externo, SASL_SSL)
-# Los valores reales se pasan via TF_VAR_* en CI/CD
-kafka_sasl_mechanism    = "SCRAM-SHA-256"
-kafka_security_protocol = "SASL_SSL"
+# Redis - DO Managed (misma VPC, gestionado por DigitalOcean)
+redis_size = "db-s-1vcpu-1gb"
+
+# MongoDB - DO Managed (mismo VPC, reemplaza Atlas)
+mongodb_size           = "db-s-1vcpu-1gb"
+mongodb_audit_database = "criptojackpot_audit"
+
+# Kafka - Redpanda interno (pod en el cluster, sin credenciales externas)
 
 # Tags
 tags = ["criptojackpot", "prod", "terraform-managed", "critical"]

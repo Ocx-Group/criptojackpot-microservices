@@ -9,4 +9,5 @@ public interface ILotteryDrawRepository
     Task<PagedList<LotteryDraw>> GetAllLotteryDrawsAsync(Pagination pagination);
     Task<LotteryDraw> UpdateLotteryDrawAsync(LotteryDraw lotteryDraw);
     Task<LotteryDraw> DeleteLotteryDrawAsync(LotteryDraw lotteryDraw);
+    Task IncrementSoldTicketsAsync(Guid lotteryGuid, int count);
 }

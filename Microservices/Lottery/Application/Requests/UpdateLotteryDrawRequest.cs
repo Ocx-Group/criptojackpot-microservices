@@ -1,4 +1,5 @@
 using CryptoJackpot.Lottery.Domain.Enums;
+using CryptoJackpot.Lottery.Domain.Models;
 
 namespace CryptoJackpot.Lottery.Application.Requests;
 
@@ -19,7 +20,9 @@ public class UpdateLotteryDrawRequest
     public int? MinimumAge { get; set; }
     public string CryptoCurrencyId { get; set; } = null!;
     public string CryptoCurrencySymbol { get; set; } = null!;
+    public decimal ReferralCommissionPercentage { get; set; } = 1.00m;
     public List<string> RestrictedCountries { get; set; } = [];
+    public Dictionary<string, LotteryTranslation>? Translations { get; set; }
     public Guid? PrizeId { get; set; }
 }
 

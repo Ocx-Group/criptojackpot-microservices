@@ -45,10 +45,11 @@ Browser → http://localhost → NGINX Ingress → BFF Gateway → microservicio
 ```
 Frontend → Cloudflare (TLS terminado) → NGINX Ingress → BFF Gateway → microservicios (ClusterIP)
                                                                         ↓
-                                                             Servicios gestionados externos
+                                                             Servicios gestionados en DO
                                                              (DO Managed Postgres vía PgBouncer,
-                                                              Upstash Kafka, Upstash Redis,
-                                                              MongoDB Atlas, DO Spaces)
+                                                              Redpanda Kafka en cluster,
+                                                              DO Managed Redis,
+                                                              DO Managed MongoDB, DO Spaces)
 ```
 
 **Principios clave:**
@@ -72,9 +73,9 @@ Frontend → Cloudflare (TLS terminado) → NGINX Ingress → BFF Gateway → mi
 | Servicio         | Local                          | QA / Prod                          |
 |------------------|--------------------------------|------------------------------------|
 | PostgreSQL        | StatefulSet en cluster         | DO Managed Postgres + PgBouncer    |
-| Kafka             | Redpanda en cluster            | Upstash Kafka (SASL/SSL)           |
-| Redis             | StatefulSet en cluster         | Upstash Redis (TLS)                |
-| MongoDB           | StatefulSet en cluster         | MongoDB Atlas                      |
+| Kafka             | Redpanda en cluster            | Redpanda en cluster (pod interno)  |
+| Redis             | StatefulSet en cluster         | DO Managed Redis                   |
+| MongoDB           | StatefulSet en cluster         | DO Managed MongoDB                 |
 | Object Storage    | MinIO en cluster               | DigitalOcean Spaces                |
 | TLS / Certificados| No                             | Cloudflare (externo al cluster)    |
 

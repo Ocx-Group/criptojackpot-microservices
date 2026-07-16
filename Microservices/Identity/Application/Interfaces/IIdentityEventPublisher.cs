@@ -10,6 +10,7 @@ public interface IIdentityEventPublisher
 {
     Task PublishReferralCreatedAsync(User referrer, User referred, string referralCode);
     Task PublishUserLoggedInAsync(User user);
+    Task PublishUserLoggedOutAsync(User user, string? ipAddress, string? userAgent);
     
     /// <summary>
     /// Publishes user registered event for local registration (requires email verification).

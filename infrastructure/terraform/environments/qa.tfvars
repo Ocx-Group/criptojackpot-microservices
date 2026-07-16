@@ -11,12 +11,64 @@
 #   $env:TF_VAR_spaces_secret_key     = "..."
 #   $env:TF_VAR_cloudflare_api_token  = "..."
 #   $env:TF_VAR_cloudflare_zone_id    = "..."
-#   $env:TF_VAR_kafka_bootstrap_servers = "upstash-host:9092"
-#   $env:TF_VAR_kafka_sasl_username   = "..."
-#   $env:TF_VAR_kafka_sasl_password   = "..."
-#   $env:TF_VAR_mongodb_connection_string = "mongodb+srv://..."
 #   $env:TF_VAR_brevo_api_key         = "..."
+#   (Kafka: Redpanda interno — sin TF_VAR)
+#   (Redis: DO Managed — sin TF_VAR)
+#   (MongoDB: DO Managed — sin TF_VAR)
 # =============================================================================
+
+# Project
+project_name = "criptojackpot"
+environment  = "qa"
+region       = "nyc3"
+
+# VPC (rango separado de prod para evitar overlaps)
+vpc_ip_range = "10.30.0.0/16"
+
+# Kubernetes - 2 nodos fijos, tamaño medio
+k8s_version    = "1.32.2-do.0"
+k8s_node_size  = "s-2vcpu-4gb"
+k8s_node_count = 2
+k8s_auto_scale = false
+k8s_min_nodes  = 2
+k8s_max_nodes  = 4
+
+# Database - Standalone para QA (sin HA)
+db_size       = "db-s-1vcpu-2gb"
+db_node_count = 1
+db_version    = "16"
+
+# Registry - compartido con prod (básico alcanza)
+registry_subscription_tier = "basic"
+
+# Spaces - bucket separado para QA
+spaces_bucket_name   = "criptojackpot-qa-assets"
+spaces_acl           = "private"
+spaces_force_destroy = true  # OK en QA: permite limpiar el ambiente
+
+# Redis - DO Managed
+redis_size = "db-s-1vcpu-1gb"
+
+# MongoDB - DO Managed
+mongodb_size           = "db-s-1vcpu-1gb"
+mongodb_audit_database = "criptojackpot_audit"
+
+# Domain - subdominio qa
+domain = "api-qa.criptojackpot.com"
+
+# Cloudflare
+enable_cloudflare_dns = true
+cloudflare_proxied    = true
+
+# JWT
+jwt_issuer   = "CriptoJackpotIdentity"
+jwt_audience = "CriptoJackpotApp"
+
+# Kafka - Redpanda interno (pod en el cluster, sin credenciales externas)
+
+# Tags
+tags = ["criptojackpot", "qa", "terraform-managed"]
+
 
 # Project
 project_name = "criptojackpot"

@@ -5,6 +5,7 @@ using CryptoJackpot.Identity.Application.Interfaces;
 using CryptoJackpot.Identity.Domain.Interfaces;
 using FluentResults;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace CryptoJackpot.Identity.Application.Handlers.Commands;
 
@@ -14,17 +15,20 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAuthenticationService _authService;
     private readonly IIdentityEventPublisher _eventPublisher;
+    private readonly ILogger<LoginCommandHandler> _logger;
 
     public LoginCommandHandler(
         IUserRepository userRepository,
         IUnitOfWork unitOfWork,
         IAuthenticationService authService,
-        IIdentityEventPublisher eventPublisher)
+        IIdentityEventPublisher eventPublisher,
+        ILogger<LoginCommandHandler> logger)
     {
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
         _authService = authService;
         _eventPublisher = eventPublisher;
+        _logger = logger;
     }
 
     public async Task<Result<LoginResultDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -65,7 +69,30 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginRes
         }
 
         if (!user.EmailVerified)
-            return Result.Fail<LoginResultDto>(new ForbiddenError("Please verify your email before logging in."));
+        {
+            var tokenExpired = !user.EmailVerificationTokenExpiresAt.HasValue ||
+                               user.EmailVerificationTokenExpiresAt.Value < DateTime.UtcNow;
+
+            if (tokenExpired)
+            {
+                var newToken = Guid.NewGuid().ToString("N");
+                user.EmailVerificationToken = newToken;
+                user.EmailVerificationTokenExpiresAt = DateTime.UtcNow.AddHours(24);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                _ = _eventPublisher.PublishUserRegisteredAsync(user, newToken);
+
+                _logger.LogInformation(
+                    "Verification token expired for user {UserId}. New verification email sent.",
+                    user.Id);
+
+                return Result.Fail<LoginResultDto>(new ForbiddenError(
+                    "Your verification link has expired. We've sent a new verification email to your inbox."));
+            }
+
+            return Result.Fail<LoginResultDto>(new ForbiddenError(
+                "Please verify your email before logging in. Check your inbox for the verification link."));
+        }
 
         if (user.TwoFactorEnabled)
         {

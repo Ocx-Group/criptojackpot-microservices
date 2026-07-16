@@ -46,22 +46,6 @@ public class NotificationController : ControllerBase
             SecurityCode = request.SecurityCode
         };
 
-        var result = await _mediator.Send(command);
-        return result.ToActionResult();
-    }
-
-    [HttpPost("referral-notification")]
-    public async Task<IActionResult> SendReferralNotification([FromBody] SendReferralNotificationRequest request)
-    {
-        var command = new SendReferralNotificationCommand
-        {
-            ReferrerEmail = request.ReferrerEmail,
-            ReferrerName = request.ReferrerName,
-            ReferrerLastName = request.ReferrerLastName,
-            ReferredName = request.ReferredName,
-            ReferredLastName = request.ReferredLastName,
-            ReferralCode = request.ReferralCode
-        };
 
         var result = await _mediator.Send(command);
         return result.ToActionResult();

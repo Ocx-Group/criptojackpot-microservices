@@ -1,3 +1,5 @@
+using CryptoJackpot.Winner.Data.Context.Configurations;
+using CryptoJackpot.Winner.Domain.Models;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,9 +11,13 @@ public class WinnerDbContext : DbContext
     {
     }
 
+    public DbSet<LotteryWinner> Winners { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfiguration(new LotteryWinnerConfiguration());
 
         // MassTransit Outbox configuration with snake_case naming
         modelBuilder.AddInboxStateEntity(x => x.ToTable("inbox_state"));

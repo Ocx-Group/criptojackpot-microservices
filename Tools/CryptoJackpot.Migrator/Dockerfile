@@ -35,6 +35,10 @@ COPY ["Microservices/Notification/Domain/CryptoJackpot.Notification.Domain.cspro
 COPY ["Microservices/Notification/Data/CryptoJackpot.Notification.Data.csproj", "Microservices/Notification/Data/"]
 COPY ["Microservices/Notification/Application/CryptoJackpot.Notification.Application.csproj", "Microservices/Notification/Application/"]
 
+COPY ["Microservices/Content/Domain/CryptoJackpot.Content.Domain.csproj", "Microservices/Content/Domain/"]
+COPY ["Microservices/Content/Data/CryptoJackpot.Content.Data.csproj", "Microservices/Content/Data/"]
+COPY ["Microservices/Content/Application/CryptoJackpot.Content.Application.csproj", "Microservices/Content/Application/"]
+
 # Restore dependencies con cache mount
 RUN --mount=type=cache,id=nuget-migrator,target=/root/.nuget/packages \
     dotnet restore "Tools/CryptoJackpot.Migrator/CryptoJackpot.Migrator.csproj"
@@ -62,6 +66,9 @@ COPY Microservices/Winner/Application/ Microservices/Winner/Application/
 COPY Microservices/Notification/Domain/ Microservices/Notification/Domain/
 COPY Microservices/Notification/Data/ Microservices/Notification/Data/
 COPY Microservices/Notification/Application/ Microservices/Notification/Application/
+COPY Microservices/Content/Domain/ Microservices/Content/Domain/
+COPY Microservices/Content/Data/ Microservices/Content/Data/
+COPY Microservices/Content/Application/ Microservices/Content/Application/
 
 # Build
 WORKDIR "/src/Tools/CryptoJackpot.Migrator"

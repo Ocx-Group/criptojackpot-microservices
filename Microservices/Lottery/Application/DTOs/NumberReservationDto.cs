@@ -9,6 +9,7 @@ public class NumberReservationDto
     public Guid LotteryNumberGuid { get; set; }
     public Guid LotteryGuid { get; set; }
     public int Number { get; set; }
+    public string DisplayNumber { get; set; } = null!;
     public int Series { get; set; }
     public DateTime ReservationExpiresAt { get; set; }
     public int SecondsRemaining { get; set; }

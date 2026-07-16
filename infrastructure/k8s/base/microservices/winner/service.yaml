@@ -3,13 +3,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: winner-api
-  namespace: cryptojackpot
+  namespace: criptojackpot
   labels:
     app: winner-api
 spec:
   type: ClusterIP
   ports:
     - port: 80
-      targetPort: 80
+      targetPort: 8080
   selector:
     app: winner-api

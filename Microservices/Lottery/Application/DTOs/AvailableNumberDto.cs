@@ -8,6 +8,7 @@ namespace CryptoJackpot.Lottery.Application.DTOs;
 public class AvailableNumberDto
 {
     public int Number { get; set; }
+    public string DisplayNumber { get; set; } = null!;
     public int AvailableSeries { get; set; }
     public int TotalSeries { get; set; }
     public bool IsFullyAvailable => AvailableSeries == TotalSeries;

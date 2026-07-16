@@ -6,7 +6,7 @@ public interface IPrizeRepository
 {
     Task<Prize> CreatePrizeAsync(Prize prize);
     Task<Prize?> GetPrizeAsync(Guid prizeGuid);
-    Task<PagedList<Prize>> GetAllPrizesAsync(Pagination pagination);
+    Task<PagedList<Prize>> GetAllPrizesAsync(Pagination pagination, bool availableOnly = false);
     Task<Prize> UpdatePrizeAsync(Prize prize);
     Task<Prize> DeletePrizeAsync(Prize prize);
     Task LinkPrizeToLotteryAsync(Guid prizeGuid, long lotteryId);

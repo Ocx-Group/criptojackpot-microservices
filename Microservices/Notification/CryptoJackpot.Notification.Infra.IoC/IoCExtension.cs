@@ -3,6 +3,9 @@ using CryptoJackpot.Domain.Core.Constants;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Identity;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Notification;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Order;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Wallet;
+using CryptoJackpot.Domain.Core.IntegrationEvents.Winner;
 using CryptoJackpot.Infra.IoC;
 using CryptoJackpot.Infra.IoC.Extensions;
 using CryptoJackpot.Notification.Application;
@@ -27,6 +30,7 @@ public static class IoCExtension
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        DependencyContainer.RegisterOpenTelemetry(services, configuration, "cryptojackpot-notification");
         AddConfiguration(services, configuration);
         AddDatabase(services, configuration);
         AddSwagger(services);
@@ -151,10 +155,13 @@ public static class IoCExtension
                 // Register consumers in Kafka Rider
                 rider.AddConsumer<UserRegisteredConsumer>();
                 rider.AddConsumer<PasswordResetRequestedConsumer>();
-                rider.AddConsumer<ReferralCreatedConsumer>();
+                rider.AddConsumer<ReferralCommissionCreditedConsumer>();
                 rider.AddConsumer<LotteryMarketingConsumer>();
                 rider.AddConsumer<SendMarketingEmailConsumer>();
                 rider.AddConsumer<MarketingUsersResponseConsumer>();
+                rider.AddConsumer<OrderCompletedConsumer>();
+                rider.AddConsumer<WithdrawalVerificationRequestedConsumer>();
+                rider.AddConsumer<WinnerDeterminedConsumer>();
 
                 // Register producers for distributing events
                 rider.AddProducer<SendMarketingEmailEvent>(KafkaTopics.SendMarketingEmail);
@@ -181,14 +188,6 @@ public static class IoCExtension
                         e.ConfigureTopicDefaults(configuration);
                     });
 
-                kafka.TopicEndpoint<ReferralCreatedEvent>(
-                    KafkaTopics.ReferralCreated,
-                    KafkaTopics.NotificationGroup,
-                    e =>
-                    {
-                        e.ConfigureConsumer<ReferralCreatedConsumer>(context);
-                        e.ConfigureTopicDefaults(configuration);
-                    });
 
                 kafka.TopicEndpoint<LotteryCreatedEvent>(
                     KafkaTopics.LotteryCreated,
@@ -221,6 +220,46 @@ public static class IoCExtension
                         e.CheckpointInterval = TimeSpan.FromSeconds(1);
                         // Enable concurrent message processing for higher throughput
                         e.ConcurrentMessageLimit = 10;
+                    });
+
+                // Order completed - send purchase confirmation email to buyer
+                kafka.TopicEndpoint<OrderCompletedEvent>(
+                    KafkaTopics.OrderCompleted,
+                    KafkaTopics.NotificationGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<OrderCompletedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+
+                // Withdrawal verification - send security code email
+                kafka.TopicEndpoint<WithdrawalVerificationRequestedEvent>(
+                    KafkaTopics.WithdrawalVerificationRequested,
+                    KafkaTopics.NotificationGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<WithdrawalVerificationRequestedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+                
+                // Referral commission credited — send 1% purchase commission email to referrer
+                kafka.TopicEndpoint<ReferralCommissionCreditedEvent>(
+                    KafkaTopics.ReferralCommissionCredited,
+                    KafkaTopics.NotificationGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<ReferralCommissionCreditedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
+                    });
+                
+                // Winner determined — send congratulations email to the winner
+                kafka.TopicEndpoint<WinnerDeterminedEvent>(
+                    KafkaTopics.WinnerDetermined,
+                    KafkaTopics.NotificationGroup,
+                    e =>
+                    {
+                        e.ConfigureConsumer<WinnerDeterminedConsumer>(context);
+                        e.ConfigureTopicDefaults(configuration);
                     });
             });
     }

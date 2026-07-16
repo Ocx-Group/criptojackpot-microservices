@@ -1,4 +1,6 @@
+using CryptoJackpot.Lottery.Application.Utilities;
 using CryptoJackpot.Lottery.Domain.Enums;
+using CryptoJackpot.Lottery.Domain.Models;
 
 namespace CryptoJackpot.Lottery.Application.DTOs;
 
@@ -23,9 +25,16 @@ public class LotteryDrawDto
     public int? MinimumAge { get; set; }
     public string CryptoCurrencyId { get; set; } = null!;
     public string CryptoCurrencySymbol { get; set; } = null!;
+    public decimal ReferralCommissionPercentage { get; set; }
     public List<string> RestrictedCountries { get; set; } = [];
+    public Dictionary<string, LotteryTranslation>? Translations { get; set; }
     public List<PrizeDto> Prizes { get; set; } = [];
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Number of digits for formatting (e.g., 3 for Pick3, 4 for a 0-9999 raffle).
+    /// </summary>
+    public int NumberDigits => LotteryNumberFormatter.GetNumberDigits(Type, MaxNumber);
 }
 

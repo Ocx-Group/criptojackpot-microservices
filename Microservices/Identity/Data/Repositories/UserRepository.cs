@@ -74,6 +74,13 @@ public class UserRepository : IUserRepository
         return await _context.Users.AnyAsync(u => u.Email == email);
     }
 
+    public async Task<User?> GetByEmailVerificationTokenAsync(string token)
+    {
+        return await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.EmailVerificationToken == token);
+    }
+
     public async Task<User> CreateAsync(User user)
     {
         _context.Users.Add(user);
@@ -96,5 +103,16 @@ public class UserRepository : IUserRepository
             query = query.Where(u => u.Id != excludeUserId.Value);
 
         return await query.ToListAsync();
+    }
+
+    public async Task<int> CountAsync()
+    {
+        return await _context.Users.CountAsync();
+    }
+
+    public async Task<int> CountByDateRangeAsync(DateTime from, DateTime to)
+    {
+        return await _context.Users
+            .CountAsync(u => u.CreatedAt >= from && u.CreatedAt < to);
     }
 }

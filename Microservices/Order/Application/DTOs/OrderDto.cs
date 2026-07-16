@@ -7,10 +7,15 @@ public class OrderDto
     public long Id { get; set; }
     public Guid OrderGuid { get; set; }
     public long UserId { get; set; }
+    public Guid UserGuid { get; set; }
+    public string UserEmail { get; set; } = null!;
+    public string UserName { get; set; } = null!;
     public Guid LotteryId { get; set; }
+    public string LotteryTitle { get; set; } = null!;
     public decimal TotalAmount { get; set; }
     public int TotalItems { get; set; }
     public OrderStatus Status { get; set; }
+    public int LotteryType { get; set; }
     public DateTime ExpiresAt { get; set; }
     public int SecondsRemaining { get; set; }
     public List<OrderDetailDto> Items { get; set; } = [];
@@ -21,6 +26,7 @@ public class OrderDetailDto
 {
     public long Id { get; set; }
     public int Number { get; set; }
+    public string? DisplayNumber { get; set; }
     public int Series { get; set; }
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; }

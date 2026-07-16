@@ -37,6 +37,7 @@ public class GetAvailableNumbersQueryHandler : IRequestHandler<GetAvailableNumbe
         var result = availableNumbers.Select(n => new LotteryNumberDto
         {
             Number = n,
+            DisplayNumber = Utilities.LotteryNumberFormatter.FormatNumber(n, lottery.Type, lottery.MaxNumber),
             LotteryId = request.LotteryId,
             IsAvailable = true
         }).ToList();

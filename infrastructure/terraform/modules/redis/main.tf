@@ -1,11 +1,11 @@
 # =============================================================================
 # Redis Module - CryptoJackpot DigitalOcean Infrastructure
-# Redis managed database for SignalR Backplane
+# Valkey (fork de Redis, 100% compatible) — reemplaza DO Managed Redis
 # =============================================================================
 
 resource "digitalocean_database_cluster" "redis" {
   name       = var.name
-  engine     = "redis"
+  engine     = "valkey"
   version    = var.version_redis
   size       = var.size
   region     = var.region
@@ -17,11 +17,6 @@ resource "digitalocean_database_cluster" "redis" {
   # Tags para identificación
   tags = var.tags
 
-  # Configuraciones de mantenimiento
-  maintenance_window {
-    day  = var.maintenance_day
-    hour = var.maintenance_hour
-  }
 
   # Eviction policy para cache
   eviction_policy = var.eviction_policy

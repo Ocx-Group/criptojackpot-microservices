@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using CryptoJackpot.Lottery.Data.Context;
+using CryptoJackpot.Lottery.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -38,13 +39,13 @@ namespace CryptoJackpot.Lottery.Data.Migrations
 
                     b.Property<string>("CryptoCurrencyId")
                         .IsRequired()
-                        .HasMaxLength(20)
+                        .HasMaxLength(100)
                         .HasColumnType("text")
                         .HasColumnName("crypto_currency_id");
 
                     b.Property<string>("CryptoCurrencySymbol")
                         .IsRequired()
-                        .HasMaxLength(20)
+                        .HasMaxLength(100)
                         .HasColumnType("text")
                         .HasColumnName("crypto_currency_symbol");
 
@@ -92,6 +93,12 @@ namespace CryptoJackpot.Lottery.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("minimum_age");
 
+                    b.Property<decimal>("ReferralCommissionPercentage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(1.00m)
+                        .HasColumnName("referral_commission_percentage");
+
                     b.Property<List<string>>("RestrictedCountries")
                         .IsRequired()
                         .HasColumnType("jsonb")
@@ -127,6 +134,10 @@ namespace CryptoJackpot.Lottery.Data.Migrations
                     b.Property<int>("TotalSeries")
                         .HasColumnType("integer")
                         .HasColumnName("total_series");
+
+                    b.Property<Dictionary<string, LotteryTranslation>>("Translations")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("translations");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer")
@@ -167,6 +178,12 @@ namespace CryptoJackpot.Lottery.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
+                    b.Property<string>("DisplayNumber")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("display_number");
+
                     b.Property<long>("LotteryId")
                         .HasColumnType("bigint")
                         .HasColumnName("lottery_id");
@@ -191,9 +208,8 @@ namespace CryptoJackpot.Lottery.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("series");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<short>("Status")
+                        .HasColumnType("smallint")
                         .HasColumnName("status");
 
                     b.Property<Guid?>("TicketId")
@@ -295,6 +311,10 @@ namespace CryptoJackpot.Lottery.Data.Migrations
                     b.Property<int>("Tier")
                         .HasColumnType("integer")
                         .HasColumnName("tier");
+
+                    b.Property<Dictionary<string, PrizeTranslation>>("Translations")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("translations");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer")

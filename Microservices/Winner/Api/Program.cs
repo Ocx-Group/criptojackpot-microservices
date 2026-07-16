@@ -1,6 +1,6 @@
 using CryptoJackpot.Infra.IoC.Extensions;
-using CryptoJackpot.Winner.Application;
 using CryptoJackpot.Winner.Data.Context;
+using Cryptojackpot.Winner.Infra.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
 

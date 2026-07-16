@@ -627,6 +627,60 @@ namespace CryptoJackpot.Identity.Data.Migrations
                     b.ToTable("user_refresh_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("CryptoJackpot.Identity.Domain.Models.WishListItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid>("LotteryGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lottery_guid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_guid");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.Property<Guid>("WishListItemGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("wish_list_item_guid");
+
+                    b.HasKey("Id")
+                        .HasName("pk_wish_list_items");
+
+                    b.HasIndex("UserGuid")
+                        .HasDatabaseName("ix_wish_list_items_user_guid");
+
+                    b.HasIndex("WishListItemGuid")
+                        .IsUnique()
+                        .HasDatabaseName("ix_wish_list_items_wish_list_item_guid");
+
+                    b.HasIndex("UserId", "LotteryGuid")
+                        .IsUnique()
+                        .HasDatabaseName("ix_wish_list_items_user_id_lottery_guid");
+
+                    b.ToTable("wish_list_items", (string)null);
+                });
+
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.InboxState", b =>
                 {
                     b.Property<long>("Id")
@@ -928,6 +982,18 @@ namespace CryptoJackpot.Identity.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_user_refresh_tokens_users_user_id");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CryptoJackpot.Identity.Domain.Models.WishListItem", b =>
+                {
+                    b.HasOne("CryptoJackpot.Identity.Domain.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_wish_list_items_users_user_id");
 
                     b.Navigation("User");
                 });

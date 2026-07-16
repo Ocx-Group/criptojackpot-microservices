@@ -44,13 +44,40 @@ namespace CryptoJackpot.Order.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
+                    b.Property<string>("InvoiceId")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("invoice_id");
+
                     b.Property<Guid>("LotteryId")
                         .HasColumnType("uuid")
                         .HasColumnName("lottery_id");
 
+                    b.Property<string>("LotteryNo")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("lottery_no");
+
+                    b.Property<string>("LotteryTitle")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("lottery_title");
+
+                    b.Property<int>("LotteryType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("lottery_type");
+
                     b.Property<Guid>("OrderGuid")
                         .HasColumnType("uuid")
                         .HasColumnName("order_guid");
+
+                    b.Property<decimal?>("ReferralCommissionPercentage")
+                        .HasColumnType("decimal(5,2)")
+                        .HasColumnName("referral_commission_percentage");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -61,12 +88,33 @@ namespace CryptoJackpot.Order.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("user_email");
+
+                    b.Property<Guid>("UserGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_guid");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
                         .HasColumnName("user_id");
 
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("user_name");
+
                     b.HasKey("Id")
                         .HasName("pk_orders");
+
+                    b.HasIndex("InvoiceId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_orders_invoice_id")
+                        .HasFilter("invoice_id IS NOT NULL");
 
                     b.HasIndex("LotteryId")
                         .HasDatabaseName("ix_orders_lottery_id");
@@ -100,6 +148,11 @@ namespace CryptoJackpot.Order.Data.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
+
+                    b.Property<string>("DisplayNumber")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("display_number");
 
                     b.Property<long?>("GiftRecipientId")
                         .HasColumnType("bigint")
@@ -173,6 +226,11 @@ namespace CryptoJackpot.Order.Data.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
+
+                    b.Property<string>("DisplayNumber")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("display_number");
 
                     b.Property<long?>("GiftSenderId")
                         .HasColumnType("bigint")

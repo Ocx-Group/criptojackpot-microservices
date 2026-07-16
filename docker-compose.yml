@@ -1,0 +1,372 @@
+# ============================================================================
+# CryptoJackpot - Local Development Docker Compose
+# ============================================================================
+# Levanta toda la infraestructura + microservicios localmente.
+# NO TOCA PRODUCCIÓN — es 100% aislado.
+#
+# Uso:
+#   docker compose up -d              # Levantar todo
+#   docker compose up -d --build      # Rebuild + levantar
+#   docker compose logs -f bff-gateway # Ver logs de un servicio
+#   docker compose down               # Detener todo
+#   docker compose down -v            # Detener + borrar volúmenes (reset data)
+#
+# Frontend (separado, con hot-reload):
+#   cd ../criptojackpot-web && npm run dev
+#
+# URLs:
+#   Frontend:      http://localhost:3000
+#   BFF Gateway:   http://localhost:8080
+#   Swagger APIs:  http://localhost:50xx/swagger (ver puertos abajo)
+#   MinIO Console: http://localhost:9001
+#   Redpanda:      localhost:19092 (Kafka externo)
+# ============================================================================
+
+x-common-env: &common-env
+  ASPNETCORE_ENVIRONMENT: Development
+  ASPNETCORE_URLS: "http://+:8080"
+  Logging__LogLevel__Default: Information
+  Logging__LogLevel__Microsoft.AspNetCore: Warning
+  ConnectionStrings__RedisConnection: "redis:6379"
+  Kafka__BootstrapServers: "redpanda:9092"
+  Kafka__DefaultPartitions: 1
+  Kafka__DefaultReplicationFactor: 1
+  OpenTelemetry__Enabled: "false"
+  JwtSettings__SecretKey: "4ffe50319fbe565a10c6cb8b2300cf91ad85c31a73f1a96826f0907535fb868f"
+  JwtSettings__Issuer: "CryptoJackpotIdentity"
+  JwtSettings__Audience: "CryptoJackpotApp"
+
+x-postgres-conn: &pg-base "Host=postgres;Port=5432;Username=postgres;Password=postgres_local_dev"
+
+services:
+  # ─────────────────────────────────────────────
+  #  INFRASTRUCTURE
+  # ─────────────────────────────────────────────
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: cj-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_local_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  redis:
+    image: redis:7-alpine
+    container_name: cj-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redpanda:
+    image: redpandadata/redpanda:v23.3.5
+    container_name: cj-redpanda
+    command:
+      - redpanda
+      - start
+      - --smp
+      - "1"
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - "0"
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+    ports:
+      - "9092:9092"
+      - "19092:19092"
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -q 'Healthy.*true' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
+
+  mongodb:
+    image: mongo:7.0
+    container_name: cj-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: mongodb_local_dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./infrastructure/docker/mongodb-init.js:/docker-entrypoint-initdb.d/01-init.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  minio:
+    image: minio/minio
+    container_name: cj-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  # ─────────────────────────────────────────────
+  #  DATABASE MIGRATIONS (ejecuta y termina)
+  # ─────────────────────────────────────────────
+
+  migrator:
+    build:
+      context: .
+      dockerfile: Tools/CryptoJackpot.Migrator/Dockerfile
+    container_name: cj-migrator
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      IDENTITY_DB_CONNECTION: "Host=postgres;Port=5432;Database=cryptojackpot_identity_db;Username=postgres;Password=postgres_local_dev"
+      LOTTERY_DB_CONNECTION: "Host=postgres;Port=5432;Database=cryptojackpot_lottery_db;Username=postgres;Password=postgres_local_dev"
+      ORDER_DB_CONNECTION: "Host=postgres;Port=5432;Database=cryptojackpot_order_db;Username=postgres;Password=postgres_local_dev"
+      WALLET_DB_CONNECTION: "Host=postgres;Port=5432;Database=cryptojackpot_wallet_db;Username=postgres;Password=postgres_local_dev"
+      WINNER_DB_CONNECTION: "Host=postgres;Port=5432;Database=cryptojackpot_winner_db;Username=postgres;Password=postgres_local_dev"
+      NOTIFICATION_DB_CONNECTION: "Host=postgres;Port=5432;Database=cryptojackpot_notification_db;Username=postgres;Password=postgres_local_dev"
+      CONTENT_DB_CONNECTION: "Host=postgres;Port=5432;Database=cryptojackpot_content_db;Username=postgres;Password=postgres_local_dev"
+    restart: "no"
+
+  # ─────────────────────────────────────────────
+  #  MICROSERVICES
+  # ─────────────────────────────────────────────
+
+  # ── Identity (Auth, Users, JWT, Referrals) ──
+  identity-api:
+    build:
+      context: .
+      dockerfile: Microservices/Identity/Api/Dockerfile
+    container_name: cj-identity
+    ports:
+      - "5010:8080"   # HTTP/REST
+      - "5001:5001"   # gRPC
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=cryptojackpot_identity_db;Username=postgres;Password=postgres_local_dev"
+
+  # ── Lottery (Sorteos, Números, Premios, SignalR Hub) ──
+  lottery-api:
+    build:
+      context: .
+      dockerfile: Microservices/Lottery/Api/Dockerfile
+    container_name: cj-lottery
+    ports:
+      - "5020:8080"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=cryptojackpot_lottery_db;Username=postgres;Password=postgres_local_dev"
+
+  # ── Order (Órdenes, Tickets, Pagos CoinPayments) ──
+  order-api:
+    build:
+      context: .
+      dockerfile: Microservices/Order/Api/Dockerfile
+    container_name: cj-order
+    ports:
+      - "5030:8080"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=cryptojackpot_order_db;Username=postgres;Password=postgres_local_dev"
+      GrpcServices__WalletAddress: "http://wallet-api:8080"
+      # CoinPayments - dejar vacío o usar sandbox para local
+      CoinPayments__ClientSecret: ""
+      CoinPayments__ClientId: ""
+      CoinPayments__BaseUrl: "https://a-api.coinpayments.net/api/"
+      CoinPayments__WebhookNotificationsUrl: "http://localhost:8080/api/v1/webhooks/coinpayments"
+
+  # ── Wallet (Billeteras, Saldos, Retiros) ──
+  wallet-api:
+    build:
+      context: .
+      dockerfile: Microservices/Wallet/Api/Dockerfile
+    container_name: cj-wallet
+    ports:
+      - "5040:8080"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=cryptojackpot_wallet_db;Username=postgres;Password=postgres_local_dev"
+      GrpcServices__IdentityAddress: "http://identity-api:5001"
+
+  # ── Winner (Ganadores, Determinación) ──
+  winner-api:
+    build:
+      context: .
+      dockerfile: Microservices/Winner/Api/Dockerfile
+    container_name: cj-winner
+    ports:
+      - "5050:8080"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=cryptojackpot_winner_db;Username=postgres;Password=postgres_local_dev"
+      GrpcServices__OrderAddress: "http://order-api:8080"
+
+  # ── Notification (Emails via Brevo/SMTP) ──
+  notification-api:
+    build:
+      context: .
+      dockerfile: Microservices/Notification/Api/Dockerfile
+    container_name: cj-notification
+    ports:
+      - "5060:8080"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=cryptojackpot_notification_db;Username=postgres;Password=postgres_local_dev"
+      Brevo__ApiKey: ""
+      Brevo__SenderEmail: "noreply@localhost"
+      Brevo__SenderName: "CryptoJackpot Local"
+      Brevo__BaseUrl: "http://localhost:3000"
+
+  # ── Audit (Logs en MongoDB) ──
+  audit-api:
+    build:
+      context: .
+      dockerfile: Microservices/Audit/Api/Dockerfile
+    container_name: cj-audit
+    ports:
+      - "5011:8080"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:8080"
+      MongoDB__ConnectionString: "mongodb://admin:mongodb_local_dev@mongodb:27017"
+      MongoDB__DatabaseName: "cryptojackpot_audit"
+      Kafka__BootstrapServers: "redpanda:9092"
+      OpenTelemetry__Enabled: "false"
+
+  # ── Content (Testimonios, CMS) ──
+  content-api:
+    build:
+      context: .
+      dockerfile: Microservices/Content/Api/Dockerfile
+    container_name: cj-content
+    ports:
+      - "5070:8080"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    environment:
+      <<: *common-env
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=cryptojackpot_content_db;Username=postgres;Password=postgres_local_dev"
+      DigitalOcean__SpacesEndpoint: "http://minio:9000"
+      DigitalOcean__SpacesRegion: "us-east-1"
+      DigitalOcean__SpacesBucket: "cryptojackpot-local"
+      DigitalOcean__SpacesAccessKey: "minioadmin"
+      DigitalOcean__SpacesSecretKey: "minioadmin"
+
+  # ─────────────────────────────────────────────
+  #  BFF GATEWAY (YARP Reverse Proxy)
+  # ─────────────────────────────────────────────
+
+  bff-gateway:
+    build:
+      context: .
+      dockerfile: Microservices/BFF/Dockerfile
+    container_name: cj-bff
+    ports:
+      - "8080:8080"
+    depends_on:
+      - identity-api
+      - lottery-api
+      - order-api
+      - wallet-api
+      - winner-api
+      - notification-api
+      - audit-api
+      - content-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:8080"
+      JwtSettings__SecretKey: "4ffe50319fbe565a10c6cb8b2300cf91ad85c31a73f1a96826f0907535fb868f"
+      JwtSettings__Issuer: "CryptoJackpotIdentity"
+      JwtSettings__Audience: "CryptoJackpotApp"
+      Cors__AllowedOrigins__0: "http://localhost:3000"
+      Cors__AllowedOrigins__1: "http://localhost:8080"
+      OpenTelemetry__Enabled: "false"
+      # YARP Reverse Proxy — apunta a los servicios del docker network
+      ReverseProxy__Clusters__identity-cluster__Destinations__default__Address: "http://identity-api:8080"
+      ReverseProxy__Clusters__lottery-cluster__Destinations__default__Address: "http://lottery-api:8080"
+      ReverseProxy__Clusters__order-cluster__Destinations__default__Address: "http://order-api:8080"
+      ReverseProxy__Clusters__wallet-cluster__Destinations__default__Address: "http://wallet-api:8080"
+      ReverseProxy__Clusters__winner-cluster__Destinations__default__Address: "http://winner-api:8080"
+      ReverseProxy__Clusters__notification-cluster__Destinations__default__Address: "http://notification-api:8080"
+      ReverseProxy__Clusters__audit-cluster__Destinations__default__Address: "http://audit-api:8080"
+      ReverseProxy__Clusters__content-cluster__Destinations__default__Address: "http://content-api:8080"
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  minio_data:

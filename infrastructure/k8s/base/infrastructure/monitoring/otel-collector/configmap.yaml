@@ -1,0 +1,157 @@
+﻿# OTel Collector ConfigMap — base (sin credenciales)
+# Las credenciales de Grafana Cloud se inyectan por overlay (Secret)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: monitoring
+  labels:
+    app: otel-collector
+data:
+  config.yaml: |
+    # ==========================================================================
+    # OpenTelemetry Collector — CryptoJackpot
+    # Recibe OTLP gRPC de los microservicios y exporta a Grafana Cloud
+    # ==========================================================================
+
+    extensions:
+      health_check:
+        endpoint: "0.0.0.0:13133"
+      pprof:
+        endpoint: "0.0.0.0:1777"
+      # Un solo basicauth para Tempo, Prometheus y Loki
+      # username = GRAFANA_INSTANCE_ID (stack instance ID)
+      # password = Access Policy Token con scopes: metrics:write, traces:write, logs:write
+      basicauth/grafana:
+        client_auth:
+          username: "${GRAFANA_INSTANCE_ID}"
+          password: "${GRAFANA_API_KEY}"
+
+    receivers:
+      # Recibe trazas + métricas + logs desde los microservicios .NET
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:4317"
+          http:
+            endpoint: "0.0.0.0:4318"
+
+      # Métricas propias del Collector
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: "otel-collector"
+              scrape_interval: 30s
+              static_configs:
+                - targets: ["0.0.0.0:8888"]
+
+    processors:
+      # Agrupa en lotes para eficiencia de red
+      batch:
+        timeout: 5s
+        send_batch_size: 512
+        send_batch_max_size: 1024
+
+      # Limita memoria para evitar OOM en el pod
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 400
+        spike_limit_mib: 100
+
+      # Añade atributos k8s a todos los spans/métricas
+      resource:
+        attributes:
+          - key: k8s.cluster.name
+            value: "cryptojackpot"
+            action: upsert
+          - key: cloud.provider
+            value: "digitalocean"
+            action: upsert
+
+      # Filtra health-checks para no saturar trazas
+      filter/healthchecks:
+        traces:
+          span:
+            - 'attributes["http.target"] == "/health"'
+            - 'attributes["url.path"] == "/health"'
+
+    exporters:
+      # -----------------------------------------------------------------------
+      # Grafana Cloud — Tempo (trazas via OTLP HTTP)
+      # Endpoint: host:443  — el collector añade /otlp automáticamente
+      # -----------------------------------------------------------------------
+      otlphttp/tempo:
+        endpoint: "${GRAFANA_TEMPO_ENDPOINT}"
+        auth:
+          authenticator: basicauth/grafana
+        tls:
+          insecure: false
+        headers:
+          # Grafana Cloud requiere el header X-Scope-OrgID en algunas regiones
+          X-Scope-OrgID: "cryptojackpot"
+
+      # -----------------------------------------------------------------------
+      # Grafana Cloud — Prometheus Remote Write
+      # Endpoint ya incluye el path /api/prom/push en el Secret
+      # username = Prometheus Instance ID (distinto al Grafana Instance ID)
+      # -----------------------------------------------------------------------
+      prometheusremotewrite:
+        endpoint: "${GRAFANA_PROMETHEUS_ENDPOINT}"
+        auth:
+          authenticator: basicauth/grafana
+        tls:
+          insecure: false
+        resource_to_telemetry_conversion:
+          enabled: true
+        headers:
+          X-Scope-OrgID: "cryptojackpot"
+
+      # -----------------------------------------------------------------------
+      # Grafana Cloud — Loki (logs)
+      # Endpoint: host base — el exporter añade /loki/api/v1/push
+      # -----------------------------------------------------------------------
+      loki:
+        endpoint: "${GRAFANA_LOKI_ENDPOINT}"
+        auth:
+          authenticator: basicauth/grafana
+        tls:
+          insecure: false
+        default_labels_enabled:
+          exporter: false
+          job: true
+          instance: false
+          level: true
+        headers:
+          X-Scope-OrgID: "cryptojackpot"
+
+      # Debug (nivel basic — muestra solo contadores, no payload)
+      debug:
+        verbosity: basic
+
+    service:
+      extensions: [health_check, basicauth/grafana, pprof]
+      pipelines:
+        # Trazas: microservicios → filtro health → batch → Tempo
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, filter/healthchecks, batch]
+          exporters: [otlphttp/tempo]
+
+        # Métricas: microservicios + self-metrics → batch → Prometheus
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [memory_limiter, resource, batch]
+          exporters: [prometheusremotewrite]
+
+        # Logs: microservicios → batch → Loki
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, resource, batch]
+          exporters: [loki]
+
+      telemetry:
+        logs:
+          level: "warn"
+        metrics:
+          address: "0.0.0.0:8888"
+

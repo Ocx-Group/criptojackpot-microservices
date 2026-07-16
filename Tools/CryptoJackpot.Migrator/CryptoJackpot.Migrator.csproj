@@ -23,6 +23,7 @@
     <ProjectReference Include="..\..\Microservices\Wallet\Data\CryptoJackpot.Wallet.Data.csproj" />
     <ProjectReference Include="..\..\Microservices\Winner\Data\CryptoJackpot.Winner.Data.csproj" />
     <ProjectReference Include="..\..\Microservices\Notification\Data\CryptoJackpot.Notification.Data.csproj" />
+    <ProjectReference Include="..\..\Microservices\Content\Data\CryptoJackpot.Content.Data.csproj" />
   </ItemGroup>
 
 </Project>

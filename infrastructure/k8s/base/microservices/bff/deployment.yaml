@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: bff-gateway
-  namespace: cryptojackpot
+  namespace: criptojackpot
   labels:
     app: bff-gateway
     component: api-gateway
@@ -21,17 +21,14 @@ spec:
         - name: bff-gateway
           image: cryptojackpot/bff-gateway
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               name: http
+          envFrom:
+            - configMapRef:
+                name: app-config
           env:
-            - name: ASPNETCORE_ENVIRONMENT
-              valueFrom:
-                configMapKeyRef:
-                  name: app-config
-                  key: ASPNETCORE_ENVIRONMENT
-                  optional: true
             - name: ASPNETCORE_URLS
-              value: "http://+:80"
+              value: "http://+:8080"
             - name: JwtSettings__SecretKey
               valueFrom:
                 secretKeyRef:
@@ -47,17 +44,50 @@ spec:
                 secretKeyRef:
                   name: jwt-secrets
                   key: JWT_AUDIENCE
+            - name: ReverseProxy__Clusters__identity-cluster__Destinations__default__Address
+              value: "http://identity-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__lottery-cluster__Destinations__default__Address
+              value: "http://lottery-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__order-cluster__Destinations__default__Address
+              value: "http://order-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__wallet-cluster__Destinations__default__Address
+              value: "http://wallet-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__winner-cluster__Destinations__default__Address
+              value: "http://winner-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__notification-cluster__Destinations__default__Address
+              value: "http://notification-api.criptojackpot.svc.cluster.local"
+            - name: ReverseProxy__Clusters__audit-cluster__Destinations__default__Address
+              value: "http://audit-api.criptojackpot.svc.cluster.local"
+            # Route overrides (Docker image has outdated route paths)
+            - name: ReverseProxy__Routes__lottery-hub-route__Match__Path
+              value: "/hubs/lottery/{**remainder}"
+            - name: ReverseProxy__Routes__lottery-hub-route__ClusterId
+              value: "lottery-cluster"
+            - name: ReverseProxy__Routes__lottery-hub-route__Metadata__WebSocketsSupported
+              value: "true"
+            - name: ReverseProxy__Routes__order-webhook-route__ClusterId
+              value: "order-cluster"
+            - name: ReverseProxy__Routes__order-webhook-route__Match__Path
+              value: "/api/v1/webhooks/{**remainder}"
+            - name: ReverseProxy__Routes__lottery-numbers-route__ClusterId
+              value: "lottery-cluster"
+            - name: ReverseProxy__Routes__lottery-numbers-route__Match__Path
+              value: "/api/v1/lottery-numbers/{**remainder}"
+            - name: ReverseProxy__Routes__lottery-prizes-route__ClusterId
+              value: "lottery-cluster"
+            - name: ReverseProxy__Routes__lottery-prizes-route__Match__Path
+              value: "/api/v1/prizes/{**remainder}"
           livenessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8080
             initialDelaySeconds: 10
             periodSeconds: 30
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 3
@@ -68,4 +98,3 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "250m"
-

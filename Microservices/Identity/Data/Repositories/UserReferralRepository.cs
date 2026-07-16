@@ -35,5 +35,13 @@ namespace CryptoJackpot.Identity.Data.Repositories
                     Email = ur.Referred.Email,
                 })
                 .ToListAsync();
+
+        public async Task<Guid?> GetReferrerGuidByReferredGuidAsync(Guid referredUserGuid, CancellationToken cancellationToken = default)
+        {
+            return await context.UserReferrals
+                .Where(ur => ur.Referred.UserGuid == referredUserGuid)
+                .Select(ur => (Guid?)ur.Referrer.UserGuid)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
     }
 }

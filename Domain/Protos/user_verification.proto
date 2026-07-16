@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option csharp_namespace = "CryptoJackpot.Domain.Core.Protos";
+
+package user_verification;
+
+// Service exposed by Identity to verify user identity for sensitive operations.
+service UserVerificationGrpcService {
+  // Returns user info needed for withdrawal verification (email, name, 2FA status).
+  rpc GetUserInfo (UserInfoRequest) returns (UserInfoResponse);
+
+  // Verifies a TOTP code for users with 2FA enabled.
+  rpc VerifyTotpCode (VerifyTotpRequest) returns (VerifyTotpResponse);
+}
+
+message UserInfoRequest {
+  string user_guid = 1;
+}
+
+message UserInfoResponse {
+  bool found = 1;
+  string email = 2;
+  string name = 3;
+  string last_name = 4;
+  bool two_factor_enabled = 5;
+}
+
+message VerifyTotpRequest {
+  string user_guid = 1;
+  string code = 2;
+}
+
+message VerifyTotpResponse {
+  bool is_valid = 1;
+  string error_message = 2;
+}

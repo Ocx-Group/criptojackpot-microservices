@@ -20,7 +20,7 @@ output "cluster_endpoint" {
 
 output "cluster_token" {
   description = "Token para autenticación"
-  value       = data.digitalocean_kubernetes_cluster.main.kube_config[0].token
+  value       = try(digitalocean_kubernetes_cluster.main.kube_config[0].token, "")
   sensitive   = true
 }
 

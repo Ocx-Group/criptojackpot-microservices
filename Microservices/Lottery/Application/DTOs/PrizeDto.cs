@@ -1,4 +1,5 @@
 using CryptoJackpot.Lottery.Domain.Enums;
+using CryptoJackpot.Lottery.Domain.Models;
 
 namespace CryptoJackpot.Lottery.Application.DTOs;
 
@@ -17,6 +18,7 @@ public class PrizeDto
     public decimal? CashAlternative { get; set; }
     public bool IsDeliverable { get; set; }
     public bool IsDigital { get; set; }
+    public Dictionary<string, PrizeTranslation>? Translations { get; set; }
     public Guid? WinnerTicketId { get; set; }
     public DateTime? ClaimedAt { get; set; }
     public DateTime CreatedAt { get; set; }

@@ -1,4 +1,5 @@
 ﻿using CryptoJackpot.Lottery.Data.Context;
+using CryptoJackpot.Lottery.Domain.Configuration;
 using CryptoJackpot.Lottery.Domain.Enums;
 using CryptoJackpot.Lottery.Domain.Exceptions;
 using CryptoJackpot.Lottery.Domain.Interfaces;
@@ -9,11 +10,13 @@ namespace CryptoJackpot.Lottery.Data.Repositories;
 public class LotteryNumberRepository : ILotteryNumberRepository
 {
     private readonly LotteryDbContext _context;
+    private readonly int _reservationMinutes;
     private static readonly Random _random = new();
 
-    public LotteryNumberRepository(LotteryDbContext context)
+    public LotteryNumberRepository(LotteryDbContext context, ReservationSettings reservationSettings)
     {
         _context = context;
+        _reservationMinutes = reservationSettings.ReservationMinutes;
     }
 
     public async Task<IEnumerable<LotteryNumber>> GetNumbersByLotteryAsync(long lotteryId)
@@ -279,7 +282,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
         {
             number.Status = NumberStatus.Reserved;
             number.OrderId = orderId;
-            number.ReservationExpiresAt = now.AddMinutes(5);
+            number.ReservationExpiresAt = now.AddMinutes(_reservationMinutes);
             number.UpdatedAt = now;
         }
 
@@ -395,7 +398,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
         {
             number.Status = NumberStatus.Reserved;
             number.OrderId = orderId;
-            number.ReservationExpiresAt = now.AddMinutes(5);
+            number.ReservationExpiresAt = now.AddMinutes(_reservationMinutes);
             number.UpdatedAt = now;
         }
 
@@ -482,7 +485,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
             SELECT * FROM lottery_numbers 
             WHERE lottery_id = {0} 
               AND number = {1} 
-              AND status = 'Available'
+              AND status = 0
               AND deleted_at IS NULL
             ORDER BY series ASC
             LIMIT {2}
@@ -518,5 +521,66 @@ public class LotteryNumberRepository : ILotteryNumberRepository
             .CountAsync(n => n.LotteryId == lotteryId && 
                             n.Number == number && 
                             n.Status == NumberStatus.Available);
+    }
+
+    /// <summary>
+    /// Gets status counts (sold, reserved) grouped by number for the board view.
+    /// Uses GROUP BY at the DB level for efficiency.
+    /// </summary>
+    public async Task<Dictionary<int, (int Sold, int Reserved)>> GetStatusCountsPerNumberAsync(long lotteryId)
+    {
+        var counts = await _context.LotteryNumbers
+            .Where(x => x.LotteryId == lotteryId && x.Status != NumberStatus.Available)
+            .GroupBy(x => x.Number)
+            .Select(g => new
+            {
+                Number = g.Key,
+                Sold = g.Count(x => x.Status == NumberStatus.Sold),
+                Reserved = g.Count(x => x.Status == NumberStatus.Reserved)
+            })
+            .ToListAsync();
+
+        return counts.ToDictionary(c => c.Number, c => (c.Sold, c.Reserved));
+    }
+
+    /// <summary>
+    /// Gets all lottery number records for a specific number (all series).
+    /// </summary>
+    public async Task<List<LotteryNumber>> GetSeriesForNumberAsync(long lotteryId, int number)
+    {
+        return await _context.LotteryNumbers
+            .AsNoTracking()
+            .Where(x => x.LotteryId == lotteryId && x.Number == number)
+            .OrderBy(x => x.Series)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Revokes sold/reserved numbers back to available (order revocation after optimistic credit).
+    /// Clears TicketId, OrderId, and ReservationExpiresAt.
+    /// Returns the number of records updated.
+    /// </summary>
+    public async Task<int> RevokeSoldNumbersByGuidsAsync(List<Guid> lotteryNumberGuids)
+    {
+        var numbers = await _context.LotteryNumbers
+            .Where(x => lotteryNumberGuids.Contains(x.LotteryNumberGuid) 
+                        && (x.Status == NumberStatus.Sold || x.Status == NumberStatus.Reserved))
+            .ToListAsync();
+
+        if (numbers.Count == 0)
+            return 0;
+
+        var now = DateTime.UtcNow;
+        foreach (var number in numbers)
+        {
+            number.Status = NumberStatus.Available;
+            number.TicketId = null;
+            number.OrderId = null;
+            number.ReservationExpiresAt = null;
+            number.UpdatedAt = now;
+        }
+
+        await _context.SaveChangesAsync();
+        return numbers.Count;
     }
 }

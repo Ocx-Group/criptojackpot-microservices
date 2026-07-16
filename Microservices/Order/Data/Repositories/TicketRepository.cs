@@ -57,5 +57,28 @@ public class TicketRepository : ITicketRepository
         await _context.SaveChangesAsync();
         return ticket;
     }
+
+    public async Task<int> CountAsync(DateTime? from = null, DateTime? to = null)
+    {
+        var query = _context.Tickets.AsQueryable();
+        if (from.HasValue) query = query.Where(t => t.CreatedAt >= from.Value);
+        if (to.HasValue) query = query.Where(t => t.CreatedAt < to.Value);
+        return await query.CountAsync();
+    }
+
+    public async Task<decimal> SumRevenueAsync(DateTime? from = null, DateTime? to = null)
+    {
+        var query = _context.Tickets.AsQueryable();
+        if (from.HasValue) query = query.Where(t => t.CreatedAt >= from.Value);
+        if (to.HasValue) query = query.Where(t => t.CreatedAt < to.Value);
+        return await query.SumAsync(t => t.PurchaseAmount);
+    }
+
+    public async Task<Ticket?> GetByLotteryNumberSeriesAsync(Guid lotteryId, int number, int series)
+        => await _context.Tickets
+            .AsNoTracking()
+            .Include(t => t.OrderDetail)
+                .ThenInclude(od => od.Order)
+            .FirstOrDefaultAsync(t => t.LotteryId == lotteryId && t.Number == number && t.Series == series);
 }
 

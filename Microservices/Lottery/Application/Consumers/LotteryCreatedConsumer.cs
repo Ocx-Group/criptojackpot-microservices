@@ -37,7 +37,8 @@ public class LotteryCreatedConsumer : IConsumer<LotteryCreatedEvent>
                 message.LotteryDbId,
                 message.MinNumber,
                 message.MaxNumber,
-                message.TotalSeries);
+                message.TotalSeries,
+                (Domain.Enums.LotteryType)message.LotteryType);
 
             var batchHelper = new BatchInsertHelper(_lotteryNumberRepository, _logger);
             var totalInserted = await batchHelper.InsertInBatchesAsync(lotteryNumbers, context.CancellationToken);
