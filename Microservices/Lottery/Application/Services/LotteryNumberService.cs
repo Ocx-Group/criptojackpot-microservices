@@ -2,6 +2,7 @@ using CryptoJackpot.Domain.Core.Bus;
 using CryptoJackpot.Domain.Core.IntegrationEvents.Lottery;
 using CryptoJackpot.Lottery.Application.DTOs;
 using CryptoJackpot.Lottery.Application.Interfaces;
+using CryptoJackpot.Lottery.Domain.Configuration;
 using CryptoJackpot.Lottery.Domain.Enums;
 using CryptoJackpot.Lottery.Domain.Interfaces;
 using FluentResults;
@@ -19,17 +20,19 @@ public class LotteryNumberService : ILotteryNumberService
     private readonly ILotteryDrawRepository _lotteryDrawRepository;
     private readonly IEventBus _eventBus;
     private readonly ILogger<LotteryNumberService> _logger;
-    private const int ReservationMinutes = 65;
+    private readonly int _reservationMinutes;
 
     public LotteryNumberService(
         ILotteryNumberRepository lotteryNumberRepository,
         ILotteryDrawRepository lotteryDrawRepository,
         IEventBus eventBus,
+        ReservationSettings reservationSettings,
         ILogger<LotteryNumberService> logger)
     {
         _lotteryNumberRepository = lotteryNumberRepository;
         _lotteryDrawRepository = lotteryDrawRepository;
         _eventBus = eventBus;
+        _reservationMinutes = reservationSettings.ReservationMinutes;
         _logger = logger;
     }
 
@@ -89,7 +92,7 @@ public class LotteryNumberService : ILotteryNumberService
 
         // Reserve the number
         var now = DateTime.UtcNow;
-        var expiresAt = now.AddMinutes(ReservationMinutes);
+        var expiresAt = now.AddMinutes(_reservationMinutes);
 
         availableNumber.Status = NumberStatus.Reserved;
         availableNumber.ReservationExpiresAt = expiresAt;
@@ -110,7 +113,7 @@ public class LotteryNumberService : ILotteryNumberService
             DisplayNumber = availableNumber.DisplayNumber,
             Series = availableNumber.Series,
             ReservationExpiresAt = expiresAt,
-            SecondsRemaining = ReservationMinutes * 60
+            SecondsRemaining = _reservationMinutes * 60
         });
     }
 
@@ -190,7 +193,7 @@ public class LotteryNumberService : ILotteryNumberService
 
         // Reserve all the numbers
         var now = DateTime.UtcNow;
-        var expiresAt = now.AddMinutes(ReservationMinutes);
+        var expiresAt = now.AddMinutes(_reservationMinutes);
         var reservations = new List<NumberReservationDto>();
 
         foreach (var availableNumber in availableNumbers)
@@ -208,7 +211,7 @@ public class LotteryNumberService : ILotteryNumberService
                 DisplayNumber = availableNumber.DisplayNumber,
                 Series = availableNumber.Series,
                 ReservationExpiresAt = expiresAt,
-                SecondsRemaining = ReservationMinutes * 60
+                SecondsRemaining = _reservationMinutes * 60
             });
         }
 
@@ -283,7 +286,7 @@ public class LotteryNumberService : ILotteryNumberService
 
         // Reserve all the numbers WITH OrderId
         var now = DateTime.UtcNow;
-        var expiresAt = now.AddMinutes(ReservationMinutes);
+        var expiresAt = now.AddMinutes(_reservationMinutes);
         var reservations = new List<NumberReservationDto>();
 
         foreach (var availableNumber in availableNumbers)
@@ -302,7 +305,7 @@ public class LotteryNumberService : ILotteryNumberService
                 DisplayNumber = availableNumber.DisplayNumber,
                 Series = availableNumber.Series,
                 ReservationExpiresAt = expiresAt,
-                SecondsRemaining = ReservationMinutes * 60
+                SecondsRemaining = _reservationMinutes * 60
             });
         }
 
@@ -379,7 +382,7 @@ public class LotteryNumberService : ILotteryNumberService
         }
 
         var now = DateTime.UtcNow;
-        var expiresAt = now.AddMinutes(ReservationMinutes);
+        var expiresAt = now.AddMinutes(_reservationMinutes);
 
         // Calculate total amount for all reservations
         var ticketPrice = lottery.TicketPrice;
@@ -422,7 +425,7 @@ public class LotteryNumberService : ILotteryNumberService
             TotalAmount = reservationAmount,
             TicketPrice = ticketPrice,
             ExpiresAt = expiresAt,
-            SecondsRemaining = ReservationMinutes * 60,
+            SecondsRemaining = _reservationMinutes * 60,
             Reservations = allReservations,
             AddedToExistingOrder = isAddToExisting
         });

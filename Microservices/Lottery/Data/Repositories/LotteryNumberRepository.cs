@@ -1,4 +1,5 @@
 ﻿using CryptoJackpot.Lottery.Data.Context;
+using CryptoJackpot.Lottery.Domain.Configuration;
 using CryptoJackpot.Lottery.Domain.Enums;
 using CryptoJackpot.Lottery.Domain.Exceptions;
 using CryptoJackpot.Lottery.Domain.Interfaces;
@@ -9,11 +10,13 @@ namespace CryptoJackpot.Lottery.Data.Repositories;
 public class LotteryNumberRepository : ILotteryNumberRepository
 {
     private readonly LotteryDbContext _context;
+    private readonly int _reservationMinutes;
     private static readonly Random _random = new();
 
-    public LotteryNumberRepository(LotteryDbContext context)
+    public LotteryNumberRepository(LotteryDbContext context, ReservationSettings reservationSettings)
     {
         _context = context;
+        _reservationMinutes = reservationSettings.ReservationMinutes;
     }
 
     public async Task<IEnumerable<LotteryNumber>> GetNumbersByLotteryAsync(long lotteryId)
@@ -279,7 +282,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
         {
             number.Status = NumberStatus.Reserved;
             number.OrderId = orderId;
-            number.ReservationExpiresAt = now.AddMinutes(65);
+            number.ReservationExpiresAt = now.AddMinutes(_reservationMinutes);
             number.UpdatedAt = now;
         }
 
@@ -395,7 +398,7 @@ public class LotteryNumberRepository : ILotteryNumberRepository
         {
             number.Status = NumberStatus.Reserved;
             number.OrderId = orderId;
-            number.ReservationExpiresAt = now.AddMinutes(65);
+            number.ReservationExpiresAt = now.AddMinutes(_reservationMinutes);
             number.UpdatedAt = now;
         }
 

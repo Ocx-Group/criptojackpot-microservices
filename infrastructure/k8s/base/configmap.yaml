@@ -9,3 +9,5 @@ data:
   ASPNETCORE_URLS: "http://+:8080"
   Logging__LogLevel__Default: "Information"
   Logging__LogLevel__Microsoft.AspNetCore: "Warning"
+  # Minutes a reservation/order stays valid for the user to complete payment
+  ReservationSettings__ReservationMinutes: "120"
