@@ -149,6 +149,11 @@ namespace CryptoJackpot.Order.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
 
+                    b.Property<string>("DisplayNumber")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("display_number");
+
                     b.Property<long?>("GiftRecipientId")
                         .HasColumnType("bigint")
                         .HasColumnName("gift_recipient_id");
@@ -221,6 +226,11 @@ namespace CryptoJackpot.Order.Data.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
+
+                    b.Property<string>("DisplayNumber")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("display_number");
 
                     b.Property<long?>("GiftSenderId")
                         .HasColumnType("bigint")

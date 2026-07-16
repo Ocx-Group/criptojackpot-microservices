@@ -33,8 +33,8 @@ public class LotteryDrawDto
     public DateTime UpdatedAt { get; set; }
 
     /// <summary>
-    /// Number of digits for formatting (e.g., 3 for Pick3). 0 means no padding.
+    /// Number of digits for formatting (e.g., 3 for Pick3, 4 for a 0-9999 raffle).
     /// </summary>
-    public int NumberDigits => LotteryNumberFormatter.GetNumberDigits(Type);
+    public int NumberDigits => LotteryNumberFormatter.GetNumberDigits(Type, MaxNumber);
 }
 

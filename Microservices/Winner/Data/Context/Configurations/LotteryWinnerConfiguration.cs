@@ -37,6 +37,10 @@ public class LotteryWinnerConfiguration : IEntityTypeConfiguration<LotteryWinner
             .HasColumnName("number")
             .IsRequired();
 
+        builder.Property(w => w.DisplayNumber)
+            .HasColumnName("display_number")
+            .HasMaxLength(10);
+
         builder.Property(w => w.Series)
             .HasColumnName("series")
             .IsRequired();

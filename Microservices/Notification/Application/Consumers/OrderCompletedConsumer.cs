@@ -48,6 +48,7 @@ public class OrderCompletedConsumer : IConsumer<OrderCompletedEvent>
             Tickets = message.Tickets.Select(t => new PurchasedTicketItemDto
             {
                 Number = t.Number,
+                DisplayNumber = t.DisplayNumber,
                 Series = t.Series,
                 Amount = t.Amount,
                 IsGift = t.IsGift

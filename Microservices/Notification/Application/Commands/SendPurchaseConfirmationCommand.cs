@@ -23,6 +23,10 @@ public class SendPurchaseConfirmationCommand : IRequest<Result<bool>>
 public class PurchasedTicketItemDto
 {
     public int Number { get; set; }
+
+    /// <summary>Zero-padded display representation of Number (e.g. "0007"). Null for legacy events.</summary>
+    public string? DisplayNumber { get; set; }
+
     public int Series { get; set; }
     public decimal Amount { get; set; }
     public bool IsGift { get; set; }

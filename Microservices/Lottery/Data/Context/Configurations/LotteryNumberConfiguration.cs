@@ -15,6 +15,7 @@ public class LotteryNumberConfiguration : IEntityTypeConfiguration<LotteryNumber
         
         builder.Property(e => e.LotteryId).IsRequired();
         builder.Property(e => e.Number).IsRequired();
+        builder.Property(e => e.DisplayNumber).IsRequired().HasMaxLength(10);
         builder.Property(e => e.Series).IsRequired();
         builder.Property(e => e.Status)
             .HasConversion<int>()

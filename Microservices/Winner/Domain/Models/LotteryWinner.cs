@@ -13,6 +13,13 @@ public class LotteryWinner : BaseEntity
 
     // Winning ticket details
     public int Number { get; set; }
+
+    /// <summary>
+    /// Zero-padded display representation of Number (e.g. "007" for Pick3,
+    /// "0007" for a 0-9999 raffle). Null only for legacy rows.
+    /// </summary>
+    public string? DisplayNumber { get; set; }
+
     public int Series { get; set; }
     public Guid TicketGuid { get; set; }
     public decimal PurchaseAmount { get; set; }

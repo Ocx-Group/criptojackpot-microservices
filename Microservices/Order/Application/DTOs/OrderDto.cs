@@ -26,6 +26,7 @@ public class OrderDetailDto
 {
     public long Id { get; set; }
     public int Number { get; set; }
+    public string? DisplayNumber { get; set; }
     public int Series { get; set; }
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; }

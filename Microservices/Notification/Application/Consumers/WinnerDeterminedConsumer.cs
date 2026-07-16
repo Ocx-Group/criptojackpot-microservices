@@ -43,6 +43,7 @@ public class WinnerDeterminedConsumer : IConsumer<WinnerDeterminedEvent>
             LotteryId = message.LotteryId,
             LotteryTitle = message.LotteryTitle,
             Number = message.Number,
+            DisplayNumber = message.DisplayNumber,
             Series = message.Series,
             PrizeName = message.PrizeName,
             PrizeEstimatedValue = message.PrizeEstimatedValue,

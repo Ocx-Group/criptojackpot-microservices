@@ -8,6 +8,7 @@ public class WinnerDto
     public Guid LotteryId { get; set; }
     public string LotteryTitle { get; set; } = null!;
     public int Number { get; set; }
+    public string? DisplayNumber { get; set; }
     public int Series { get; set; }
     public Guid TicketGuid { get; set; }
     public decimal PurchaseAmount { get; set; }

@@ -94,7 +94,7 @@ public class SendPurchaseConfirmationHandler : IRequestHandler<SendPurchaseConfi
                 ? " <span style=\"background-color:#FFA500;color:#fff;padding:2px 6px;border-radius:3px;font-size:11px;\">GIFT</span>"
                 : string.Empty;
 
-            var formattedNumber = FormatNumber(ticket.Number, lotteryType);
+            var formattedNumber = ticket.DisplayNumber ?? FormatNumber(ticket.Number, lotteryType);
 
             sb.AppendLine($"""
                 <tr>

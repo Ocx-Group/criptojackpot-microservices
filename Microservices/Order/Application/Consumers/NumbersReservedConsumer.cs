@@ -91,6 +91,9 @@ public class NumbersReservedConsumer : IConsumer<NumbersReservedEvent>
             order.OrderDetails.Add(new OrderDetail
             {
                 Number = message.Numbers[i],
+                DisplayNumber = i < message.DisplayNumbers.Length
+                    ? message.DisplayNumbers[i]
+                    : message.Numbers[i].ToString(),
                 Series = series,
                 UnitPrice = unitPrice,
                 Quantity = 1,
@@ -174,6 +177,9 @@ public class NumbersReservedConsumer : IConsumer<NumbersReservedEvent>
             existingOrder.OrderDetails.Add(new OrderDetail
             {
                 Number = message.Numbers[i],
+                DisplayNumber = i < message.DisplayNumbers.Length
+                    ? message.DisplayNumbers[i]
+                    : message.Numbers[i].ToString(),
                 Series = series,
                 UnitPrice = unitPrice,
                 Quantity = 1,

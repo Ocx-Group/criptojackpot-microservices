@@ -49,6 +49,7 @@ public class LotteryNumberService : ILotteryNumberService
             .Select(g => new AvailableNumberDto
             {
                 Number = g.Key,
+                DisplayNumber = g.First().DisplayNumber,
                 AvailableSeries = g.Count(n => n.Status == NumberStatus.Available),
                 TotalSeries = g.Count()
             })
@@ -106,6 +107,7 @@ public class LotteryNumberService : ILotteryNumberService
             LotteryNumberGuid = availableNumber.LotteryNumberGuid,
             LotteryGuid = lotteryGuid,
             Number = availableNumber.Number,
+            DisplayNumber = availableNumber.DisplayNumber,
             Series = availableNumber.Series,
             ReservationExpiresAt = expiresAt,
             SecondsRemaining = ReservationMinutes * 60
@@ -125,6 +127,7 @@ public class LotteryNumberService : ILotteryNumberService
             NumberId = n.Id,
             LotteryNumberGuid = n.LotteryNumberGuid,
             Number = n.Number,
+            DisplayNumber = n.DisplayNumber,
             Series = n.Series,
             Status = n.Status
         }).ToList();
@@ -202,6 +205,7 @@ public class LotteryNumberService : ILotteryNumberService
                 LotteryNumberGuid = availableNumber.LotteryNumberGuid,
                 LotteryGuid = lotteryGuid,
                 Number = availableNumber.Number,
+                DisplayNumber = availableNumber.DisplayNumber,
                 Series = availableNumber.Series,
                 ReservationExpiresAt = expiresAt,
                 SecondsRemaining = ReservationMinutes * 60
@@ -295,6 +299,7 @@ public class LotteryNumberService : ILotteryNumberService
                 LotteryNumberGuid = availableNumber.LotteryNumberGuid,
                 LotteryGuid = lotteryGuid,
                 Number = availableNumber.Number,
+                DisplayNumber = availableNumber.DisplayNumber,
                 Series = availableNumber.Series,
                 ReservationExpiresAt = expiresAt,
                 SecondsRemaining = ReservationMinutes * 60
@@ -393,6 +398,7 @@ public class LotteryNumberService : ILotteryNumberService
             LotteryNo = lottery.LotteryNo,
             LotteryNumberIds = allReservations.Select(r => r.LotteryNumberGuid).ToList(),
             Numbers = allReservations.Select(r => r.Number).ToArray(),
+            DisplayNumbers = allReservations.Select(r => r.DisplayNumber).ToArray(),
             SeriesArray = allReservations.Select(r => r.Series).ToArray(),
             TicketPrice = ticketPrice,
             TotalAmount = reservationAmount,

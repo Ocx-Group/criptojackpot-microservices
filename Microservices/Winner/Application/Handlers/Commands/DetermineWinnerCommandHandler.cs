@@ -68,11 +68,18 @@ public class DetermineWinnerCommandHandler : IRequestHandler<DetermineWinnerComm
             return Result.Fail<WinnerDto>(
                 new BadRequestError($"El boleto no está activo. Estado actual: {ticket.Status}"));
 
+        // Prefer the display string sent by the admin UI (it knows the lottery's
+        // number range); fall back to the Pick3 rule for older clients.
+        var displayNumber = !string.IsNullOrWhiteSpace(request.NumberDisplay)
+            ? request.NumberDisplay
+            : request.LotteryType == 5 ? request.Number.ToString("D3") : request.Number.ToString();
+
         var winner = new LotteryWinner
         {
             LotteryId = request.LotteryId,
             LotteryTitle = request.LotteryTitle,
             Number = request.Number,
+            DisplayNumber = displayNumber,
             Series = request.Series,
             TicketGuid = ticket.TicketGuid,
             UserId = ticket.UserId,
@@ -95,6 +102,7 @@ public class DetermineWinnerCommandHandler : IRequestHandler<DetermineWinnerComm
                 LotteryId = created.LotteryId,
                 LotteryTitle = created.LotteryTitle,
                 Number = created.Number,
+                DisplayNumber = created.DisplayNumber,
                 Series = created.Series,
                 UserId = created.UserId,
                 UserName = created.UserName,

@@ -14,6 +14,10 @@ public class SendWinnerNotificationCommand : IRequest<Result<bool>>
     public Guid LotteryId { get; set; }
     public string LotteryTitle { get; set; } = null!;
     public int Number { get; set; }
+
+    /// <summary>Zero-padded display representation of Number (e.g. "0007"). Null for legacy events.</summary>
+    public string? DisplayNumber { get; set; }
+
     public int Series { get; set; }
     public string? PrizeName { get; set; }
     public decimal? PrizeEstimatedValue { get; set; }

@@ -57,6 +57,13 @@ public class NumbersReservedEvent : Event
     /// The actual numbers reserved (e.g., [10, 10] for number 10 series 1 and 2)
     /// </summary>
     public int[] Numbers { get; set; } = [];
+
+    /// <summary>
+    /// Zero-padded display representation of each reserved number, parallel to
+    /// <see cref="Numbers"/> (e.g., ["0010", "0010"]). Persisted downstream so
+    /// orders/tickets show exactly what the user selected.
+    /// </summary>
+    public string[] DisplayNumbers { get; set; } = [];
     
     /// <summary>
     /// The series of each reserved number

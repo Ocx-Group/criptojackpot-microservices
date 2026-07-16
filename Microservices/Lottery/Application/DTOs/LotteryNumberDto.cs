@@ -10,7 +10,8 @@ public class LotteryNumberDto
     public Guid? TicketId { get; set; }
 
     /// <summary>
-    /// Formatted number string based on lottery type (e.g., "007" for Pick3).
+    /// Zero-padded display representation persisted at generation time
+    /// (e.g., "007" for Pick3, "0007" for a 0-9999 raffle).
     /// </summary>
-    public string? FormattedNumber { get; set; }
+    public string? DisplayNumber { get; set; }
 }

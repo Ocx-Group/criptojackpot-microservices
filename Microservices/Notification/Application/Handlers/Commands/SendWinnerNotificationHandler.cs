@@ -48,9 +48,10 @@ public class SendWinnerNotificationHandler : IRequestHandler<SendWinnerNotificat
             ? $"${request.PrizeEstimatedValue.Value:F2}"
             : "TBD";
 
-        var formattedNumber = request.LotteryType == 5
-            ? request.Number.ToString("D3")
-            : request.Number.ToString();
+        var formattedNumber = request.DisplayNumber
+                              ?? (request.LotteryType == 5
+                                  ? request.Number.ToString("D3")
+                                  : request.Number.ToString());
 
         var body = template
             .Replace("{UserName}", request.UserName)
