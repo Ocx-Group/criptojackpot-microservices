@@ -20,6 +20,7 @@ public class WalletMappingProfile : Profile
 
         // WalletTransaction mappings
         CreateMap<WalletTransaction, WalletTransactionDto>();
+        CreateMap<WalletTransaction, AdminWalletTransactionDto>();
 
         // WithdrawalRequest mappings
         CreateMap<WithdrawalRequest, WithdrawalRequestDto>()

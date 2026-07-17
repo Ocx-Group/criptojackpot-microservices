@@ -6,7 +6,7 @@ using MediatR;
 
 namespace CryptoJackpot.Wallet.Application.Queries;
 
-public class GetAllTransactionsQuery : IRequest<Result<PagedList<WalletTransactionDto>>>
+public class GetAllTransactionsQuery : IRequest<Result<PagedList<AdminWalletTransactionDto>>>
 {
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 10;

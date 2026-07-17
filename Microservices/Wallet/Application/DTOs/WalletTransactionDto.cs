@@ -15,3 +15,13 @@ public class WalletTransactionDto
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+
+/// <summary>
+/// Administrative transaction view enriched with identity data.
+/// Identity fields are intentionally excluded from the customer transaction endpoint.
+/// </summary>
+public class AdminWalletTransactionDto : WalletTransactionDto
+{
+    public string? UserName { get; set; }
+    public string? UserEmail { get; set; }
+}
